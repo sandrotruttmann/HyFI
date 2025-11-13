@@ -1,0 +1,434 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\geometry{margin=1in}
+
+\title{Objective Function for Fault Network Parameter Optimization}
+\author{HyFI: Hypocenter-based 3D Imaging of Active Faults}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document describes the mathematical formulation of the objective function used for automatic optimization of fault network reconstruction parameters in the HyFI workflow. The objective function balances focal mechanism agreement, plane recovery rate, and statistical quality metrics to find optimal search radius ($r_{\text{nn}}$) and temporal window ($\Delta t_{\text{nn}}$) parameters.
+\end{abstract}
+
+\section{Introduction}
+
+The fault network reconstruction algorithm requires two critical parameters:
+\begin{itemize}
+    \item $r_{\text{nn}}$: Search radius for nearest neighbor search (meters)
+    \item $\Delta t_{\text{nn}}$: Temporal search window (hours)
+\end{itemize}
+
+These parameters significantly influence the quality and completeness of the resulting fault plane reconstructions. The objective function $f(r_{\text{nn}}, \Delta t_{\text{nn}})$ provides a quantitative measure to automatically determine optimal parameter values through optimization algorithms (Grid Search, Bayesian Optimization, or Optuna).
+
+\section{Objective Function Formulation}
+
+\subsection{Complete Formulation}
+
+The objective function is formulated as a \textbf{minimization problem}, where lower values indicate better parameter choices:
+
+\begin{equation}
+\label{eq:objective_main}
+f(r_{\text{nn}}, \Delta t_{\text{nn}}) = 
+\begin{cases}
+    \displaystyle \sum_{i=1}^{4} w_i \cdot S_i & \text{if focal mechanism data available} \\[10pt]
+    \displaystyle \sum_{i=1}^{2} w'_i \cdot S'_i & \text{otherwise}
+\end{cases}
+\end{equation}
+
+where $S_i \in [0, 1]$ are normalized score components and $w_i$ are their respective weights.
+
+\subsection{With Focal Mechanism Data}
+
+When focal mechanism data is available, the objective function comprises four weighted components:
+
+\begin{equation}
+\label{eq:objective_focal}
+f(r_{\text{nn}}, \Delta t_{\text{nn}}) = 0.60 \cdot S_{\text{angular}} + 0.05 \cdot S_{\text{active}} + 0.25 \cdot S_{\text{recovery}} + 0.15 \cdot S_{\lambda_{2/3}}
+\end{equation}
+
+\subsubsection{Component Weights}
+
+\begin{table}[h]
+\centering
+\caption{Objective function component weights with focal mechanisms}
+\label{tab:weights_focal}
+\begin{tabular}{lcp{7cm}}
+\toprule
+\textbf{Component} & \textbf{Weight} & \textbf{Rationale} \\
+\midrule
+Focal mechanism fit ($S_{\text{angular}}$) & 60\% & Primary validation criterion; ensures reconstructed planes agree with observed focal mechanisms \\
+Active plane bonus ($S_{\text{active}}$) & 5\% & Rewards correct identification of the active fault plane from the two nodal planes \\
+Plane recovery rate ($S_{\text{recovery}}$) & 25\% & Ensures solution completeness by maximizing number of successfully fitted planes \\
+Quality metric ($S_{\lambda_{2/3}}$) & 15\% & Ensures statistical reliability through eigenvalue ratios \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Without Focal Mechanism Data}
+
+When focal mechanism data is unavailable, the weights are redistributed:
+
+\begin{equation}
+\label{eq:objective_no_focal}
+f(r_{\text{nn}}, \Delta t_{\text{nn}}) = 0.70 \cdot S_{\text{recovery}} + 0.30 \cdot S_{\lambda_{2/3}}
+\end{equation}
+
+\begin{table}[h]
+\centering
+\caption{Objective function component weights without focal mechanisms}
+\label{tab:weights_no_focal}
+\begin{tabular}{lcp{7cm}}
+\toprule
+\textbf{Component} & \textbf{Weight} & \textbf{Rationale} \\
+\midrule
+Plane recovery rate ($S_{\text{recovery}}$) & 70\% & Primary criterion when focal mechanisms unavailable; emphasizes solution completeness \\
+Quality metric ($S_{\lambda_{2/3}}$) & 30\% & Ensures statistical reliability remains important \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Component Definitions}
+
+\subsection{Angular Difference Score ($S_{\text{angular}}$)}
+
+Measures the angular misfit between reconstructed fault planes and observed focal mechanisms:
+
+\begin{equation}
+\label{eq:angular_score}
+S_{\text{angular}} = \min\left(\frac{\bar{\theta}_{\text{angular}}}{90°}, 1.0\right)
+\end{equation}
+
+where the mean angular difference is:
+
+\begin{equation}
+\label{eq:mean_angular}
+\bar{\theta}_{\text{angular}} = \frac{1}{N} \sum_{i=1}^{N} \min(\theta_{i,1}, \theta_{i,2})
+\end{equation}
+
+Here, $\theta_{i,1}$ and $\theta_{i,2}$ are the angular differences between the reconstructed plane and the two nodal planes of the $i$-th focal mechanism. We take the minimum to account for the ambiguity in identifying the active fault plane.
+
+\textbf{Properties:}
+\begin{itemize}
+    \item $S_{\text{angular}} = 0$: Perfect agreement (0° difference)
+    \item $S_{\text{angular}} = 1$: Maximum misfit ($\geq 90°$ difference)
+    \item Lower values are better (minimization objective)
+\end{itemize}
+
+\subsection{Active Plane Bonus ($S_{\text{active}}$)}
+
+Rewards parameter choices that correctly identify the active fault plane from the focal mechanism's two nodal planes:
+
+\begin{equation}
+\label{eq:active_score}
+S_{\text{active}} = 1 - \frac{N_{\text{match}}}{N_{\text{total}}}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $N_{\text{match}}$: Number of events where the reconstructed plane matches the known active plane
+    \item $N_{\text{total}}$: Total number of events with focal mechanism data
+\end{itemize}
+
+\textbf{Properties:}
+\begin{itemize}
+    \item $S_{\text{active}} = 0$: All active planes correctly identified
+    \item $S_{\text{active}} = 1$: No active planes correctly identified
+    \item This is a bonus term (5\% weight) that refines the solution
+\end{itemize}
+
+\subsection{Plane Recovery Score ($S_{\text{recovery}}$)}
+
+Measures the completeness of the fault network reconstruction:
+
+\begin{equation}
+\label{eq:recovery_score}
+S_{\text{recovery}} = 1 - \frac{N_{\text{planes}}}{N_{\text{events}}}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $N_{\text{planes}}$: Number of successfully fitted fault planes
+    \item $N_{\text{events}}$: Total number of seismic events in the catalog
+\end{itemize}
+
+\textbf{Properties:}
+\begin{itemize}
+    \item $S_{\text{recovery}} = 0$: All events successfully assigned to fault planes
+    \item $S_{\text{recovery}} = 1$: No fault planes fitted
+    \item Plane recovery rate = $N_{\text{planes}}/N_{\text{events}}$
+\end{itemize}
+
+\subsection{Quality Score ($S_{\lambda_{2/3}}$)}
+
+Based on the eigenvalue ratio $\lambda_{2/3}$ from principal component analysis, which indicates the planarity of event clusters:
+
+\begin{equation}
+\label{eq:quality_score}
+S_{\lambda_{2/3}} = 1 - q(\bar{\lambda}_{2/3})
+\end{equation}
+
+where the quality normalization function $q$ is defined as:
+
+\begin{equation}
+\label{eq:quality_function}
+q(\lambda_{2/3}) = 
+\begin{cases}
+    0.0 & \text{if } \lambda_{2/3} < 5 \\[6pt]
+    0.7 + \dfrac{\lambda_{2/3} - 5}{50} & \text{if } 5 \leq \lambda_{2/3} < 20 \\[6pt]
+    1.0 & \text{if } \lambda_{2/3} \geq 20
+\end{cases}
+\end{equation}
+
+\textbf{Rationale for scaling:}
+\begin{itemize}
+    \item $\lambda_{2/3} < 5$: Below acceptance threshold; fault network module rejects these planes ($q = 0$)
+    \item $\lambda_{2/3} = 5$: Already very good quality ($q = 0.7$)
+    \item $5 \leq \lambda_{2/3} < 20$: Gentle linear improvement to avoid over-optimization
+    \item $\lambda_{2/3} \geq 20$: Saturated at maximum to prevent this component from dominating
+\end{itemize}
+
+The mean lambda ratio is calculated as:
+
+\begin{equation}
+\label{eq:mean_lambda}
+\bar{\lambda}_{2/3} = \frac{1}{N_{\text{planes}}} \sum_{i=1}^{N_{\text{planes}}} \left(\frac{\lambda_{2,i}}{\lambda_{3,i}}\right)
+\end{equation}
+
+where $\lambda_{2,i}$ and $\lambda_{3,i}$ are the second and third eigenvalues of the $i$-th fitted plane's event cluster.
+
+\section{Mathematical Properties}
+
+\subsection{Domain and Range}
+
+\begin{align}
+f: \mathbb{R}^2 &\to [0, 1] \\
+r_{\text{nn}} &\in [r_{\min}, r_{\max}] \quad \text{(typically 50--1000 meters)} \\
+\Delta t_{\text{nn}} &\in [t_{\min}, t_{\max}] \quad \text{(typically 100--50000 hours)}
+\end{align}
+
+\subsection{Optimization Problem}
+
+The parameter optimization seeks:
+
+\begin{equation}
+\label{eq:optimization}
+(r_{\text{nn}}^*, \Delta t_{\text{nn}}^*) = \arg\min_{r_{\text{nn}}, \Delta t_{\text{nn}}} f(r_{\text{nn}}, \Delta t_{\text{nn}})
+\end{equation}
+
+subject to box constraints on the parameter ranges.
+
+\subsection{Normalization}
+
+All score components $S_i$ are normalized to $[0, 1]$ where:
+\begin{itemize}
+    \item $S_i = 0$: Optimal performance for that component
+    \item $S_i = 1$: Worst performance for that component
+\end{itemize}
+
+Weight vectors satisfy:
+\begin{equation}
+\sum_{i} w_i = 1.0 \quad \text{(unity constraint)}
+\end{equation}
+
+Note: The active plane bonus adds an additional 5\%, making the total weight 105\% when focal mechanisms are available. This is intentional as it provides a bonus for correctly identifying active planes without reducing the importance of other components.
+
+\section{Design Rationale}
+
+\subsection{Multi-Objective Balancing}
+
+The objective function balances three competing objectives:
+
+\begin{enumerate}
+    \item \textbf{Accuracy}: Focal mechanism agreement ensures physical validity
+    \item \textbf{Completeness}: High recovery rate maximizes information extraction
+    \item \textbf{Reliability}: Quality metrics ensure statistical robustness
+\end{enumerate}
+
+\subsection{Adaptive Weighting}
+
+The function adapts based on data availability:
+\begin{itemize}
+    \item \textbf{With focal mechanisms}: Prioritizes validation against known fault orientations (60\% weight)
+    \item \textbf{Without focal mechanisms}: Emphasizes solution completeness (70\% weight)
+\end{itemize}
+
+\subsection{Non-linear Scaling}
+
+The lambda ratio uses non-linear scaling ($q$ function) to:
+\begin{itemize}
+    \item Reject poor-quality planes ($\lambda_{2/3} < 5$)
+    \item Recognize that moderate ratios ($\lambda_{2/3} \approx 5$) are already high quality
+    \item Prevent over-optimization toward extremely high ratios that may indicate overfitting
+\end{itemize}
+
+\section{Optimization Algorithms}
+
+The objective function is compatible with multiple optimization strategies:
+
+\subsection{Grid Search}
+
+Systematic evaluation on a regular grid:
+\begin{itemize}
+    \item Evaluations: $n^2$ (typically $25^2 = 625$)
+    \item Time: 2--4 hours
+    \item Advantage: Exhaustive, deterministic
+    \item Use case: Publications requiring complete parameter space coverage
+\end{itemize}
+
+\subsection{Bayesian Optimization}
+
+Gaussian Process-based optimization:
+\begin{itemize}
+    \item Evaluations: 50--75
+    \item Time: 20--40 minutes
+    \item Advantage: Sample-efficient, uncertainty quantification
+    \item Use case: Time-constrained analysis
+\end{itemize}
+
+\subsection{Optuna (TPE/CMA-ES)}
+
+Modern hyperparameter optimization framework:
+\begin{itemize}
+    \item Evaluations: 50--75
+    \item Time: 20--40 minutes
+    \item Advantage: Multiple samplers, excellent UI, active development
+    \item Use case: Production workflows, best user experience
+\end{itemize}
+
+\subsection{Heuristic}
+
+Fast rule-based estimation:
+\begin{itemize}
+    \item Evaluations: 1
+    \item Time: $<1$ minute
+    \item Advantage: Extremely fast
+    \item Use case: Quick estimates, initialization
+\end{itemize}
+
+\section{Implementation Notes}
+
+\subsection{Logarithmic Parameter Scaling}
+
+Search parameters are explored on logarithmic scale:
+\begin{align}
+r_{\text{nn},i} &= 10^{\log_{10}(r_{\min}) + i \cdot \frac{\log_{10}(r_{\max}) - \log_{10}(r_{\min})}{n-1}} \\
+\Delta t_{\text{nn},j} &= 10^{\log_{10}(t_{\min}) + j \cdot \frac{\log_{10}(t_{\max}) - \log_{10}(t_{\min})}{n-1}}
+\end{align}
+
+This ensures better coverage of the parameter space, as both parameters span multiple orders of magnitude.
+
+\subsection{Computational Efficiency}
+
+Each function evaluation requires:
+\begin{enumerate}
+    \item Running the fault network reconstruction algorithm
+    \item Calculating quality metrics (eigenvalue analysis)
+    \item Computing focal mechanism comparisons (if available)
+\end{enumerate}
+
+Typical evaluation time: 2--3 seconds per parameter combination, making gradient-free optimization essential.
+
+\section{Validation}
+
+The objective function has been validated on multiple earthquake catalogs:
+\begin{itemize}
+    \item Anzère region (Swiss Alps)
+    \item Bedretto Underground Laboratory
+    \item Diemtigen region
+    \item Various synthetic test cases
+\end{itemize}
+
+Results show:
+\begin{itemize}
+    \item Consistent parameter identification across different catalogs
+    \item Robust performance with varying data quality
+    \item Strong correlation between optimized parameters and geological expectations
+    \item Improved focal mechanism agreement compared to manually tuned parameters
+\end{itemize}
+
+\section{References}
+
+\begin{itemize}
+    \item Truttmann et al. (2023). \textit{Hypocenter-based 3D Imaging of Active Faults: Method and Applications in the Southwestern Swiss Alps}. Journal of Geophysical Research: Solid Earth.
+    \item Akiba et al. (2019). \textit{Optuna: A Next-generation Hyperparameter Optimization Framework}. KDD.
+    \item Snoek et al. (2012). \textit{Practical Bayesian Optimization of Machine Learning Algorithms}. NeurIPS.
+\end{itemize}
+
+\section{Conclusion}
+
+The objective function $f(r_{\text{nn}}, \Delta t_{\text{nn}})$ provides a robust, multi-criteria measure for automatic parameter optimization in fault network reconstruction. Its adaptive weighting scheme, non-linear quality scaling, and compatibility with modern optimization algorithms make it suitable for diverse seismological applications.
+
+The implementation in the HyFI workflow supports multiple optimization methods (Grid Search, Bayesian Optimization, Optuna) and has been validated on real-world earthquake catalogs, demonstrating its effectiveness in identifying optimal parameters for accurate fault plane reconstruction.
+
+\appendix
+
+\section{Notation Summary}
+
+\begin{table}[h]
+\centering
+\caption{Mathematical notation used in this document}
+\label{tab:notation}
+\begin{tabular}{cl}
+\toprule
+\textbf{Symbol} & \textbf{Description} \\
+\midrule
+$r_{\text{nn}}$ & Search radius for nearest neighbor search (meters) \\
+$\Delta t_{\text{nn}}$ & Temporal search window (hours) \\
+$f$ & Objective function (minimization) \\
+$S_i$ & Score component $i$ (normalized to $[0,1]$) \\
+$w_i$ & Weight for component $i$ \\
+$N$ & Number of seismic events \\
+$N_{\text{planes}}$ & Number of successfully fitted fault planes \\
+$N_{\text{match}}$ & Number of correct active plane identifications \\
+$\theta_{\text{angular}}$ & Angular difference between planes (degrees) \\
+$\lambda_{2/3}$ & Ratio of second to third eigenvalue \\
+$q(\cdot)$ & Quality normalization function \\
+$(r^*, \Delta t^*)$ & Optimal parameter values \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Example Calculation}
+
+Consider a catalog with the following characteristics after running the fault network algorithm with specific parameters:
+
+\begin{itemize}
+    \item Total events: $N = 500$
+    \item Successfully fitted planes: $N_{\text{planes}} = 420$
+    \item Mean angular difference: $\bar{\theta}_{\text{angular}} = 18°$
+    \item Mean lambda ratio: $\bar{\lambda}_{2/3} = 12$
+    \item Active plane matches: $N_{\text{match}} = 340$ out of $N_{\text{total}} = 400$
+\end{itemize}
+
+\textbf{Calculate component scores:}
+
+\begin{align*}
+S_{\text{angular}} &= \min\left(\frac{18}{90}, 1.0\right) = 0.200 \\
+S_{\text{active}} &= 1 - \frac{340}{400} = 0.150 \\
+S_{\text{recovery}} &= 1 - \frac{420}{500} = 0.160 \\
+q(\lambda_{2/3}) &= 0.7 + \frac{12 - 5}{50} = 0.840 \\
+S_{\lambda_{2/3}} &= 1 - 0.840 = 0.160
+\end{align*}
+
+\textbf{Calculate objective function:}
+
+\begin{align*}
+f &= 0.60 \times 0.200 + 0.05 \times 0.150 + 0.25 \times 0.160 + 0.15 \times 0.160 \\
+  &= 0.120 + 0.0075 + 0.040 + 0.024 \\
+  &= \mathbf{0.1915}
+\end{align*}
+
+This relatively low objective score (0.19 out of 1.0) indicates good parameter selection, with strong focal mechanism agreement (18° average) and high plane recovery (84\%).
+
+\end{document}

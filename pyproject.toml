@@ -1,0 +1,131 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hyfi"
+version = "1.0.0"
+description = "HyFI: Hypocenter-based 3D Imaging of Active Faults"
+readme = "README.md"
+license = {text = "GPL-3.0"}
+authors = [
+    {name = "Sandro Truttmann", email = "sandro.truttmann@gmail.com"}
+]
+keywords = ["seismology", "faults", "hypocenter", "earthquake", "tectonics"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Visualization"
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.20",
+    "pandas>=1.3",
+    "scipy>=1.7",
+    "scikit-learn>=1.0",
+    "matplotlib>=3.5",
+    "plotly>=5.0",
+    "obspy>=1.3",
+    "numba>=0.55",
+    "shapely>=1.8",
+    "mplstereonet>=0.6",
+    "spherecluster>=0.1.7",
+    "mycolorpy>=1.5",
+    "click>=8.0"
+]
+
+[project.optional-dependencies]
+bayesian = [
+    "scikit-optimize>=0.9"
+]
+optuna = [
+    "optuna>=3.0"
+]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=3.0",
+    "black>=22.0",
+    "flake8>=4.0",
+    "mypy>=0.910",
+    "isort>=5.0"
+]
+docs = [
+    "sphinx>=4.0",
+    "sphinx-rtd-theme>=1.0",
+    "sphinx-autodoc-typehints>=1.12"
+]
+all = [
+    "hyfi[bayesian,optuna,dev,docs]"
+]
+
+[project.urls]
+Homepage = "https://github.com/sandrotruttmann/hypo_fault_imaging"
+Repository = "https://github.com/sandrotruttmann/hypo_fault_imaging"
+Documentation = "https://github.com/sandrotruttmann/hypo_fault_imaging"
+"Bug Tracker" = "https://github.com/sandrotruttmann/hypo_fault_imaging/issues"
+Citation = "https://doi.org/10.1029/2023JB026352"
+
+[project.scripts]
+hyfi = "hyfi.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"hyfi" = ["py.typed"]
+
+# Black configuration
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# isort configuration
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["hyfi"]
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+# pytest configuration
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers"
+testpaths = [
+    "tests",
+]
+pythonpath = [
+    "src"
+]
