@@ -146,7 +146,7 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
     min_samples_factor = input_params.get('fault_plane_clustering_min_samples_factor', 0.3)
     
     print(f"  Using enhanced point cloud with {len(df_enhanced):,} points")
-    print(f"  Parameters: eps_factor={eps_factor}, min_samples_factor={min_samples_factor}")
+    print(f"  Parameters: spatial_method={spatial_method}, eps_factor={eps_factor}, min_samples_factor={min_samples_factor}")
     
     # Initialize spatial cluster columns
     df_clustered['spatial_cluster'] = 0

@@ -910,6 +910,17 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
     vtp_dir = os.path.join(output_dir, 'vtp_export')
     os.makedirs(vtp_dir, exist_ok=True)
     
+    # Clean up old VTP files to avoid confusion from previous runs
+    import glob
+    old_vtp_files = glob.glob(os.path.join(vtp_dir, 'fault_*.vtp'))
+    if old_vtp_files:
+        print(f"  Cleaning up {len(old_vtp_files)} old fault VTP files...")
+        for old_file in old_vtp_files:
+            try:
+                os.remove(old_file)
+            except Exception as e:
+                print(f"  Warning: Could not remove {old_file}: {e}")
+    
     # Export combined mesh
     if combined_mesh.n_points > 0:
         combined_file = os.path.join(vtp_dir, 'faults_compiled.vtp')

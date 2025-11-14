@@ -202,7 +202,6 @@ def dag_params_to_legacy_params(dag, node_id):
                 'poisson_depth': interpolation.get('poisson_depth', vis_params.get('poisson_depth', 3)),
                 'density_threshold': interpolation.get('density_threshold', vis_params.get('density_threshold', 0.4)),
                 'max_distance_factor': interpolation.get('max_distance_factor', vis_params.get('max_distance_factor', 1.5)),
-                'spatial_clustering_method': interpolation.get('spatial_clustering_method', vis_params.get('spatial_clustering_method', 'adaptive')),
                 'min_events_per_cluster': interpolation.get('min_events_per_cluster', vis_params.get('min_events_per_cluster', 10)),
             })
             
