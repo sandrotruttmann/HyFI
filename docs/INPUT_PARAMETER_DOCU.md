@@ -107,6 +107,7 @@ Parameters for 3D fault network reconstruction using NN search and PCA.
 |-----------|------|---------|-------------|
 | `auto_optimize_parameters` | boolean | `false` | Enable automatic optimization of `search_radius_meters` and `search_time_window_hours`. When enabled, ignores manual values for these parameters |
 | `optimization_method` | string | `"grid_search"` | Optimization algorithm. Options: `"heuristic"` (fast, seconds-minutes), `"grid_search"` (thorough, minutes-hours, **recommended**), `"bayesian"` (Gaussian Process), `"optuna"` (TPE sampler, **recommended for speed**), `"pareto"` (multi-objective) |
+| `optimization_use_adaptive_weights` | boolean | `true` | When `true`, automatically adjusts weights based on number of focal mechanisms (reduces focal weight for datasets with few focals, increases recovery importance) and dataset density (adjusts recovery expectations for sparse datasets). When `false`, uses fixed weights (original behavior). |
 | `optimization_random_state` | integer | `42` | Random seed for optimization reproducibility |
 | `optimization_plot_results` | boolean | `false` | Generate visualization plots of optimization results |
 | `optimization_r_nn_range` | array or null | `[50, 1000]` | Search radius range for optimization `[min_meters, max_meters]`. Use `null` for automatic range determination |

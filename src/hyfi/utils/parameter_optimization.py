@@ -71,7 +71,8 @@ class ParameterOptimizer:
     """
     
     def __init__(self, data_input, focal_mechanisms=None, method='grid_search', 
-                 custom_r_nn_range=None, custom_dt_nn_range=None, verbose=True):
+                 custom_r_nn_range=None, custom_dt_nn_range=None, verbose=True,
+                 use_adaptive_weights=True, n_matched_focals=None, original_input_params=None):
         """
         Initialize the parameter optimizer.
         
@@ -89,6 +90,16 @@ class ParameterOptimizer:
             Custom time window range (min_hours, max_hours). If None, uses automatic calculation.
         verbose : bool
             Whether to show verbose output during optimization runs (default: True)
+        use_adaptive_weights : bool
+            Whether to use adaptive weighting based on dataset characteristics (default: True).
+            When True, objective function weights adjust based on number of focal mechanisms
+            and dataset density. When False, uses fixed weights (original behavior).
+        n_matched_focals : int, optional
+            Number of focal mechanisms that match hypocenters in this dataset.
+            If None, will be calculated internally.
+        original_input_params : dict, optional
+            Original input_params dictionary to use for optimization (avoids creating temp files).
+            If None, will create temporary files.
         """
         self.data_input = data_input.copy()
         self.focal_mechanisms = focal_mechanisms
@@ -96,6 +107,9 @@ class ParameterOptimizer:
         self.custom_r_nn_range = custom_r_nn_range
         self.custom_dt_nn_range = custom_dt_nn_range
         self.verbose = verbose
+        self.use_adaptive_weights = use_adaptive_weights
+        self.n_matched_focals = n_matched_focals
+        self.original_input_params = original_input_params
         self.optimization_results = {}
         
         # Validate input data
@@ -109,6 +123,21 @@ class ParameterOptimizer:
             print(f"Custom search radius range: {custom_r_nn_range[0]:.1f} - {custom_r_nn_range[1]:.1f} m")
         if custom_dt_nn_range:
             print(f"Custom time window range: {custom_dt_nn_range[0]:.1f} - {custom_dt_nn_range[1]:.1f} h")
+        
+        # Log adaptive weighting status
+        if use_adaptive_weights:
+            n_focals_loaded = len(focal_mechanisms) if focal_mechanisms is not None else 0
+            print(f"Using adaptive objective function weights")
+            print(f"    Focal mechanisms loaded: {n_focals_loaded}")
+            print(f"    Hypocenters in dataset: {len(data_input)}")
+            if n_matched_focals is not None:
+                print(f"    Focal mechanisms matching hypocenters: {n_matched_focals}")
+                if n_matched_focals > 0:
+                    print(f"    Adaptive weights will be based on {n_matched_focals} matched focal mechanisms")
+            elif n_focals_loaded > 0:
+                print(f"    Note: Adaptive weights will be based on focal mechanisms that match hypocenters")
+        else:
+            print("Using fixed objective function weights")
 
     def _validate_input_data(self):
         """Validate input data format and completeness."""
@@ -298,115 +327,53 @@ class ParameterOptimizer:
         r_nn, dt_nn = params
         
         try:
-            # Create temporary CSV file for the hypocenter data
-            temp_hypo_file = None
-            temp_focal_file = None
+            # Instead of creating temporary files, use the original input_params
+            # and just override the parameters we're optimizing
+            input_params = self.original_input_params.copy()
+            input_params['r_nn'] = r_nn
+            input_params['dt_nn'] = dt_nn
+            input_params['n_mc'] = 1  # Use single MC run for optimization speed
             
-            try:
-                # Create temporary hypocenter file
-                temp_hypo_file = tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False)
-                
-                # Prepare data for CSV export (convert back to original format)
-                export_data = self.data_input.copy()
-                export_data['Z'] = -export_data['Z']  # Convert back to positive depth
-                export_data['YR'] = export_data['Date'].dt.year
-                export_data['MO'] = export_data['Date'].dt.month
-                export_data['DY'] = export_data['Date'].dt.day
-                export_data['HR'] = export_data['Date'].dt.hour
-                export_data['MI'] = export_data['Date'].dt.minute
-                export_data['SC'] = export_data['Date'].dt.second
-                
-                # Ensure all required columns exist
-                required_cols = ['ID', 'YR', 'MO', 'DY', 'HR', 'MI', 'SC', 'X', 'Y', 'Z']
-                for col in required_cols:
-                    if col not in export_data.columns:
-                        export_data[col] = 0
-                
-                # Add dummy columns to reach 24 columns (hypoDD format)
-                current_cols = len(export_data.columns)
-                for i in range(current_cols, 24):
-                    export_data[f'dummy_{i}'] = 0
-                
-                export_data.to_csv(temp_hypo_file.name, index=False)
-                temp_hypo_file.close()
-                
-                # Create temporary focal mechanism file if available
-                if self.focal_mechanisms is not None:
-                    temp_focal_file = tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False)
-                    self.focal_mechanisms.to_csv(temp_focal_file.name, index=False)
-                    temp_focal_file.close()
-                
-                # Create temporary input_params dict for fault network calculation
-                input_params = {
-                    'n_mc': 1,  # Use single MC run for optimization speed
-                    'r_nn': r_nn,
-                    'dt_nn': dt_nn,
-                    'mag_type': 'ML',
-                    'hypo_file': temp_hypo_file.name,
-                    'hypo_sep': ',',
-                    'validation_bool': self.focal_mechanisms is not None,
-                    'foc_mag_check': True,
-                    'foc_loc_check': True
-                }
-                
-                # Add focal mechanism file information if available
-                if temp_focal_file is not None:
-                    input_params['foc_file'] = temp_focal_file.name
-                    input_params['foc_sep'] = ','
-                
-                # Run fault network reconstruction
-                if self.verbose:
-                    # Normal verbose output
-                    (data_output, per_X, per_Y, per_Z) = fault_network.faultnetwork3D(input_params)
-                else:
-                    # Suppress stdout during fault network reconstruction
-                    stdout_capture = StringIO()
-                    with redirect_stdout(stdout_capture):
-                        (data_output, per_X, per_Y, per_Z) = fault_network.faultnetwork3D(input_params)
-                
-                # Calculate basic metrics
-                n_events = len(data_output)
-                n_planes = len(data_output['mean_azi'].dropna())
-                plane_recovery_rate = n_planes / n_events if n_events > 0 else 0
-                
-                # Quality metrics
-                quality_metrics = self._calculate_quality_metrics(data_output)
-                
-                # Focal mechanism validation (if available)
-                focal_metrics = {}
-                if self.focal_mechanisms is not None:
-                    focal_metrics = self._calculate_focal_validation_metrics(
-                        input_params, data_output, data_output)
-                
-                # Combined objective score
+            # Run fault network reconstruction with original files
+            # Always suppress output during optimization (even if self.verbose=True)
+            stdout_capture = StringIO()
+            with redirect_stdout(stdout_capture):
+                (data_output, per_X, per_Y, per_Z) = fault_network.faultnetwork3D(input_params)
+            
+            # Calculate basic metrics
+            n_events = len(data_output)
+            n_planes = len(data_output['mean_azi'].dropna())
+            plane_recovery_rate = n_planes / n_events if n_events > 0 else 0
+            
+            # Quality metrics
+            quality_metrics = self._calculate_quality_metrics(data_output)
+            
+            # Focal mechanism validation (if available)
+            focal_metrics = {}
+            if self.focal_mechanisms is not None:
+                focal_metrics = self._calculate_focal_validation_metrics(
+                    input_params, data_output, data_output)
+            
+            # Combined objective score - use adaptive or fixed weighting
+            if self.use_adaptive_weights:
+                objective_score = self._calculate_combined_objective_adaptive(
+                    plane_recovery_rate, quality_metrics, focal_metrics, n_events)
+            else:
                 objective_score = self._calculate_combined_objective(
                     plane_recovery_rate, quality_metrics, focal_metrics)
-                
-                if return_details:
-                    return {
-                        'objective_score': objective_score,
-                        'n_events': n_events,
-                        'n_planes': n_planes,
-                        'plane_recovery_rate': plane_recovery_rate,
-                        'quality_metrics': quality_metrics,
-                        'focal_metrics': focal_metrics,
-                        'data_output': data_output
-                    }
-                
-                return objective_score
-                
-            finally:
-                # Clean up temporary files
-                if temp_hypo_file is not None:
-                    try:
-                        os.unlink(temp_hypo_file.name)
-                    except:
-                        pass
-                if temp_focal_file is not None:
-                    try:
-                        os.unlink(temp_focal_file.name)
-                    except:
-                        pass
+            
+            if return_details:
+                return {
+                    'objective_score': objective_score,
+                    'n_events': n_events,
+                    'n_planes': n_planes,
+                    'plane_recovery_rate': plane_recovery_rate,
+                    'quality_metrics': quality_metrics,
+                    'focal_metrics': focal_metrics,
+                    'data_output': data_output
+                }
+            
+            return objective_score
             
         except Exception as e:
             logger.warning(f"Error in objective function with params ({r_nn}, {dt_nn}): {e}")
@@ -449,16 +416,11 @@ class ParameterOptimizer:
         try:
             # Run focal mechanism validation only if focal mechanisms are available
             if self.focal_mechanisms is not None:
-                if self.verbose:
-                    # Normal verbose output
+                # Always suppress output during optimization
+                stdout_capture = StringIO()
+                with redirect_stdout(stdout_capture):
                     data_output_val = model_validation.focal_validation(
                         data_output, input_params)
-                else:
-                    # Suppress stdout during focal validation
-                    stdout_capture = StringIO()
-                    with redirect_stdout(stdout_capture):
-                        data_output_val = model_validation.focal_validation(
-                            data_output, input_params)
                 
                 if 'epsilon' in data_output_val.columns:
                     epsilon_values = data_output_val['epsilon'].dropna()
@@ -468,6 +430,7 @@ class ParameterOptimizer:
                         metrics['good_fit_fraction'] = (epsilon_values < 30).sum() / len(epsilon_values)
                         metrics['excellent_fit_fraction'] = (epsilon_values < 15).sum() / len(epsilon_values)
                         metrics['n_focal_comparisons'] = len(epsilon_values)
+                        metrics['n_compared'] = len(epsilon_values)  # For adaptive weighting
                         
                         # Use active plane information if available
                         if 'A' in self.focal_mechanisms.columns:
@@ -645,6 +608,217 @@ class ParameterOptimizer:
             else:
                 # Penalize missing quality metrics
                 score += 0.3 * 1.0
+        
+        return score
+    
+    def _calculate_adaptive_weights(self, n_focals, n_events):
+        """
+        Calculate adaptive weights based on data characteristics.
+        
+        Adjusts objective function weights based on:
+        - Number of focal mechanisms available (confidence in validation)
+        - Total number of events (dataset density)
+        
+        Parameters
+        ----------
+        n_focals : int
+            Number of focal mechanisms available
+        n_events : int
+            Total number of events in catalog
+            
+        Returns
+        -------
+        dict
+            Dictionary with weights for 'angular', 'active', 'recovery', 'quality'
+        """
+        if n_focals == 0:
+            # No focals: emphasize recovery and quality
+            return {
+                'angular': 0.0,
+                'active': 0.0,
+                'recovery': 0.70,
+                'quality': 0.30
+            }
+        
+        elif n_focals <= 5:
+            # Few focals: reduce confidence in focal fit, increase recovery importance
+            # Statistical uncertainty is high with few samples
+            return {
+                'angular': 0.30,  # Reduced from 0.60
+                'active': 0.03,   # Reduced from 0.05
+                'recovery': 0.50, # Increased from 0.25
+                'quality': 0.20   # Increased from 0.15
+            }
+        
+        elif n_focals <= 20:
+            # Moderate focals: balanced approach
+            # Transitional regime between low and high confidence
+            return {
+                'angular': 0.45,
+                'active': 0.04,
+                'recovery': 0.35,
+                'quality': 0.18
+            }
+        
+        else:
+            # Many focals (>20): trust focal data more
+            # High statistical confidence, use original weights
+            return {
+                'angular': 0.60,  # Original weights
+                'active': 0.05,
+                'recovery': 0.25,
+                'quality': 0.15
+            }
+    
+    def _calculate_confidence_weighted_focal_score(self, focal_metrics, n_focals):
+        """
+        Calculate focal score with confidence weighting based on sample size.
+        
+        For datasets with few focal mechanisms, the mean angular difference
+        has high uncertainty. This method blends the observed score with a
+        neutral score based on statistical confidence.
+        
+        Parameters
+        ----------
+        focal_metrics : dict
+            Focal mechanism validation metrics
+        n_focals : int
+            Number of focal mechanisms
+            
+        Returns
+        -------
+        float
+            Confidence-weighted angular score (0-1, lower is better)
+        """
+        angular_diff = focal_metrics.get('mean_angular_diff', 45.0)
+        
+        # Confidence factor based on sample size
+        # Uses sqrt(n) to account for standard error scaling
+        # Reaches full confidence at n=20
+        confidence = min(np.sqrt(n_focals) / np.sqrt(20), 1.0)
+        
+        # For low confidence, blend with neutral score (45° = 0.5)
+        neutral_score = 45.0 / 90.0
+        angular_normalized = min(angular_diff / 90.0, 1.0)
+        
+        # Weighted blend: high confidence → use observed, low confidence → blend with neutral
+        weighted_score = confidence * angular_normalized + (1 - confidence) * neutral_score
+        
+        return weighted_score
+    
+    def _calculate_density_adjusted_recovery(self, plane_recovery_rate, n_events):
+        """
+        Adjust recovery score based on dataset density.
+        
+        Sparse datasets naturally have lower recovery rates due to data limitations.
+        This method normalizes recovery expectations based on catalog size.
+        
+        Parameters
+        ----------
+        plane_recovery_rate : float
+            Raw plane recovery rate (0-1)
+        n_events : int
+            Total number of events in catalog
+            
+        Returns
+        -------
+        float
+            Density-adjusted recovery score (0-1, higher is better)
+        """
+        if n_events < 100:
+            # Sparse datasets: lower expectations
+            # E.g., 50% recovery from 50 events might be acceptable
+            expected_recovery = 0.5 + 0.3 * (n_events / 100)
+        elif n_events < 500:
+            # Medium datasets: moderate expectations
+            expected_recovery = 0.8
+        else:
+            # Dense datasets: should achieve high recovery
+            expected_recovery = 0.9
+        
+        # Normalize actual recovery against expectations
+        # Cap at 1.0 to avoid rewarding over-clustering
+        adjusted = plane_recovery_rate / expected_recovery
+        return min(adjusted, 1.0)
+    
+    def _calculate_combined_objective_adaptive(self, plane_recovery_rate, quality_metrics, 
+                                              focal_metrics, n_events):
+        """
+        Calculate combined objective score with adaptive weighting (lower is better).
+        
+        This enhanced version adjusts weights and scores based on:
+        - Number of focal mechanisms (statistical confidence)
+        - Dataset density (recovery expectations)
+        - Sample size uncertainty
+        
+        Parameters
+        ----------
+        plane_recovery_rate : float
+            Fraction of events successfully assigned to planes (0-1)
+        quality_metrics : dict
+            Quality metrics including mean_lambda23_ratio
+        focal_metrics : dict
+            Focal mechanism validation metrics
+        n_events : int
+            Total number of events in catalog
+            
+        Returns
+        -------
+        float
+            Combined objective score (0-1, lower is better)
+        """
+        score = 0
+        
+        # Determine number of focal mechanisms that match hypocenters in this dataset
+        n_focals = 0
+        has_focal_data = False
+        if focal_metrics and 'mean_angular_diff' in focal_metrics:
+            has_focal_data = True
+            # Use the pre-calculated matched count if available
+            if self.n_matched_focals is not None:
+                n_focals = self.n_matched_focals
+            elif 'n_compared' in focal_metrics:
+                # Fallback to n_compared from metrics
+                n_focals = focal_metrics['n_compared']
+            else:
+                # Last resort: use n_focal_comparisons
+                n_focals = focal_metrics.get('n_focal_comparisons', 0)
+        
+        # Get adaptive weights based on data characteristics
+        weights = self._calculate_adaptive_weights(n_focals, n_events)
+        
+        # 1. Focal mechanism component (if available)
+        if has_focal_data and weights['angular'] > 0:
+            # Use confidence-weighted scoring for focal mechanisms
+            angular_score = self._calculate_confidence_weighted_focal_score(focal_metrics, n_focals)
+            score += weights['angular'] * angular_score
+            
+            # Bonus for active plane matching
+            if 'active_plane_match_rate' in focal_metrics:
+                active_bonus = 1 - focal_metrics['active_plane_match_rate']
+                score += weights['active'] * active_bonus
+            else:
+                # No active plane data penalty
+                score += weights['active'] * 1.0
+        
+        # 2. Plane recovery component with density adjustment
+        adjusted_recovery = self._calculate_density_adjusted_recovery(plane_recovery_rate, n_events)
+        recovery_score = 1 - adjusted_recovery  # Convert to minimization
+        score += weights['recovery'] * recovery_score
+        
+        # 3. Quality component based on lambda2/3 ratio
+        if 'mean_lambda23_ratio' in quality_metrics:
+            lambda23_ratio = quality_metrics['mean_lambda23_ratio']
+            if lambda23_ratio >= 5.0:  # Accepted ratios
+                # Gentle scaling: ratio 5 = 0.7, ratio 20 = 1.0 (maxed out)
+                lambda23_normalized = min(0.7 + (lambda23_ratio - 5.0) / 50.0, 1.0)
+            else:
+                lambda23_normalized = 0.0  # Below acceptance threshold
+            lambda23_score = 1 - lambda23_normalized  # Convert to minimization
+            score += weights['quality'] * lambda23_score
+        else:
+            # Penalize missing quality metrics
+            score += weights['quality'] * 1.0
         
         return score
     
@@ -2770,7 +2944,8 @@ Best Balanced Solution:
 
 
 def optimize_fault_network_parameters(data_input, focal_mechanisms=None, method='grid_search', 
-                                     custom_r_nn_range=None, custom_dt_nn_range=None, verbose=False, **kwargs):
+                                     custom_r_nn_range=None, custom_dt_nn_range=None, verbose=False, 
+                                     use_adaptive_weights=True, n_matched_focals=None, **kwargs):
     """
     Convenience function for parameter optimization.
     
@@ -2788,6 +2963,10 @@ def optimize_fault_network_parameters(data_input, focal_mechanisms=None, method=
         Custom time window range (min_hours, max_hours)
     verbose : bool
         Whether to show verbose output during optimization runs (default: False)
+    use_adaptive_weights : bool
+        Whether to use adaptive weighting based on dataset characteristics (default: True)
+    n_matched_focals : int, optional
+        Number of focal mechanisms that match hypocenters in dataset
     **kwargs
         Method-specific parameters
         
@@ -2796,7 +2975,16 @@ def optimize_fault_network_parameters(data_input, focal_mechanisms=None, method=
     dict
         Recommended parameters
     """
+    # Calculate matched focals if not provided
+    if n_matched_focals is None and focal_mechanisms is not None and 'ID' in data_input.columns:
+        if 'ID' in focal_mechanisms.columns:
+            n_matched_focals = len(focal_mechanisms[focal_mechanisms['ID'].isin(data_input['ID'])])
+        else:
+            n_matched_focals = None
+    
     optimizer = ParameterOptimizer(data_input, focal_mechanisms, method, 
-                                   custom_r_nn_range, custom_dt_nn_range, verbose=verbose)
+                                   custom_r_nn_range, custom_dt_nn_range, verbose=verbose,
+                                   use_adaptive_weights=use_adaptive_weights,
+                                   n_matched_focals=n_matched_focals)
     optimizer.optimize(method, **kwargs)
     return optimizer.get_recommended_parameters()

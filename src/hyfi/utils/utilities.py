@@ -604,17 +604,26 @@ def fault_network_with_optimization(input_params):
         
         # Load focal mechanism data if available
         focal_mechanisms = None
+        n_matched_focals = 0  # Count of focal mechanisms that match hypocenters
         if input_params.get('validation_bool', False) and input_params.get('foc_file'):
             try:
                 foc_file = input_params.get('foc_file')
                 foc_sep = input_params.get('foc_sep', ';')
                 focal_mechanisms = pd.read_csv(foc_file, sep=foc_sep)
                 print(f"Loaded {len(focal_mechanisms)} focal mechanisms for validation")
-
+                
+                # Count how many focal mechanisms match hypocenters in this dataset
+                if 'ID' in focal_mechanisms.columns and 'ID' in data_input.columns:
+                    matched_focals = focal_mechanisms[focal_mechanisms['ID'].isin(data_input['ID'])]
+                    n_matched_focals = len(matched_focals)
+                    print(f"    {n_matched_focals} focal mechanisms found in the current dataset")
+                else:
+                    print("    Warning: Could not match focal mechanisms to hypocenters (missing ID column)")
 
             except Exception as e:
                 print(f"Failed to load focal mechanism data: {e}")
                 focal_mechanisms = None
+                n_matched_focals = 0
         
         # Set up parameter optimizer
         optimization_method = input_params.get('optimization_method', 'grid_search')
@@ -636,8 +645,14 @@ def fault_network_with_optimization(input_params):
             logger.warning(f"Invalid dt_nn range format: {custom_dt_nn_range}. Expected [min, max] or (min, max)")
             custom_dt_nn_range = None
         
+        # Get adaptive weights setting (default: True for improved variable dataset handling)
+        use_adaptive_weights = input_params.get('optimization_use_adaptive_weights', True)
+        
         optimizer = ParameterOptimizer(data_input, focal_mechanisms, optimization_method,
-                                       custom_r_nn_range, custom_dt_nn_range, verbose=False)
+                                       custom_r_nn_range, custom_dt_nn_range, verbose=False,
+                                       use_adaptive_weights=use_adaptive_weights,
+                                       n_matched_focals=n_matched_focals,
+                                       original_input_params=input_params)
         
         # Perform optimization
         try:
