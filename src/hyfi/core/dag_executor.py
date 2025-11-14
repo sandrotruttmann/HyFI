@@ -322,10 +322,25 @@ class DAGExecutor:
             input_params.update({
                 'auto_optimize_parameters': params.get('auto_optimize_parameters', False),
                 'optimization_method': params.get('optimization_method', 'grid_search'),
-                'optimization_grid_points': params.get('optimization_grid_points', 25),
+                'optimization_random_state': params.get('optimization_random_state', 42),
                 'optimization_plot_results': params.get('optimization_plot_results', False),
                 'optimization_r_nn_range': params.get('optimization_r_nn_range', None),
-                'optimization_dt_nn_range': params.get('optimization_dt_nn_range', None)
+                'optimization_dt_nn_range': params.get('optimization_dt_nn_range', None),
+                # Grid search parameters
+                'optimization_grid_points': params.get('optimization_grid_points', 25),
+                # Bayesian optimization parameters
+                'optimization_n_calls': params.get('optimization_n_calls', 50),
+                'optimization_n_initial_points': params.get('optimization_n_initial_points', 10),
+                'optimization_acquisition_func': params.get('optimization_acquisition_func', 'EI'),
+                # Optuna optimization parameters
+                'optimization_n_trials': params.get('optimization_n_trials', 50),
+                'optimization_sampler': params.get('optimization_sampler', 'tpe'),
+                'optimization_n_startup_trials': params.get('optimization_n_startup_trials', 10),
+                'optimization_early_stopping_rounds': params.get('optimization_early_stopping_rounds', None),
+                'optimization_early_stopping_threshold': params.get('optimization_early_stopping_threshold', 1e-4),
+                # Pareto optimization parameters
+                'optimization_pareto_sampler': params.get('optimization_pareto_sampler', 'nsga2'),
+                'optimization_pareto_population': params.get('optimization_pareto_population', 50)
             })
         
         # Add output directory for saving optimization plots

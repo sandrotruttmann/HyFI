@@ -106,18 +106,42 @@ Parameters for 3D fault network reconstruction using NN search and PCA.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `auto_optimize_parameters` | boolean | `false` | Enable automatic optimization of `search_radius_meters` and `search_time_window_hours`. When enabled, ignores manual values for these parameters |
-| `optimization_method` | string | `"grid_search"` | Optimization algorithm. Options: `"heuristic"` (fast, seconds-minutes), `"grid_search"` (thorough, minutes-hours, **recommended**), `"bayesian"` (experimental), `"pareto"` (multi-objective) |
+| `optimization_method` | string | `"grid_search"` | Optimization algorithm. Options: `"heuristic"` (fast, seconds-minutes), `"grid_search"` (thorough, minutes-hours, **recommended**), `"bayesian"` (Gaussian Process), `"optuna"` (TPE sampler, **recommended for speed**), `"pareto"` (multi-objective) |
 | `optimization_random_state` | integer | `42` | Random seed for optimization reproducibility |
-| `optimization_n_trials` | integer | `50` | Number of trials for Bayesian/Pareto optimization. Range: 50-500. Higher = more thorough |
-| `optimization_grid_points` | integer | `25` | Grid resolution for grid_search method. Range: 10-30. Higher = more thorough but slower. Typical: 20-25 |
 | `optimization_plot_results` | boolean | `false` | Generate visualization plots of optimization results |
 | `optimization_r_nn_range` | array or null | `[50, 1000]` | Search radius range for optimization `[min_meters, max_meters]`. Use `null` for automatic range determination |
 | `optimization_dt_nn_range` | array or null | `[100, 50000]` | Time window range for optimization `[min_hours, max_hours]`. Use `null` for automatic range determination |
 
-**Optimization Tips**:
-- Small catalogs (<500 events): Use `"heuristic"` method
-- Medium catalogs (500-5000 events): Use `"grid_search"` with `optimization_grid_points: 20`
-- Large catalogs (>5000 events): Use `"grid_search"` with `optimization_grid_points: 25`
+#### Grid Search Specific Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `optimization_grid_points` | integer | `25` | Grid resolution for grid_search method. Total evaluations = `grid_points²`. Range: 10-50. Higher = more thorough but slower (25 = 625 evaluations) |
+
+#### Bayesian Optimization Specific Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `optimization_n_calls` | integer | `50` | Total number of function evaluations for Bayesian optimization. Range: 30-200 |
+| `optimization_n_initial_points` | integer | `10` | Number of random evaluations before starting Gaussian Process optimization. Range: 5-20 |
+| `optimization_acquisition_func` | string | `"EI"` | Acquisition function. Options: `"EI"` (Expected Improvement, **recommended**), `"PI"` (Probability of Improvement), `"LCB"` (Lower Confidence Bound), `"gp_hedge"` (adaptive) |
+
+#### Optuna Optimization Specific Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `optimization_n_trials` | integer | `50` | Total number of trials for Optuna optimization. Range: 30-500. Higher = more thorough |
+| `optimization_sampler` | string | `"tpe"` | Optuna sampling algorithm. Options: `"tpe"` (Tree-structured Parzen Estimator, **recommended**), `"cmaes"` (CMA-ES), `"random"` (Random sampling) |
+| `optimization_n_startup_trials` | integer | `10` | Number of random trials before sampler-specific optimization starts. Range: 5-20 |
+| `optimization_early_stopping_rounds` | integer or null | `null` | **Early stopping**: Stop if no improvement for N consecutive trials. `null` = disabled. Recommended: 10-20 for n_trials=50, 20-30 for n_trials=200. Saves computation time |
+| `optimization_early_stopping_threshold` | float | `0.0001` | Minimum improvement to be considered significant for early stopping. Range: 1e-5 to 1e-3. Lower = more conservative |
+
+#### Pareto Multi-Objective Optimization Specific Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `optimization_pareto_sampler` | string | `"nsga2"` | Pareto optimization sampler. Options: `"nsga2"` (NSGA-II, **recommended**), `"nsga3"` (NSGA-III), `"random"` |
+| `optimization_pareto_population` | integer | `50` | Population size for evolutionary algorithms. Range: 30-100 |
 
 ---
 

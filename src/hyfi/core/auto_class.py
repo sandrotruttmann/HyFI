@@ -184,6 +184,7 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
             original_coords = df_clustered.loc[cluster_fault_indices, ['X', 'Y', 'Z']].values
             hypocenter_range = np.ptp(original_coords, axis=0).mean()
             eps = hypocenter_range * eps_factor
+            print(f"        Calculated eps from range: {hypocenter_range:.1f}m × {eps_factor} = {eps:.1f}m")
             
             # Calculate min_samples based on average points per fault
             avg_points_per_fault = len(points) / len(cluster_fault_indices)

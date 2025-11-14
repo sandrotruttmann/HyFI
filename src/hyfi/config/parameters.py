@@ -45,6 +45,8 @@ class FaultNetworkConfig:
     optimization_n_trials: int = 50             # total trials for Optuna optimization
     optimization_sampler: str = 'tpe'           # Optuna sampler: 'tpe', 'cmaes', 'random'
     optimization_n_startup_trials: int = 10     # random trials before sampler optimization
+    optimization_early_stopping_rounds: Optional[int] = None  # stop if no improvement for N trials (None = disabled)
+    optimization_early_stopping_threshold: float = 1e-4  # minimum improvement threshold
     
     # Pareto multi-objective optimization parameters
     optimization_pareto_sampler: str = 'nsga2'  # Pareto sampler: 'nsga2', 'nsga3', 'random'
@@ -81,6 +83,9 @@ class FaultNetworkConfig:
         validate_positive_number(self.optimization_n_trials, "optimization_n_trials")
         validate_choice(self.optimization_sampler, ['tpe', 'cmaes', 'random'], "optimization_sampler")
         validate_positive_number(self.optimization_n_startup_trials, "optimization_n_startup_trials")
+        if self.optimization_early_stopping_rounds is not None:
+            validate_positive_number(self.optimization_early_stopping_rounds, "optimization_early_stopping_rounds")
+        validate_positive_number(self.optimization_early_stopping_threshold, "optimization_early_stopping_threshold")
         
         # Validate Pareto optimization parameters
         validate_choice(self.optimization_pareto_sampler, ['nsga2', 'nsga3', 'random'], "optimization_pareto_sampler")

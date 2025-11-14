@@ -16,3 +16,11 @@ data_examples/A37_data.csv
 /src/hyfi/core/__pycache__
 /src/hyfi/config/__pycache__
 /src/hyfi/__pycache__
+/output_A0_pareto
+/output_A18_pareto
+/output_A24_pareto
+/output_A37_pareto
+/src/hyfi.egg-info
+/src/hyfi/utils/__pycache__
+/src/hyfi/utils/__pycache__
+/src/hyfi/visualization/__pycache__

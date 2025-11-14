@@ -29,13 +29,24 @@ from sklearn.metrics import silhouette_score
 from scipy.optimize import minimize_scalar, differential_evolution
 from scipy.spatial.distance import pdist
 from scipy.stats import zscore
-from skopt import gp_minimize
-from skopt.space import Real
-from skopt.plots import plot_convergence, plot_objective
-from skopt.utils import use_named_args
-import optuna
-from optuna.samplers import TPESampler, CmaEsSampler, RandomSampler
-from optuna.pruners import MedianPruner
+
+# Optional dependencies for different optimization methods
+try:
+    from skopt import gp_minimize
+    from skopt.space import Real
+    from skopt.plots import plot_convergence, plot_objective
+    from skopt.utils import use_named_args
+    HAS_SKOPT = True
+except ImportError:
+    HAS_SKOPT = False
+
+try:
+    import optuna
+    from optuna.samplers import TPESampler, CmaEsSampler, RandomSampler
+    from optuna.pruners import MedianPruner
+    HAS_OPTUNA = True
+except ImportError:
+    HAS_OPTUNA = False
 
 
 import matplotlib
@@ -1390,7 +1401,8 @@ class ParameterOptimizer:
     
     def optimize_optuna(self, n_trials=50, sampler='tpe', n_startup_trials=10,
                        plot_results=False, save_plot_path=None, verbose_optimization=False, 
-                       random_state=None, study_name=None):
+                       random_state=None, study_name=None, early_stopping_rounds=None,
+                       early_stopping_threshold=1e-4):
         """
         Perform optimization using Optuna framework with modern hyperparameter optimization.
         
@@ -1418,6 +1430,12 @@ class ParameterOptimizer:
             Random seed for reproducibility
         study_name : str, optional
             Name for the Optuna study (for tracking/logging)
+        early_stopping_rounds : int, optional
+            Stop optimization if no improvement for this many consecutive trials (default: None, no early stopping)
+            Recommended: 10-20 for n_trials=50, 20-30 for n_trials=100+
+        early_stopping_threshold : float, optional
+            Minimum improvement to be considered significant (default: 1e-4)
+            If best score improves by less than this, it's not counted as improvement
             
         Returns
         -------
@@ -1430,9 +1448,17 @@ class ParameterOptimizer:
             If Optuna is not installed
         """
         
+        if not HAS_OPTUNA:
+            raise ImportError(
+                "Optuna is required for this optimization method. "
+                "Install it with: pip install optuna"
+            )
+        
         print(f"    Using Optuna optimization with {n_trials} trials")
         print(f"    Sampler: {sampler}")
         print(f"    Startup trials: {n_startup_trials}")
+        if early_stopping_rounds:
+            print(f"    Early stopping: enabled ({early_stopping_rounds} rounds, threshold={early_stopping_threshold})", flush=True)
         
         # Temporarily override verbosity setting for optimization runs
         original_verbose = self.verbose
@@ -1498,8 +1524,72 @@ class ParameterOptimizer:
                 
                 return score
             
-            # Run optimization
-            study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+            # Create early stopping callback if requested
+            callbacks = []
+            
+            if early_stopping_rounds is not None and early_stopping_rounds > 0:
+                
+                class EarlyStoppingCallback:
+                    """Custom callback for early stopping based on no improvement."""
+                    def __init__(self, patience, threshold, n_startup_trials):
+                        self.patience = patience
+                        self.threshold = threshold
+                        self.n_startup_trials = n_startup_trials
+                        self.best_score = None
+                        self.no_improvement_count = 0
+                        
+                    def __call__(self, study, trial):
+                        # Skip early stopping during startup phase (random trials)
+                        if trial.number < self.n_startup_trials:
+                            return
+                        
+                        # Get current best value
+                        if study.best_value is None:
+                            return
+                        
+                        # Initialize on first call after startup phase
+                        if self.best_score is None:
+                            self.best_score = study.best_value
+                            self.no_improvement_count = 0
+                            print(f"        ✓ Early stopping activated after startup (trial {trial.number}) - tracking best score: {self.best_score:.6f}", flush=True)
+                            return
+                        
+                        # Calculate improvement based on optimization direction
+                        # For minimization: improvement means new best is lower
+                        # For maximization: improvement means new best is higher
+                        if study.direction == optuna.study.StudyDirection.MINIMIZE:
+                            improvement = self.best_score - study.best_value
+                        else:
+                            improvement = study.best_value - self.best_score
+                        
+                        # Check if there's significant improvement
+                        if improvement > self.threshold:
+                            # Significant improvement found
+                            old_best = self.best_score
+                            self.best_score = study.best_value
+                            self.no_improvement_count = 0
+                            print(f"        ✓ Trial {trial.number}: IMPROVED from {old_best:.6f} to {study.best_value:.6f} (Δ={improvement:.6f}), counter RESET", flush=True)
+                        else:
+                            # No significant improvement
+                            self.no_improvement_count += 1
+                            # Print every 5 trials or when close to stopping
+                            if self.no_improvement_count % 5 == 0 or self.no_improvement_count >= self.patience - 2:
+                                print(f"        ⚠ Trial {trial.number}: No improvement (Δ={improvement:.6f} <= {self.threshold}), "
+                                      f"counter: {self.no_improvement_count}/{self.patience}", flush=True)
+                        
+                        # Stop if no improvement for patience trials
+                        if self.no_improvement_count >= self.patience:
+                            print(f"        🛑 EARLY STOPPING TRIGGERED after {self.patience} trials without improvement!", flush=True)
+                            print(f"        Best score: {self.best_score:.6f} at trial {study.best_trial.number}", flush=True)
+                            study.stop()
+                
+                callback_instance = EarlyStoppingCallback(early_stopping_rounds, early_stopping_threshold, n_startup_trials)
+                callbacks.append(callback_instance)
+            else:
+                print(f"        ✗ Early stopping DISABLED (rounds={early_stopping_rounds})", flush=True)
+            
+            # Run optimization with callbacks
+            study.optimize(objective, n_trials=n_trials, callbacks=callbacks, show_progress_bar=False)
             
             # Extract best parameters
             best_params = study.best_params
@@ -1588,8 +1678,8 @@ class ParameterOptimizer:
         study = self.optimization_results['optuna_study']
         results = self.optimization_results['all_results']
         
-        # Create figure with subplots
-        fig = plt.figure(figsize=(18, 12))
+        # Create figure with subplots: 3 rows x 3 columns
+        fig = plt.figure(figsize=(18, 14))
         gs = fig.add_gridspec(3, 3, hspace=0.35, wspace=0.35)
         
         best_params = self.optimization_results['best_params']
@@ -1602,7 +1692,9 @@ class ParameterOptimizer:
         dt_nn_values = np.array([r['dt_nn'] for r in results])
         scores = np.array([r['score'] for r in results])
         
-        # 1. Optimization history with best value (top left, double width)
+        # ROW 1: Evolution of objective values (left, double width) + Parameter space exploration (right)
+        
+        # 1. Evolution of objective values (top left, double width)
         ax1 = fig.add_subplot(gs[0, :2])
         ax1.plot(trial_numbers, scores, 'o-', alpha=0.6, markersize=4, color='steelblue', label='Trial value')
         
@@ -1618,7 +1710,7 @@ class ParameterOptimizer:
         
         ax1.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
         ax1.set_ylabel('Objective Value (lower is better)', fontsize=11, fontweight='bold')
-        ax1.set_title('Optimization History', fontsize=13, fontweight='bold')
+        ax1.set_title('Evolution of Objective Values', fontsize=13, fontweight='bold')
         ax1.legend(loc='upper right', fontsize=9)
         ax1.grid(True, alpha=0.3)
         
@@ -1641,6 +1733,8 @@ class ParameterOptimizer:
         plt.colorbar(scatter, ax=ax2, label='Objective Score')
         ax2.grid(True, alpha=0.3)
         
+        # ROW 2: r_nn evolution (left) + dt_nn evolution (center) + Summary (right)
+        
         # 3. Search radius evolution (middle left)
         ax3 = fig.add_subplot(gs[1, 0])
         ax3.plot(trial_numbers, r_nn_values, 'o-', alpha=0.6, markersize=4, color='green')
@@ -1649,7 +1743,7 @@ class ParameterOptimizer:
         ax3.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
         ax3.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
         ax3.set_ylabel('Search Radius (m)', fontsize=11, fontweight='bold')
-        ax3.set_title('r_nn Parameter Evolution', fontsize=12, fontweight='bold')
+        ax3.set_title('Evolution of r_nn', fontsize=12, fontweight='bold')
         ax3.legend(loc='best', fontsize=9)
         ax3.grid(True, alpha=0.3)
         
@@ -1661,58 +1755,16 @@ class ParameterOptimizer:
         ax4.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
         ax4.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
         ax4.set_ylabel('Time Window (hours)', fontsize=11, fontweight='bold')
-        ax4.set_title('dt_nn Parameter Evolution', fontsize=12, fontweight='bold')
+        ax4.set_title('Evolution of dt_nn', fontsize=12, fontweight='bold')
         ax4.legend(loc='best', fontsize=9)
         ax4.grid(True, alpha=0.3)
         
-        # 5. Score distribution by phase (middle right)
+        # 5. Summary statistics (middle right)
         ax5 = fig.add_subplot(gs[1, 2])
-        startup_scores = scores[:n_startup]
-        optimization_scores = scores[n_startup:]
-        
-        if len(optimization_scores) > 0:
-            bins = min(15, len(scores) // 3)
-            ax5.hist(startup_scores, bins=bins, alpha=0.6, label='Startup phase', color='gray', edgecolor='black')
-            ax5.hist(optimization_scores, bins=bins, alpha=0.6, label='Optimization phase', 
-                    color='steelblue', edgecolor='black')
-            ax5.axvline(x=best_score, color='red', linestyle='--', linewidth=2.5, 
-                       label=f'Best: {best_score:.4f}')
-            ax5.set_xlabel('Objective Score', fontsize=11, fontweight='bold')
-            ax5.set_ylabel('Frequency', fontsize=11, fontweight='bold')
-            ax5.set_title('Score Distribution', fontsize=12, fontweight='bold')
-            ax5.legend(loc='best', fontsize=9)
-            ax5.grid(True, alpha=0.3, axis='y')
-        
-        # 6. Quality metrics: Fault planes detected (bottom left)
-        ax6 = fig.add_subplot(gs[2, 0])
-        n_planes = np.array([r.get('n_planes', 0) for r in results])
-        ax6.plot(trial_numbers, n_planes, 'o-', alpha=0.6, markersize=4, color='orange')
-        ax6.axhline(y=self.optimization_results['best_details']['n_planes'], 
-                   color='red', linestyle='--', linewidth=2, alpha=0.7)
-        ax6.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
-        ax6.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
-        ax6.set_ylabel('Number of Fault Planes', fontsize=11, fontweight='bold')
-        ax6.set_title('Fault Plane Detection', fontsize=12, fontweight='bold')
-        ax6.grid(True, alpha=0.3)
-        
-        # 7. Recovery rate evolution (bottom center)
-        ax7 = fig.add_subplot(gs[2, 1])
-        recovery_rates = np.array([r.get('plane_recovery_rate', 0) for r in results])
-        ax7.plot(trial_numbers, recovery_rates * 100, 'o-', alpha=0.6, markersize=4, color='teal')
-        ax7.axhline(y=self.optimization_results['best_details']['plane_recovery_rate'] * 100, 
-                   color='red', linestyle='--', linewidth=2, alpha=0.7)
-        ax7.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
-        ax7.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
-        ax7.set_ylabel('Recovery Rate (%)', fontsize=11, fontweight='bold')
-        ax7.set_title('Plane Recovery Rate', fontsize=12, fontweight='bold')
-        ax7.grid(True, alpha=0.3)
-        
-        # 8. Summary statistics (bottom right)
-        ax8 = fig.add_subplot(gs[2, 2])
-        ax8.axis('off')
+        ax5.axis('off')
         
         # Calculate improvement statistics
-        startup_best = np.min(startup_scores) if len(startup_scores) > 0 else best_score
+        startup_best = np.min(scores[:n_startup]) if len(scores[:n_startup]) > 0 else best_score
         improvement_pct = ((startup_best - best_score) / startup_best * 100) if startup_best > 0 else 0
         
         sampler_name = self.optimization_results['optimization_settings']['sampler'].upper()
@@ -1740,8 +1792,97 @@ class ParameterOptimizer:
           • vs Grid (25²): {625/len(results):.1f}x fewer
         """
         
-        ax8.text(0.1, 0.5, summary_text, fontsize=10, verticalalignment='center',
+        ax5.text(0.1, 0.5, summary_text, fontsize=10, verticalalignment='center',
                 fontfamily='monospace', bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.3))
+        
+        # ROW 3: Objective function components
+        # Extract data for objective function components - check both flat structure and nested quality_metrics
+        
+        # 6. Recovery rate evolution (bottom left)
+        ax6 = fig.add_subplot(gs[2, 0])
+        recovery_rates = np.array([r.get('plane_recovery_rate', 0) for r in results])
+        ax6.plot(trial_numbers, recovery_rates * 100, 'o-', alpha=0.6, markersize=4, color='teal')
+        ax6.axhline(y=self.optimization_results['best_details']['plane_recovery_rate'] * 100, 
+                   color='red', linestyle='--', linewidth=2, alpha=0.7,
+                   label=f'Best: {self.optimization_results["best_details"]["plane_recovery_rate"]*100:.1f}%')
+        ax6.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
+        ax6.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
+        ax6.set_ylabel('Recovery Rate (%)', fontsize=11, fontweight='bold')
+        ax6.set_title('Plane Recovery Rate', fontsize=12, fontweight='bold')
+        ax6.legend(loc='best', fontsize=9)
+        ax6.grid(True, alpha=0.3)
+        
+        # 7. Lambda2/3 ratio evolution (bottom center)
+        ax7 = fig.add_subplot(gs[2, 1])
+        # Try both flat structure and nested quality_metrics
+        lambda_ratios = []
+        for r in results:
+            if 'mean_lambda23_ratio' in r:
+                lambda_ratios.append(r['mean_lambda23_ratio'])
+            elif 'quality_metrics' in r and 'mean_lambda23_ratio' in r['quality_metrics']:
+                lambda_ratios.append(r['quality_metrics']['mean_lambda23_ratio'])
+            else:
+                lambda_ratios.append(np.nan)
+        lambda_ratios = np.array(lambda_ratios)
+        
+        if not np.all(np.isnan(lambda_ratios)):
+            ax7.plot(trial_numbers, lambda_ratios, 'o-', alpha=0.6, markersize=4, color='darkgreen')
+            # Get best lambda from best_details
+            best_lambda = None
+            if 'mean_lambda23_ratio' in self.optimization_results['best_details']:
+                best_lambda = self.optimization_results['best_details']['mean_lambda23_ratio']
+            elif 'quality_metrics' in self.optimization_results['best_details']:
+                best_lambda = self.optimization_results['best_details']['quality_metrics'].get('mean_lambda23_ratio', None)
+            
+            if best_lambda is not None and not np.isnan(best_lambda):
+                ax7.axhline(y=best_lambda, color='red', linestyle='--', linewidth=2, alpha=0.7,
+                           label=f'Best: {best_lambda:.2f}')
+            ax7.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
+            ax7.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
+            ax7.set_ylabel('Mean λ₂/λ₃ Ratio', fontsize=11, fontweight='bold')
+            ax7.set_title('Planarity (λ₂/λ₃)', fontsize=12, fontweight='bold')
+            ax7.legend(loc='best', fontsize=9)
+            ax7.grid(True, alpha=0.3)
+        else:
+            ax7.text(0.5, 0.5, 'λ₂/λ₃ ratio not available\n(Check quality_metrics in results)', 
+                    ha='center', va='center', fontsize=10, transform=ax7.transAxes)
+            ax7.axis('off')
+        
+        # 8. Focal mechanism mismatch evolution (bottom right)
+        ax8 = fig.add_subplot(gs[2, 2])
+        # Try both flat structure and nested focal_metrics
+        focal_mismatches = []
+        for r in results:
+            if 'focal_metrics' in r and 'mean_angular_diff' in r['focal_metrics']:
+                focal_mismatches.append(r['focal_metrics']['mean_angular_diff'])
+            elif 'mean_angular_diff' in r:
+                focal_mismatches.append(r['mean_angular_diff'])
+            else:
+                focal_mismatches.append(np.nan)
+        focal_mismatches = np.array(focal_mismatches)
+        
+        if not np.all(np.isnan(focal_mismatches)):
+            ax8.plot(trial_numbers, focal_mismatches, 'o-', alpha=0.6, markersize=4, color='crimson')
+            # Get best focal from best_details
+            best_focal = None
+            if 'focal_metrics' in self.optimization_results['best_details']:
+                best_focal = self.optimization_results['best_details']['focal_metrics'].get('mean_angular_diff', None)
+            elif 'mean_angular_diff' in self.optimization_results['best_details']:
+                best_focal = self.optimization_results['best_details']['mean_angular_diff']
+            
+            if best_focal is not None and not np.isnan(best_focal):
+                ax8.axhline(y=best_focal, color='red', linestyle='--', linewidth=2, alpha=0.7,
+                           label=f'Best: {best_focal:.1f}°')
+            ax8.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
+            ax8.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
+            ax8.set_ylabel('Mean Angular Difference (°)', fontsize=11, fontweight='bold')
+            ax8.set_title('Focal Mechanism Mismatch', fontsize=12, fontweight='bold')
+            ax8.legend(loc='best', fontsize=9)
+            ax8.grid(True, alpha=0.3)
+        else:
+            ax8.text(0.5, 0.5, 'Focal mechanism data not available', 
+                    ha='center', va='center', fontsize=10, transform=ax8.transAxes)
+            ax8.axis('off')
         
         plt.suptitle(f'Optuna Optimization Results (Sampler: {sampler_name})', 
                     fontsize=15, fontweight='bold', y=0.995)

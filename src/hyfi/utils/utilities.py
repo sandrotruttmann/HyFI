@@ -677,6 +677,8 @@ def fault_network_with_optimization(input_params):
                 optimization_kwargs['n_trials'] = input_params.get('optimization_n_trials', 50)
                 optimization_kwargs['sampler'] = input_params.get('optimization_sampler', 'tpe')
                 optimization_kwargs['n_startup_trials'] = input_params.get('optimization_n_startup_trials', 10)
+                optimization_kwargs['early_stopping_rounds'] = input_params.get('optimization_early_stopping_rounds', None)
+                optimization_kwargs['early_stopping_threshold'] = input_params.get('optimization_early_stopping_threshold', 1e-4)
                 optimization_kwargs['plot_results'] = input_params.get('optimization_plot_results', False)
                 
                 # Set up plot save path if output directory is available
