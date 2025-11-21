@@ -17,10 +17,10 @@
     "fault_network": {
       "parameters": {
         "monte_carlo_simulations": 1,
-        "search_radius_meters": 130.0,
-        "search_time_window_hours": 350.0,
+        "search_radius_meters": 108.0,
+        "search_time_window_hours": 11734.0,
         "magnitude_type": "ML",
-        "auto_optimize_parameters": true,
+        "auto_optimize_parameters": false,
         "optimization_method": "optuna",
         "optimization_use_adaptive_weights": true,
         "optimization_random_state": 42,
@@ -83,6 +83,8 @@
         "generate_3d_model": true,
         "generate_stereonet": true,
         "enable_plane_interpolation": true,
+        "enable_mesh_stress": true,
+        "mesh_subdivisions": 2,
         "poisson_depth": 2,
         "density_threshold": 0.01,
         "max_distance_factor": 2.5,

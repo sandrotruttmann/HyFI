@@ -89,11 +89,11 @@
         "stress_field": {
           "use_shapefile": false,
           "shapefile_path": null,
-          "sigma1_trend_degrees": 301,
-          "sigma1_plunge_degrees": 23,
-          "sigma3_trend_degrees": 43,
-          "sigma3_plunge_degrees": 26,
-          "stress_shape_ratio": 0.35
+          "sigma1_trend_degrees": null,
+          "sigma1_plunge_degrees": null,
+          "sigma3_trend_degrees": null,
+          "sigma3_plunge_degrees": null,
+          "stress_shape_ratio": null
         },
         "mechanical_properties": {
           "pore_pressure_mpa": 0.0,
@@ -110,8 +110,10 @@
         },
         "fault_surface_interpolation": {
           "enable_plane_interpolation": true,
-          "poisson_depth": 6,
-          "density_threshold": 0.3,
+          "enable_mesh_stress": true,
+          "mesh_subdivisions": 2,
+          "poisson_depth": 2,
+          "density_threshold": 0.01,
           "max_distance_factor": 2.5,
           "spatial_clustering_method": "adaptive",
           "min_events_per_cluster": 10

@@ -209,11 +209,11 @@ Fault stress analysis and failure assessment using regional stress field.
 |-----------|------|---------|-------------|
 | `use_shapefile` | boolean | `false` | Enable spatially-varying stress field from shapefile. When `true`, stress parameters are read from shapefile instead of using fixed values below |
 | `shapefile_path` | string/null | `null` | Path to shapefile (.shp) with spatially-varying stress field polygons. Only used if `use_shapefile` is `true`. Shapefile must have columns: `s1_trend`, `s1_plunge`, `s3_trend`, `s3_plunge`, `R`. Example: `"data_examples/Stressfield/CH_stressfield_Kastrup.shp"` |
-| `sigma1_trend_degrees` | float | `301` | σ₁ (maximum principal stress) azimuth/trend in degrees. Range: 0-360, measured clockwise from North. Used as fixed value (if `use_shapefile=false`) or fallback value |
-| `sigma1_plunge_degrees` | float | `23` | σ₁ plunge in degrees. Range: 0-90 (0=horizontal, 90=vertical). Used as fixed value (if `use_shapefile=false`) or fallback value |
-| `sigma3_trend_degrees` | float | `43` | σ₃ (minimum principal stress) azimuth/trend in degrees. Range: 0-360. Used as fixed value (if `use_shapefile=false`) or fallback value |
-| `sigma3_plunge_degrees` | float | `26` | σ₃ plunge in degrees. Range: 0-90. Used as fixed value (if `use_shapefile=false`) or fallback value |
-| `stress_shape_ratio` | float | `0.35` | Stress shape ratio R = (σ₂-σ₃)/(σ₁-σ₃). Range: 0-1 (0=uniaxial extension, 0.5=σ₂ midway, 1=isotropic/uniaxial compression). Used as fixed value (if `use_shapefile=false`) or fallback value |
+| `sigma1_trend_degrees` | float/null | `null` | σ₁ (maximum principal stress) azimuth/trend in degrees. Range: 0-360, measured clockwise from North. Used as fixed value (if `use_shapefile=false`) or fallback value. **Required if `use_shapefile=false`** |
+| `sigma1_plunge_degrees` | float/null | `null` | σ₁ plunge in degrees. Range: 0-90 (0=horizontal, 90=vertical). Used as fixed value (if `use_shapefile=false`) or fallback value. **Required if `use_shapefile=false`** |
+| `sigma3_trend_degrees` | float/null | `null` | σ₃ (minimum principal stress) azimuth/trend in degrees. Range: 0-360. Used as fixed value (if `use_shapefile=false`) or fallback value. **Required if `use_shapefile=false`** |
+| `sigma3_plunge_degrees` | float/null | `null` | σ₃ plunge in degrees. Range: 0-90. Used as fixed value (if `use_shapefile=false`) or fallback value. **Required if `use_shapefile=false`** |
+| `stress_shape_ratio` | float/null | `null` | Stress shape ratio R = (σ₂-σ₃)/(σ₁-σ₃). Range: 0-1 (0=uniaxial extension, 0.5=σ₂ midway, 1=isotropic/uniaxial compression). Used as fixed value (if `use_shapefile=false`) or fallback value. **Required if `use_shapefile=false`** |
 
 **Note**: σ₂ (intermediate principal stress) is automatically calculated from σ₁, σ₃, and the stress shape ratio.
 
@@ -256,9 +256,11 @@ Visualization and export settings for analysis results.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enable_plane_interpolation` | boolean | `true` | Enable Poisson surface reconstruction to interpolate continuous fault surfaces from point clouds |
-| `poisson_depth` | integer | `3` | Poisson reconstruction octree depth. Range: 4-12. Higher = more detail but slower. **Recommended: 6-8** |
-| `density_threshold` | float | `0.4` | Minimum density threshold for surface reconstruction. Range: 0.01-0.9. Lower = includes sparse regions, higher = only dense regions |
-| `max_distance_factor` | float | `1.5` | Maximum distance factor for point-to-surface association. Range: 1.0-5.0. Higher = more permissive association |
+| `enable_mesh_stress` | boolean | `true` | Calculate stress parameters (Sn_eff, Tau, rake, sliptend, dilatend) for each mesh face. Requires stress_analysis enabled |
+| `mesh_subdivisions` | integer | `2` | Number of mesh subdivision iterations (0-3). Each iteration quadruples face count. Loop subdivision maintains smoothness. Creates denser meshes than increasing poisson_depth |
+| `poisson_depth` | integer | `2` | Poisson reconstruction octree depth. Range: 4-12. Higher = more detail but can introduce noise. **Recommended: 2-3 for smooth base, then use mesh_subdivisions for density** |
+| `density_threshold` | float | `0.01` | Minimum density threshold for surface reconstruction. Range: 0.01-0.9. Lower = includes sparse regions, higher = only dense regions |
+| `max_distance_factor` | float | `2.5` | Maximum distance factor for point-to-surface association. Range: 1.0-5.0. Higher = more permissive association |
 | `spatial_clustering_method` | string | `"adaptive"` | Clustering method for interpolation. Options: `"kmeans"`, `"dbscan"`, `"adaptive"` (automatically chooses based on data), `"none"` (no clustering) |
 | `min_events_per_cluster` | integer | `10` | Minimum events required per cluster for interpolation |
 

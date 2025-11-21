@@ -125,11 +125,11 @@ class StressAnalysisNode:
                 "stress_field": {
                     "use_shapefile": False,  # Whether to use shapefile for stress parameters
                     "shapefile_path": None,  # Optional: path to .shp file with spatially-varying stress field
-                    "sigma1_trend_degrees": 301,
-                    "sigma1_plunge_degrees": 23,
-                    "sigma3_trend_degrees": 43,
-                    "sigma3_plunge_degrees": 26,
-                    "stress_shape_ratio": 0.35
+                    "sigma1_trend_degrees": None,
+                    "sigma1_plunge_degrees": None,
+                    "sigma3_trend_degrees": None,
+                    "sigma3_plunge_degrees": None,
+                    "stress_shape_ratio": None
                 },
                 "mechanical_properties": {
                     "pore_pressure_mpa": 0.0,
@@ -161,15 +161,19 @@ class VisualizationNode:
                 "output_formats": ["html", "png"],
                 "interactive_plots": True,
                 # Interpolation parameters
-                "enable_plane_interpolation": False,
-                "poisson_depth": 6,
-                "density_threshold": 0.3,
+                "enable_plane_interpolation": True,
+                "poisson_depth": 2,
+                "density_threshold": 0.01,
+                "max_distance_factor": 2.5,
                 "spatial_clustering_method": "adaptive",  # "kmeans", "dbscan", "adaptive"
                 "n_spatial_clusters": 2,
                 "min_events_per_cluster": 10,
                 "export_interpolated_vtp": True,
                 "export_time_series": False,
-                "time_step_hours": 24
+                "time_step_hours": 24,
+                # Mesh stress calculation
+                "enable_mesh_stress": True,
+                "mesh_subdivisions": 2
             }
     
     def to_dict(self) -> Dict[str, Any]:

@@ -595,6 +595,44 @@ class DAGExecutor:
                         df_hyfi, viz_params
                     )
                     
+                    # Calculate stress on mesh faces if enabled and stress data available
+                    if viz_params.get('enable_mesh_stress', False) and combined_mesh is not None:
+                        # Get stress parameters from stress_analysis results
+                        stress_results = self.results.get('stress_analysis', {})
+                        if stress_results and isinstance(stress_results, dict):
+                            # Get stress parameters from input_params (used in stress analysis)
+                            stress_params = {}
+                            
+                            # Check if stress analysis was performed and get parameters
+                            if input_params.get('stress_bool', False):
+                                # Get stress parameters directly from input_params
+                                # These are the same parameters used in stress_analysis.fault_stress()
+                                stress_params['S1_trend'] = input_params.get('S1_trend')
+                                stress_params['S1_plunge'] = input_params.get('S1_plunge')
+                                stress_params['S3_trend'] = input_params.get('S3_trend')
+                                stress_params['S3_plunge'] = input_params.get('S3_plunge')
+                                stress_params['stress_R'] = input_params.get('stress_R')
+                                stress_params['PP'] = input_params.get('PP', 0.0)
+                                stress_params['fric_coeff'] = input_params.get('fric_coeff', 0.75)
+                                
+                                # Verify we have valid parameters
+                                if all(param is not None and not (isinstance(param, float) and np.isnan(param)) 
+                                       for param in [stress_params['S1_trend'], stress_params['S1_plunge'],
+                                                   stress_params['S3_trend'], stress_params['S3_plunge'],
+                                                   stress_params['stress_R']]):
+                                    # Calculate stress on mesh faces
+                                    # Note: Mesh subdivision is already handled in create_interpolated_fault_planes()
+                                    from hyfi.core.stress_analysis import calculate_mesh_stress
+                                    combined_mesh = calculate_mesh_stress(combined_mesh, stress_params)
+                                    
+                                    # Also apply to individual meshes
+                                    for mesh_info in individual_meshes:
+                                        mesh_info['mesh'] = calculate_mesh_stress(mesh_info['mesh'], stress_params)
+                                else:
+                                    logger.info("Stress parameters incomplete - skipping mesh stress calculation")
+                            else:
+                                logger.info("Stress analysis not enabled - skipping mesh stress calculation")
+                    
                     # Export to VTK if requested
                     if viz_params.get('export_vtp', False) and combined_mesh is not None:
                         output_dir = input_params.get('out_dir', str(self.output_dir))

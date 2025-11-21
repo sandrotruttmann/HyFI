@@ -563,3 +563,137 @@ def fault_stress(df_hyfi, input_params):
             df_hyfi[col] = np.nan
 
     return df_hyfi, S2_trend, S2_plunge
+
+
+def calculate_mesh_stress(mesh, stress_params):
+    """
+    Calculate stress parameters for each face of an interpolated mesh.
+    
+    Parameters
+    ----------
+    mesh : pyvista.PolyData
+        Mesh with faces (triangles) representing fault surface
+    stress_params : dict
+        Stress field parameters with keys:
+        - 'S1_trend', 'S1_plunge': σ₁ orientation
+        - 'S3_trend', 'S3_plunge': σ₃ orientation  
+        - 'stress_R': stress shape ratio
+        - 'PP': pore pressure
+        - 'fric_coeff': friction coefficient
+        
+    Returns
+    -------
+    mesh : pyvista.PolyData
+        Input mesh with added cell data arrays for stress parameters
+    """
+    try:
+        import pyvista as pv
+    except ImportError:
+        print("Warning: pyvista not available, cannot calculate mesh stress")
+        return mesh
+    
+    # Extract stress parameters
+    S1_trend = stress_params.get('S1_trend')
+    S1_plunge = stress_params.get('S1_plunge')
+    S3_trend = stress_params.get('S3_trend')
+    S3_plunge = stress_params.get('S3_plunge')
+    stress_R = stress_params.get('stress_R')
+    PP = stress_params.get('PP', 0.0)
+    fric_coeff = stress_params.get('fric_coeff', 0.75)
+    
+    # Check if stress parameters are available
+    if any(param is None or (isinstance(param, float) and np.isnan(param)) 
+           for param in [S1_trend, S1_plunge, S3_trend, S3_plunge, stress_R]):
+        print("Warning: Stress parameters not available for mesh stress calculation")
+        return mesh
+    
+    # Calculate face normals if not present
+    mesh = mesh.compute_normals(cell_normals=True, point_normals=False)
+    
+    # Get face normals
+    face_normals = mesh.cell_data['Normals']
+    n_faces = len(face_normals)
+    
+    print(f"Calculating stress for {n_faces} mesh faces...")
+    
+    # Define relative stress magnitudes
+    S1_mag = 1
+    S2_mag = 1 - (2*stress_R)
+    S3_mag = -1
+    
+    # Initialize arrays for stress parameters
+    Sn_eff_array = np.zeros(n_faces)
+    Tau_array = np.zeros(n_faces)
+    rake_array = np.zeros(n_faces)
+    I_array = np.zeros(n_faces)
+    sliptend_array = np.zeros(n_faces)
+    dilatend_array = np.zeros(n_faces)
+    
+    # Calculate stress for each face
+    for i in range(n_faces):
+        # Get normal vector
+        normal = face_normals[i]
+        
+        # Calculate strike and dip from normal vector
+        # Normal vector points perpendicular to the plane
+        # We need to convert this to strike and dip
+        nx, ny, nz = normal[0], normal[1], normal[2]
+        
+        # Ensure normal points upward (positive Z component)
+        if nz < 0:
+            nx, ny, nz = -nx, -ny, -nz
+        
+        # Calculate dip (angle from horizontal)
+        dip = np.degrees(np.arccos(nz))
+        
+        # Calculate strike (azimuth of dip direction minus 90°)
+        # Dip direction azimuth
+        dip_dir = np.degrees(np.arctan2(nx, ny)) % 360
+        # Strike is 90° to the left of dip direction
+        strike = (dip_dir - 90) % 360
+        
+        try:
+            # Calculate stress parameters using existing functions
+            Sn_eff, Tau, rake, I, S2_trend, S2_plunge = stress_on_plane_I(
+                S1_mag, S2_mag, S3_mag,
+                S1_trend, S1_plunge,
+                S3_trend, S3_plunge,
+                strike, dip,
+                PP, fric_coeff
+            )
+            
+            _, _, _, sliptend, dilatend, _, _ = stress_on_plane_slipdilatend(
+                S1_trend, S1_plunge,
+                S3_trend, S3_plunge,
+                strike, dip,
+                PP, fric_coeff, stress_R
+            )
+            
+            Sn_eff_array[i] = Sn_eff
+            Tau_array[i] = Tau
+            rake_array[i] = rake
+            I_array[i] = I
+            sliptend_array[i] = sliptend
+            dilatend_array[i] = dilatend
+            
+        except Exception as e:
+            # If calculation fails, set to NaN
+            Sn_eff_array[i] = np.nan
+            Tau_array[i] = np.nan
+            rake_array[i] = np.nan
+            I_array[i] = np.nan
+            sliptend_array[i] = np.nan
+            dilatend_array[i] = np.nan
+    
+    # Add stress parameters as cell data
+    mesh.cell_data['Sn_eff'] = Sn_eff_array
+    mesh.cell_data['Tau'] = Tau_array
+    mesh.cell_data['rake'] = rake_array
+    mesh.cell_data['I'] = I_array
+    mesh.cell_data['sliptend'] = sliptend_array
+    mesh.cell_data['dilatend'] = dilatend_array
+    
+    valid_count = np.sum(~np.isnan(Sn_eff_array))
+    print(f"✓ Calculated stress for {valid_count}/{n_faces} mesh faces")
+    
+    return mesh

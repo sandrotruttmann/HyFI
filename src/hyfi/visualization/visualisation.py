@@ -855,6 +855,26 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         else:
             print(f"    × Failed to create mesh for cluster {cluster_id}")
     
+    # Apply mesh subdivision if requested (for higher density while maintaining smoothness)
+    n_subdivisions = interpolation_params.get('mesh_subdivisions', 0)
+    
+    if n_subdivisions > 0 and len(individual_meshes) > 0:
+        print(f"\nApplying mesh subdivision ({n_subdivisions} iterations)...")
+        combined_mesh_original_faces = combined_mesh.n_cells
+        
+        # Subdivide combined mesh using Loop subdivision (maintains smoothness)
+        for i in range(n_subdivisions):
+            combined_mesh = combined_mesh.subdivide(nsub=1, subfilter='loop')
+        
+        print(f"  Combined mesh: {combined_mesh_original_faces} → {combined_mesh.n_cells} faces ({combined_mesh.n_cells/combined_mesh_original_faces:.1f}x)")
+        
+        # Subdivide individual meshes
+        for mesh_info in individual_meshes:
+            original_faces = mesh_info['mesh'].n_cells
+            for i in range(n_subdivisions):
+                mesh_info['mesh'] = mesh_info['mesh'].subdivide(nsub=1, subfilter='loop')
+            print(f"  Cluster {mesh_info['cluster_id']}: {original_faces} → {mesh_info['mesh'].n_cells} faces")
+    
     print(f"✓ Interpolation complete. Created {len(individual_meshes)} fault plane meshes and {len(fault_disc_meshes)} circular disc meshes.")
     
     # Print total area and magnitude range if meshes were created
