@@ -123,6 +123,8 @@ class StressAnalysisNode:
         if self.parameters is None:
             self.parameters = {
                 "stress_field": {
+                    "use_shapefile": False,  # Whether to use shapefile for stress parameters
+                    "shapefile_path": None,  # Optional: path to .shp file with spatially-varying stress field
                     "sigma1_trend_degrees": 301,
                     "sigma1_plunge_degrees": 23,
                     "sigma3_trend_degrees": 43,

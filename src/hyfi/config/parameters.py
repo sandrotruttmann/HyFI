@@ -147,9 +147,21 @@ class StressAnalysisConfig:
     stress_R: float = 0.35              # Stress shape ratio
     PP: float = 0                       # Pore pressure
     fric_coeff: float = 0.75            # Friction coefficient
+    use_shapefile_stress: bool = False  # Whether to use shapefile for stress field
+    stress_field_shapefile: Optional[str] = None  # Path to shapefile with spatially-varying stress field
     
     def validate(self):
         """Validate configuration parameters."""
+        # If shapefile is enabled and provided, validate it exists
+        if self.use_shapefile_stress and self.stress_field_shapefile is not None:
+            from pathlib import Path
+            shapefile_path = Path(self.stress_field_shapefile)
+            if not shapefile_path.exists():
+                raise ConfigValidationError(
+                    f"Stress field shapefile not found: {self.stress_field_shapefile}"
+                )
+        
+        # Always validate fixed stress field parameters (used as fallback)
         validate_range(self.S1_trend, 0, 360, "S1_trend")
         validate_range(self.S1_plunge, 0, 90, "S1_plunge")
         validate_range(self.S3_trend, 0, 360, "S3_trend")

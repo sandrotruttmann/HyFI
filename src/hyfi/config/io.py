@@ -372,6 +372,8 @@ def convert_legacy_to_dag(legacy_config: ProjectConfig) -> HyFIWorkflowDAG:
     # Stress analysis parameters
     dag.nodes["stress_analysis"].enabled = legacy_config.stress_analysis.stress_bool
     dag.nodes["stress_analysis"].parameters["stress_field"].update({
+        "use_shapefile": legacy_config.stress_analysis.use_shapefile_stress,
+        "shapefile_path": legacy_config.stress_analysis.stress_field_shapefile,
         "sigma1_trend_degrees": legacy_config.stress_analysis.S1_trend,
         "sigma1_plunge_degrees": legacy_config.stress_analysis.S1_plunge,
         "sigma3_trend_degrees": legacy_config.stress_analysis.S3_trend,

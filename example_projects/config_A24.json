@@ -20,7 +20,7 @@
         "search_radius_meters": 400.0,
         "search_time_window_hours": 600.0,
         "magnitude_type": "ML",
-        "auto_optimize_parameters": true,
+        "auto_optimize_parameters": false,
         "optimization_method": "optuna",
         "optimization_use_adaptive_weights": true,
         "optimization_random_state": 42,
@@ -63,11 +63,13 @@
       "enabled": true,
       "parameters": {
         "stress_field": {
-          "sigma1_trend_degrees": 301,
-          "sigma1_plunge_degrees": 23,
-          "sigma3_trend_degrees": 43,
-          "sigma3_plunge_degrees": 26,
-          "stress_shape_ratio": 0.35
+          "use_shapefile": true,
+          "shapefile_path": "data_examples/Stressfield/CH_stressfield_Kastrup.shp",
+          "sigma1_trend_degrees": null,
+          "sigma1_plunge_degrees": null,
+          "sigma3_trend_degrees": null,
+          "sigma3_plunge_degrees": null,
+          "stress_shape_ratio": null
         },
         "mechanical_properties": {
           "pore_pressure_mpa": 0.0,

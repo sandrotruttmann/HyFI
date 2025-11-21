@@ -179,6 +179,8 @@ def dag_params_to_legacy_params(dag, node_id):
                 'stress_R': stress_field.get('stress_shape_ratio', 0.35),
                 'PP': mech_props.get('pore_pressure_mpa', 0.0),
                 'fric_coeff': mech_props.get('friction_coefficient', 0.75),
+                'use_shapefile_stress': stress_field.get('use_shapefile', False),
+                'stress_field_shapefile': stress_field.get('shapefile_path', None),
             })
         
         # Add visualization parameters

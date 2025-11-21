@@ -207,13 +207,17 @@ Fault stress analysis and failure assessment using regional stress field.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `sigma1_trend_degrees` | float | `301` | σ₁ (maximum principal stress) azimuth/trend in degrees. Range: 0-360, measured clockwise from North |
-| `sigma1_plunge_degrees` | float | `23` | σ₁ plunge in degrees. Range: 0-90 (0=horizontal, 90=vertical) |
-| `sigma3_trend_degrees` | float | `43` | σ₃ (minimum principal stress) azimuth/trend in degrees. Range: 0-360 |
-| `sigma3_plunge_degrees` | float | `26` | σ₃ plunge in degrees. Range: 0-90 |
-| `stress_shape_ratio` | float | `0.35` | Stress shape ratio R = (σ₂-σ₃)/(σ₁-σ₃). Range: 0-1 (0=uniaxial extension, 0.5=σ₂ midway, 1=isotropic/uniaxial compression) |
+| `use_shapefile` | boolean | `false` | Enable spatially-varying stress field from shapefile. When `true`, stress parameters are read from shapefile instead of using fixed values below |
+| `shapefile_path` | string/null | `null` | Path to shapefile (.shp) with spatially-varying stress field polygons. Only used if `use_shapefile` is `true`. Shapefile must have columns: `s1_trend`, `s1_plunge`, `s3_trend`, `s3_plunge`, `R`. Example: `"data_examples/Stressfield/CH_stressfield_Kastrup.shp"` |
+| `sigma1_trend_degrees` | float | `301` | σ₁ (maximum principal stress) azimuth/trend in degrees. Range: 0-360, measured clockwise from North. Used as fixed value (if `use_shapefile=false`) or fallback value |
+| `sigma1_plunge_degrees` | float | `23` | σ₁ plunge in degrees. Range: 0-90 (0=horizontal, 90=vertical). Used as fixed value (if `use_shapefile=false`) or fallback value |
+| `sigma3_trend_degrees` | float | `43` | σ₃ (minimum principal stress) azimuth/trend in degrees. Range: 0-360. Used as fixed value (if `use_shapefile=false`) or fallback value |
+| `sigma3_plunge_degrees` | float | `26` | σ₃ plunge in degrees. Range: 0-90. Used as fixed value (if `use_shapefile=false`) or fallback value |
+| `stress_shape_ratio` | float | `0.35` | Stress shape ratio R = (σ₂-σ₃)/(σ₁-σ₃). Range: 0-1 (0=uniaxial extension, 0.5=σ₂ midway, 1=isotropic/uniaxial compression). Used as fixed value (if `use_shapefile=false`) or fallback value |
 
 **Note**: σ₂ (intermediate principal stress) is automatically calculated from σ₁, σ₃, and the stress shape ratio.
+
+**Spatially-Varying Stress Field**: When `use_shapefile` is `true` and `shapefile_path` is provided, the algorithm calculates the center coordinate (mean X, Y) of all hypocenters and queries the stress field values from the polygon containing this point.
 
 ### Mechanical Properties Parameters
 

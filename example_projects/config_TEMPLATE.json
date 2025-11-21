@@ -87,6 +87,8 @@
       "enabled": true,
       "parameters": {
         "stress_field": {
+          "use_shapefile": false,
+          "shapefile_path": null,
           "sigma1_trend_degrees": 301,
           "sigma1_plunge_degrees": 23,
           "sigma3_trend_degrees": 43,

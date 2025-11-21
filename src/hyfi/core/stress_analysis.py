@@ -17,6 +17,95 @@ import numpy as np
 import pandas as pd
 import mplstereonet
 from ..utils import utilities
+import geopandas as gpd
+
+
+def load_stress_field_from_shapefile(shapefile_path):
+    """
+    Load stress field polygons from a shapefile.
+    
+    Parameters
+    ----------
+    shapefile_path : str
+        Path to the shapefile containing stress field polygons.
+        Expected columns: s1_trend, s1_plunge, s3_trend, s3_plunge, R (stress ratio)
+        
+    Returns
+    -------
+    gdf : GeoDataFrame
+        GeoDataFrame containing the stress field polygons with their attributes.
+    """
+    
+    try:
+        gdf = gpd.read_file(shapefile_path)
+        
+        # Validate required columns
+        required_columns = ['s1_trend', 's1_plunge', 's3_trend', 's3_plunge', 'R']
+        missing_columns = [col for col in required_columns if col not in gdf.columns]
+        
+        if missing_columns:
+            raise ValueError(
+                f"Shapefile is missing required columns: {missing_columns}. "
+                f"Expected columns: {required_columns}"
+            )
+        
+        print(f"Loaded stress field shapefile with {len(gdf)} polygons")
+        return gdf
+        
+    except Exception as e:
+        raise RuntimeError(f"Failed to load stress field shapefile: {e}")
+
+
+def get_stress_field_for_point(x, y, stress_gdf):
+    """
+    Query stress field parameters for a given point coordinate.
+    
+    Parameters
+    ----------
+    x : float
+        X coordinate (e.g., CH1903+ easting)
+    y : float
+        Y coordinate (e.g., CH1903+ northing)
+    stress_gdf : GeoDataFrame
+        GeoDataFrame containing stress field polygons
+        
+    Returns
+    -------
+    dict or None
+        Dictionary with stress field parameters (S1_trend, S1_plunge, S3_trend, S3_plunge, stress_R)
+        or None if point is not within any polygon
+    """
+    try:
+        from shapely.geometry import Point
+    except ImportError:
+        raise ImportError(
+            "shapely is required for spatial queries. "
+            "Install it with: pip install shapely"
+        )
+    
+    # Create point geometry
+    point = Point(x, y)
+    
+    # Find which polygon contains this point
+    mask = stress_gdf.contains(point)
+    
+    if mask.any():
+        # Get the first matching polygon
+        row = stress_gdf[mask].iloc[0]
+        result = {
+            'S1_trend': row['s1_trend'],
+            'S1_plunge': row['s1_plunge'],
+            'S3_trend': row['s3_trend'],
+            'S3_plunge': row['s3_plunge'],
+            'stress_R': row['R']
+        }
+        # Add domain name if available
+        if 'Domain' in row.index:
+            result['domain'] = row['Domain']
+        return result
+    else:
+        return None
+
 
 def stress_on_plane_I(S1_mag, S2_mag, S3_mag,
                     S1_trend, S1_plunge,
@@ -314,31 +403,83 @@ def fault_stress(df_hyfi, input_params):
         Plunge of intermediate principal stress.
     """
     
-    # Unpack input parameters from dictionary - no defaults, all must be provided
-    required_params = ['stress_bool', 'S1_trend', 'S1_plunge', 'S3_trend', 'S3_plunge', 
-                      'stress_R', 'PP', 'fric_coeff']
+    # Unpack input parameters from dictionary
+    stress_bool = input_params.get('stress_bool', True)
+    PP = input_params.get('PP', 0)
+    fric_coeff = input_params.get('fric_coeff', 0.75)
     
-    # Check if all required parameters are present
-    missing_params = [param for param in required_params if param not in input_params]
-    if missing_params:
-        raise ValueError(f"Missing required stress analysis parameters: {missing_params}")
+    # Check if stress field shapefile should be used
+    use_shapefile_stress = input_params.get('use_shapefile_stress', False)
+    stress_field_shapefile = input_params.get('stress_field_shapefile', None)
     
-    stress_bool = input_params['stress_bool']
-    S1_trend = input_params['S1_trend']
-    S1_plunge = input_params['S1_plunge']
-    S3_trend = input_params['S3_trend']
-    S3_plunge = input_params['S3_plunge']
-    stress_R = input_params['stress_R']
-    PP = input_params['PP']
-    fric_coeff = input_params['fric_coeff']
-
     if stress_bool:
        
         print('\n')
         print('='*50)
         print('FAULT STRESS ANALYSIS')
         print('='*50)
-
+        
+        # Initialize with fixed parameters (used as defaults/fallback)
+        S1_trend = input_params.get('S1_trend', np.nan)
+        S1_plunge = input_params.get('S1_plunge', np.nan)
+        S3_trend = input_params.get('S3_trend', np.nan)
+        S3_plunge = input_params.get('S3_plunge', np.nan)
+        stress_R = input_params.get('stress_R', np.nan)
+        
+        # Load stress field from shapefile if enabled and provided
+        use_shapefile = False
+        
+        if use_shapefile_stress and stress_field_shapefile is not None:
+            try:
+                stress_gdf = load_stress_field_from_shapefile(stress_field_shapefile)
+                use_shapefile = True
+                print(f"Using spatially-varying stress field from: {stress_field_shapefile}")
+                
+                # Calculate center coordinates of all hypocenters
+                center_x = df_hyfi['X'].mean()
+                center_y = df_hyfi['Y'].mean()
+                print(f"Hypocenter center coordinates: X={center_x:.1f}m, Y={center_y:.1f}m")
+                
+                # Query stress field for the center point
+                stress_params = get_stress_field_for_point(center_x, center_y, stress_gdf)
+                
+                if stress_params is None:
+                    print("WARNING: Center point not within any stress field polygon.")
+                    print("Falling back to fixed stress field parameters from config.")
+                    use_shapefile = False
+                else:
+                    S1_trend = stress_params['S1_trend']
+                    S1_plunge = stress_params['S1_plunge']
+                    S3_trend = stress_params['S3_trend']
+                    S3_plunge = stress_params['S3_plunge']
+                    stress_R = stress_params['stress_R']
+                    domain_name = stress_params.get('domain', 'Unknown')
+                    print(f"Stress field parameters from shapefile (Domain: {domain_name}):")
+                    print(f"  σ1: trend={S1_trend}°, plunge={S1_plunge}°")
+                    print(f"  σ3: trend={S3_trend}°, plunge={S3_plunge}°")
+                    print(f"  R={stress_R}")
+                    
+            except Exception as e:
+                print(f"WARNING: Failed to load stress field from shapefile: {e}")
+                print("Falling back to fixed stress field parameters from config.")
+                use_shapefile = False
+        
+        # Display stress parameters being used
+        if not use_shapefile:
+            # Check if fixed parameters are available (check for None or NaN)
+            if any(param is None or (isinstance(param, float) and np.isnan(param)) 
+                   for param in [S1_trend, S1_plunge, S3_trend, S3_plunge, stress_R]):
+                raise ValueError(
+                    "Stress field parameters are not defined. Either:\n"
+                    "  1. Enable shapefile: set use_shapefile=true and provide valid shapefile_path, OR\n"
+                    "  2. Provide fixed parameters: sigma1_trend_degrees, sigma1_plunge_degrees, "
+                    "sigma3_trend_degrees, sigma3_plunge_degrees, stress_shape_ratio"
+                )
+            print(f"Using fixed stress field parameters from configuration:")
+            print(f"  σ1: trend={S1_trend}°, plunge={S1_plunge}°")
+            print(f"  σ3: trend={S3_trend}°, plunge={S3_plunge}°")
+            print(f"  R={stress_R}")
+        
         # Define relative stress magnitudes after Vavrycuk et al. (2014)
         S1_mag = 1
         S2_mag = 1 - (2*stress_R)

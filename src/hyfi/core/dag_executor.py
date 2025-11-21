@@ -507,7 +507,9 @@ class DAGExecutor:
             'S3_plunge': node.parameters.get('stress_field', {}).get('sigma3_plunge_degrees', 0),
             'stress_R': node.parameters.get('stress_field', {}).get('stress_shape_ratio', 0.5),
             'PP': node.parameters.get('mechanical_properties', {}).get('pore_pressure_mpa', 0.0),
-            'fric_coeff': node.parameters.get('mechanical_properties', {}).get('friction_coefficient', 0.6)
+            'fric_coeff': node.parameters.get('mechanical_properties', {}).get('friction_coefficient', 0.6),
+            'use_shapefile_stress': node.parameters.get('stress_field', {}).get('use_shapefile', False),
+            'stress_field_shapefile': node.parameters.get('stress_field', {}).get('shapefile_path', None)
         }
         
         try:

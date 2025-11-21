@@ -63,6 +63,8 @@
       "enabled": true,
       "parameters": {
         "stress_field": {
+          "use_shapefile": true,
+          "shapefile_path": "data_examples/Stressfield/CH_stressfield_Kastrup.shp",
           "sigma1_trend_degrees": 301,
           "sigma1_plunge_degrees": 23,
           "sigma3_trend_degrees": 43,
