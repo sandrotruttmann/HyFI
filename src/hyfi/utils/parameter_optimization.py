@@ -29,6 +29,7 @@ from sklearn.metrics import silhouette_score
 from scipy.optimize import minimize_scalar, differential_evolution
 from scipy.spatial.distance import pdist
 from scipy.stats import zscore
+from scipy.interpolate import griddata
 
 
 try:
@@ -1521,6 +1522,7 @@ class ParameterOptimizer:
         best_params = self.optimization_results['best_params']
         best_score = self.optimization_results['best_score']
         n_startup = self.optimization_results['optimization_settings']['n_startup_trials']
+        best_trial_number = study.best_trial.number + 1  # +1 for 1-based indexing
         
         # Extract trial data
         trial_numbers = np.array([r['trial_number'] for r in results])
@@ -1532,17 +1534,18 @@ class ParameterOptimizer:
         
         # 1. Evolution of objective values (top left, double width)
         ax1 = fig.add_subplot(gs[0, :2])
-        ax1.plot(trial_numbers, scores, 'o-', alpha=0.6, markersize=4, color='steelblue', label='Trial value')
+        ax1.plot(trial_numbers, scores, 'o-', alpha=0.6, markersize=4, color='midnightblue', label='Trial value')
         
         # Plot best value evolution
         best_so_far = np.minimum.accumulate(scores)
-        ax1.plot(trial_numbers, best_so_far, 'r-', linewidth=2.5, label='Best value')
+        ax1.plot(trial_numbers, best_so_far, 'r-', linewidth=2.5, label='Best value', alpha=0.9)
         
-        # Mark startup phase
+        # Mark startup phase and best trial
         ax1.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.6, label='End of random startup')
-        ax1.scatter([study.best_trial.number + 1], [best_score], 
-                   c='gold', s=300, marker='*', edgecolors='darkred', linewidth=2,
-                   label=f'Best trial #{study.best_trial.number + 1}', zorder=10)
+        ax1.axvline(x=best_trial_number, color='gold', linestyle='--', linewidth=2, alpha=0.8, 
+                   label=f'Best trial #{best_trial_number}')
+        ax1.scatter([best_trial_number], [best_score], 
+                   c='gold', s=300, marker='*', edgecolors='darkred', linewidth=2, zorder=10)
         
         ax1.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
         ax1.set_ylabel('Objective Value (lower is better)', fontsize=11, fontweight='bold')
@@ -1552,10 +1555,38 @@ class ParameterOptimizer:
         
         # 2. Parameter space exploration (top right)
         ax2 = fig.add_subplot(gs[0, 2])
+        
+        # Create interpolation grid for background
+        try:
+            r_min, r_max = r_nn_values.min(), r_nn_values.max()
+            dt_min, dt_max = dt_nn_values.min(), dt_nn_values.max()
+            
+            # Add some padding to the grid
+            r_padding = (r_max - r_min) * 0.05
+            dt_padding = (dt_max - dt_min) * 0.05
+            
+            # Create grid
+            grid_r = np.linspace(r_min - r_padding, r_max + r_padding, 100)
+            grid_dt = np.linspace(dt_min - dt_padding, dt_max + dt_padding, 100)
+            grid_r_mesh, grid_dt_mesh = np.meshgrid(grid_r, grid_dt)
+            
+            # Interpolate scores onto grid
+            points = np.column_stack([r_nn_values, dt_nn_values])
+            grid_scores = griddata(points, scores, (grid_r_mesh, grid_dt_mesh), method='cubic')
+            
+            # Plot interpolated background with pale colors (no lines, only fills)
+            contourf = ax2.contourf(grid_r_mesh, grid_dt_mesh, grid_scores, 
+                                   levels=20, cmap='RdYlBu_r', alpha=0.3, zorder=1, antialiased=True)
+            
+        except:
+            # If interpolation fails, continue without background
+            pass
+        
+        # Plot trial points on top
         scatter = ax2.scatter(r_nn_values, dt_nn_values, c=scores, s=60, 
-                             cmap='RdYlBu_r', alpha=0.7, edgecolors='black', linewidth=0.5)
+                             cmap='RdYlBu_r', alpha=0.7, edgecolors='black', linewidth=0.5, zorder=3)
         ax2.scatter(best_params['r_nn'], best_params['dt_nn'], 
-                   c='red', s=400, marker='*', edgecolor='darkred', linewidth=2.5,
+                   c='gold', s=400, marker='*', edgecolor='darkred', linewidth=2.5,
                    label=f'Best: r={best_params["r_nn"]:.0f}m, dt={best_params["dt_nn"]:.0f}h', zorder=10)
         
         # Mark startup trials
@@ -1573,10 +1604,13 @@ class ParameterOptimizer:
         
         # 3. Search radius evolution (middle left)
         ax3 = fig.add_subplot(gs[1, 0])
-        ax3.plot(trial_numbers, r_nn_values, 'o-', alpha=0.6, markersize=4, color='green')
+        ax3.plot(trial_numbers, r_nn_values, 'o-', alpha=0.6, markersize=4, color='steelblue')
         ax3.axhline(y=best_params['r_nn'], color='red', linestyle='--', linewidth=2, 
                    label=f'Best: {best_params["r_nn"]:.1f}m')
         ax3.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
+        ax3.axvline(x=best_trial_number, color='gold', linestyle='--', linewidth=2, alpha=0.8)
+        ax3.scatter([best_trial_number], [best_params['r_nn']], 
+                   c='gold', s=200, marker='*', edgecolors='darkred', linewidth=2, zorder=10)
         ax3.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
         ax3.set_ylabel('Search Radius (m)', fontsize=11, fontweight='bold')
         ax3.set_title('Evolution of r_nn', fontsize=12, fontweight='bold')
@@ -1585,10 +1619,13 @@ class ParameterOptimizer:
         
         # 4. Time window evolution (middle center)
         ax4 = fig.add_subplot(gs[1, 1])
-        ax4.plot(trial_numbers, dt_nn_values, 'o-', alpha=0.6, markersize=4, color='purple')
+        ax4.plot(trial_numbers, dt_nn_values, 'o-', alpha=0.6, markersize=4, color='steelblue')
         ax4.axhline(y=best_params['dt_nn'], color='red', linestyle='--', linewidth=2, 
                    label=f'Best: {best_params["dt_nn"]:.1f}h')
         ax4.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
+        ax4.axvline(x=best_trial_number, color='gold', linestyle='--', linewidth=2, alpha=0.8)
+        ax4.scatter([best_trial_number], [best_params['dt_nn']], 
+                   c='gold', s=200, marker='*', edgecolors='darkred', linewidth=2, zorder=10)
         ax4.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
         ax4.set_ylabel('Time Window (hours)', fontsize=11, fontweight='bold')
         ax4.set_title('Evolution of dt_nn', fontsize=12, fontweight='bold')
@@ -1637,11 +1674,14 @@ class ParameterOptimizer:
         # 6. Recovery rate evolution (bottom left)
         ax6 = fig.add_subplot(gs[2, 0])
         recovery_rates = np.array([r.get('plane_recovery_rate', 0) for r in results])
-        ax6.plot(trial_numbers, recovery_rates * 100, 'o-', alpha=0.6, markersize=4, color='teal')
+        ax6.plot(trial_numbers, recovery_rates * 100, 'o-', alpha=0.6, markersize=4, color='mediumseagreen')
         ax6.axhline(y=self.optimization_results['best_details']['plane_recovery_rate'] * 100, 
                    color='red', linestyle='--', linewidth=2, alpha=0.7,
                    label=f'Best: {self.optimization_results["best_details"]["plane_recovery_rate"]*100:.1f}%')
         ax6.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
+        ax6.axvline(x=best_trial_number, color='gold', linestyle='--', linewidth=2, alpha=0.8)
+        ax6.scatter([best_trial_number], [self.optimization_results['best_details']['plane_recovery_rate'] * 100], 
+                   c='gold', s=200, marker='*', edgecolors='darkred', linewidth=2, zorder=10)
         ax6.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
         ax6.set_ylabel('Recovery Rate (%)', fontsize=11, fontweight='bold')
         ax6.set_title('Plane Recovery Rate', fontsize=12, fontweight='bold')
@@ -1662,7 +1702,7 @@ class ParameterOptimizer:
         lambda_ratios = np.array(lambda_ratios)
         
         if not np.all(np.isnan(lambda_ratios)):
-            ax7.plot(trial_numbers, lambda_ratios, 'o-', alpha=0.6, markersize=4, color='darkgreen')
+            ax7.plot(trial_numbers, lambda_ratios, 'o-', alpha=0.6, markersize=4, color='mediumseagreen')
             # Get best lambda from best_details
             best_lambda = None
             if 'mean_lambda23_ratio' in self.optimization_results['best_details']:
@@ -1674,6 +1714,9 @@ class ParameterOptimizer:
                 ax7.axhline(y=best_lambda, color='red', linestyle='--', linewidth=2, alpha=0.7,
                            label=f'Best: {best_lambda:.2f}')
             ax7.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
+            ax7.axvline(x=best_trial_number, color='gold', linestyle='--', linewidth=2, alpha=0.8)
+            ax7.scatter([best_trial_number], [best_lambda], 
+                       c='gold', s=200, marker='*', edgecolors='darkred', linewidth=2, zorder=10)
             ax7.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
             ax7.set_ylabel('Mean λ₂/λ₃ Ratio', fontsize=11, fontweight='bold')
             ax7.set_title('Planarity (λ₂/λ₃)', fontsize=12, fontweight='bold')
@@ -1698,7 +1741,7 @@ class ParameterOptimizer:
         focal_mismatches = np.array(focal_mismatches)
         
         if not np.all(np.isnan(focal_mismatches)):
-            ax8.plot(trial_numbers, focal_mismatches, 'o-', alpha=0.6, markersize=4, color='crimson')
+            ax8.plot(trial_numbers, focal_mismatches, 'o-', alpha=0.6, markersize=4, color='mediumseagreen')
             # Get best focal from best_details
             best_focal = None
             if 'focal_metrics' in self.optimization_results['best_details']:
@@ -1710,6 +1753,9 @@ class ParameterOptimizer:
                 ax8.axhline(y=best_focal, color='red', linestyle='--', linewidth=2, alpha=0.7,
                            label=f'Best: {best_focal:.1f}°')
             ax8.axvline(x=n_startup, color='gray', linestyle='--', alpha=0.5)
+            ax8.axvline(x=best_trial_number, color='gold', linestyle='--', linewidth=2, alpha=0.8)
+            ax8.scatter([best_trial_number], [best_focal], 
+                       c='gold', s=200, marker='*', edgecolors='darkred', linewidth=2, zorder=10)
             ax8.set_xlabel('Trial Number', fontsize=11, fontweight='bold')
             ax8.set_ylabel('Mean Angular Difference (°)', fontsize=11, fontweight='bold')
             ax8.set_title('Focal Mechanism Mismatch', fontsize=12, fontweight='bold')
