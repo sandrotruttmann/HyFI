@@ -65,7 +65,7 @@
         "search_time_window_hours": 30000.0,
         "magnitude_type": "ML",
         "auto_optimize_parameters": false,
-        "optimization_method": "grid_search",
+        "optimization_method": "optuna",
         "optimization_grid_points": 10,
         "optimization_plot_results": true,
         "optimization_r_nn_range": [50, 1000],

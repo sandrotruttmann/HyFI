@@ -328,10 +328,6 @@ class DAGExecutor:
                 'optimization_dt_nn_range': params.get('optimization_dt_nn_range', None),
                 # Grid search parameters
                 'optimization_grid_points': params.get('optimization_grid_points', 25),
-                # Bayesian optimization parameters
-                'optimization_n_calls': params.get('optimization_n_calls', 50),
-                'optimization_n_initial_points': params.get('optimization_n_initial_points', 10),
-                'optimization_acquisition_func': params.get('optimization_acquisition_func', 'EI'),
                 # Optuna optimization parameters
                 'optimization_n_trials': params.get('optimization_n_trials', 50),
                 'optimization_sampler': params.get('optimization_sampler', 'tpe'),

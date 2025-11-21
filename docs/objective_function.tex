@@ -29,7 +29,7 @@ The fault network reconstruction algorithm requires two critical parameters:
     \item $\Delta t_{\text{nn}}$: Temporal search window (hours)
 \end{itemize}
 
-These parameters significantly influence the quality and completeness of the resulting fault plane reconstructions. The objective function $f(r_{\text{nn}}, \Delta t_{\text{nn}})$ provides a quantitative measure to automatically determine optimal parameter values through optimization algorithms (Grid Search, Bayesian Optimization, or Optuna).
+These parameters significantly influence the quality and completeness of the resulting fault plane reconstructions. The objective function $f(r_{\text{nn}}, \Delta t_{\text{nn}})$ provides a quantitative measure to automatically determine optimal parameter values through optimization algorithms (Grid Search or Optuna).
 
 \section{Objective Function Formulation}
 
@@ -286,16 +286,6 @@ Systematic evaluation on a regular grid:
     \item Use case: Publications requiring complete parameter space coverage
 \end{itemize}
 
-\subsection{Bayesian Optimization}
-
-Gaussian Process-based optimization:
-\begin{itemize}
-    \item Evaluations: 50--75
-    \item Time: 20--40 minutes
-    \item Advantage: Sample-efficient, uncertainty quantification
-    \item Use case: Time-constrained analysis
-\end{itemize}
-
 \subsection{Optuna (TPE/CMA-ES)}
 
 Modern hyperparameter optimization framework:
@@ -362,14 +352,13 @@ Results show:
 \begin{itemize}
     \item Truttmann et al. (2023). \textit{Hypocenter-based 3D Imaging of Active Faults: Method and Applications in the Southwestern Swiss Alps}. Journal of Geophysical Research: Solid Earth.
     \item Akiba et al. (2019). \textit{Optuna: A Next-generation Hyperparameter Optimization Framework}. KDD.
-    \item Snoek et al. (2012). \textit{Practical Bayesian Optimization of Machine Learning Algorithms}. NeurIPS.
 \end{itemize}
 
 \section{Conclusion}
 
 The objective function $f(r_{\text{nn}}, \Delta t_{\text{nn}})$ provides a robust, multi-criteria measure for automatic parameter optimization in fault network reconstruction. Its adaptive weighting scheme, non-linear quality scaling, and compatibility with modern optimization algorithms make it suitable for diverse seismological applications.
 
-The implementation in the HyFI workflow supports multiple optimization methods (Grid Search, Bayesian Optimization, Optuna) and has been validated on real-world earthquake catalogs, demonstrating its effectiveness in identifying optimal parameters for accurate fault plane reconstruction.
+The implementation in the HyFI workflow supports multiple optimization methods (Grid Search, Optuna) and has been validated on real-world earthquake catalogs, demonstrating its effectiveness in identifying optimal parameters for accurate fault plane reconstruction.
 
 \appendix
 

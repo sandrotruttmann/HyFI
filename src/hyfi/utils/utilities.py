@@ -102,7 +102,7 @@ def dag_params_to_legacy_params(dag, node_id):
         auto_opt = params.get('automatic_parameter_optimization', {})
         input_params.update({
             'auto_optimize_parameters': auto_opt.get('auto_optimize_parameters', params.get('auto_optimize_parameters', False)),
-            'optimization_method': auto_opt.get('optimization_method', params.get('optimization_method', 'grid_search')),
+            'optimization_method': auto_opt.get('optimization_method', params.get('optimization_method', 'optuna')),
             'optimization_random_state': auto_opt.get('optimization_random_state', params.get('optimization_random_state', 42)),
             'optimization_n_trials': auto_opt.get('optimization_n_trials', params.get('optimization_n_trials', 50)),
             'optimization_grid_points': auto_opt.get('optimization_grid_points', params.get('optimization_grid_points', 25)),
@@ -113,9 +113,6 @@ def dag_params_to_legacy_params(dag, node_id):
             'optimization_pareto_sampler': auto_opt.get('optimization_pareto_sampler', params.get('optimization_pareto_sampler', 'nsga2')),
             'optimization_pareto_population': auto_opt.get('optimization_pareto_population', params.get('optimization_pareto_population', 50)),
             'optimization_sampler': auto_opt.get('optimization_sampler', params.get('optimization_sampler', 'tpe')),
-            'optimization_n_calls': auto_opt.get('optimization_n_calls', params.get('optimization_n_calls', 50)),
-            'optimization_n_initial_points': auto_opt.get('optimization_n_initial_points', params.get('optimization_n_initial_points', 10)),
-            'optimization_acquisition_func': auto_opt.get('optimization_acquisition_func', params.get('optimization_acquisition_func', 'EI')),
         })
         
         # Node enable/disable flags
@@ -626,7 +623,7 @@ def fault_network_with_optimization(input_params):
                 n_matched_focals = 0
         
         # Set up parameter optimizer
-        optimization_method = input_params.get('optimization_method', 'grid_search')
+        optimization_method = input_params.get('optimization_method', 'optuna')
         
         # Extract custom optimization ranges if provided
         custom_r_nn_range = input_params.get('optimization_r_nn_range', None)
@@ -670,23 +667,7 @@ def fault_network_with_optimization(input_params):
                         # Default plot path if no output directory specified
                         optimization_kwargs['save_plot_path'] = 'parameter_optimization_grid.png'
                         logger.info("No output directory specified, saving plot to current directory")
-            
-            elif optimization_method == 'bayesian':
-                optimization_kwargs['n_calls'] = input_params.get('optimization_n_calls', 50)
-                optimization_kwargs['n_initial_points'] = input_params.get('optimization_n_initial_points', 10)
-                optimization_kwargs['acquisition_func'] = input_params.get('optimization_acquisition_func', 'EI')
-                optimization_kwargs['plot_results'] = input_params.get('optimization_plot_results', False)
-                
-                # Set up plot save path if output directory is available
-                if optimization_kwargs['plot_results']:
-                    if 'out_dir' in input_params:
-                        plot_path = os.path.join(input_params['out_dir'], 'parameter_optimization_bayesian.png')
-                        optimization_kwargs['save_plot_path'] = plot_path
-                    else:
-                        # Default plot path if no output directory specified
-                        optimization_kwargs['save_plot_path'] = 'parameter_optimization_bayesian.png'
-                        logger.info("No output directory specified, saving plot to current directory")
-            
+                        
             elif optimization_method == 'optuna':
                 optimization_kwargs['n_trials'] = input_params.get('optimization_n_trials', 50)
                 optimization_kwargs['sampler'] = input_params.get('optimization_sampler', 'tpe')

@@ -43,9 +43,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-bayesian = [
-    "scikit-optimize>=0.9"
-]
 optuna = [
     "optuna>=3.0"
 ]
@@ -63,7 +60,7 @@ docs = [
     "sphinx-autodoc-typehints>=1.12"
 ]
 all = [
-    "hyfi[bayesian,optuna,dev,docs]"
+    "hyfi[optuna,dev,docs]"
 ]
 
 [project.urls]

@@ -276,7 +276,6 @@ else:
 | Method | Trials | Time | Solutions | Weights | Use Case |
 |--------|--------|------|-----------|---------|----------|
 | Grid Search | 625 | 2-4h | 1 (best) | Pre-defined | Exhaustive exploration |
-| Bayesian | 50 | 20-40m | 1 (best) | Pre-defined | Fast, sample-efficient |
 | Optuna | 50 | 20-40m | 1 (best) | Pre-defined | Modern, good UI |
 | **Pareto** | **100** | **45-90m** | **Many** | **Post-hoc** | **Publications, exploration** |
 

@@ -106,7 +106,7 @@ Parameters for 3D fault network reconstruction using NN search and PCA.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `auto_optimize_parameters` | boolean | `false` | Enable automatic optimization of `search_radius_meters` and `search_time_window_hours`. When enabled, ignores manual values for these parameters |
-| `optimization_method` | string | `"grid_search"` | Optimization algorithm. Options: `"heuristic"` (fast, seconds-minutes), `"grid_search"` (thorough, minutes-hours, **recommended**), `"bayesian"` (Gaussian Process), `"optuna"` (TPE sampler, **recommended for speed**), `"pareto"` (multi-objective) |
+| `optimization_method` | string | `"optuna"` | Optimization algorithm. Options: `"optuna"` (TPE sampler, **recommended**, default), `"grid_search"` (thorough grid search), `"pareto"` (multi-objective), `"heuristic"` (fast heuristic) |
 | `optimization_use_adaptive_weights` | boolean | `true` | When `true`, automatically adjusts weights based on number of focal mechanisms (reduces focal weight for datasets with few focals, increases recovery importance) and dataset density (adjusts recovery expectations for sparse datasets). When `false`, uses fixed weights (original behavior). |
 | `optimization_random_state` | integer | `42` | Random seed for optimization reproducibility |
 | `optimization_plot_results` | boolean | `false` | Generate visualization plots of optimization results |
@@ -118,14 +118,6 @@ Parameters for 3D fault network reconstruction using NN search and PCA.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `optimization_grid_points` | integer | `25` | Grid resolution for grid_search method. Total evaluations = `grid_points²`. Range: 10-50. Higher = more thorough but slower (25 = 625 evaluations) |
-
-#### Bayesian Optimization Specific Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `optimization_n_calls` | integer | `50` | Total number of function evaluations for Bayesian optimization. Range: 30-200 |
-| `optimization_n_initial_points` | integer | `10` | Number of random evaluations before starting Gaussian Process optimization. Range: 5-20 |
-| `optimization_acquisition_func` | string | `"EI"` | Acquisition function. Options: `"EI"` (Expected Improvement, **recommended**), `"PI"` (Probability of Improvement), `"LCB"` (Lower Confidence Bound), `"gp_hedge"` (adaptive) |
 
 #### Optuna Optimization Specific Parameters
 
@@ -325,7 +317,7 @@ Visualization and export settings for analysis results.
         "search_radius_meters": "auto",
         "search_time_window_hours": "auto",
         "auto_optimize_parameters": true,
-        "optimization_method": "grid_search"
+        "optimization_method": "optuna"
       }
     }
   }

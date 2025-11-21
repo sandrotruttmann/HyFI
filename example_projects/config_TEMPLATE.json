@@ -39,7 +39,7 @@
         },
         "automatic_parameter_optimization": {
           "auto_optimize_parameters": false,
-          "optimization_method": "grid_search",
+          "optimization_method": "optuna",
           "optimization_use_adaptive_weights": true,
           "optimization_random_state": 42,
           "optimization_n_trials": 100,

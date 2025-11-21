@@ -32,7 +32,7 @@
         "optimization_grid_points": 10, 
         "optimization_plot_results": true,
         "optimization_r_nn_range": [50, 1000],
-        "optimization_dt_nn_range": [100, 50000],
+        "optimization_dt_nn_range": [1000, 50000],
         "remove_outliers": true,
         "use_focal_constraints": true
       }

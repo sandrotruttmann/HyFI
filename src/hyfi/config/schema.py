@@ -48,7 +48,7 @@ class FaultNetworkNode:
                 "search_time_window_hours": 999999.0,
                 "magnitude_type": "ML",
                 "auto_optimize_parameters": False,
-                "optimization_method": "grid_search",
+                "optimization_method": "optuna",
                 "optimization_grid_points": 25,
                 "optimization_plot_results": False,
                 "optimization_r_nn_range": None,  # [min_meters, max_meters] or None for auto

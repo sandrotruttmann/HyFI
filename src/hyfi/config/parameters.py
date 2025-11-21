@@ -33,13 +33,8 @@ class FaultNetworkConfig:
     
     # Parameter optimization settings
     auto_optimize_parameters: bool = False      # enable automatic parameter optimization
-    optimization_method: str = 'grid_search'   # optimization method: 'grid_search', 'bayesian', 'optuna', or 'heuristic'
+    optimization_method: str = 'optuna'        # optimization method: 'grid_search', 'optuna', 'pareto', or 'heuristic'
     optimization_grid_points: int = 25         # number of grid points per dimension for grid search
-    
-    # Bayesian optimization specific settings
-    optimization_n_calls: int = 50              # total evaluations for Bayesian optimization
-    optimization_n_initial_points: int = 10     # random initialization points for Bayesian
-    optimization_acquisition_func: str = 'EI'   # acquisition function: 'EI', 'PI', 'LCB', 'gp_hedge'
     
     # Optuna optimization specific settings
     optimization_n_trials: int = 50             # total trials for Optuna optimization
@@ -71,13 +66,8 @@ class FaultNetworkConfig:
             validate_positive_number(self.dt_nn, "dt_nn")
             
         validate_choice(self.mag_type, ['ML', 'Mw'], "mag_type")
-        validate_choice(self.optimization_method, ['grid_search', 'bayesian', 'optuna', 'pareto', 'heuristic'], "optimization_method")
+        validate_choice(self.optimization_method, ['grid_search', 'optuna', 'pareto', 'heuristic'], "optimization_method")
         validate_positive_number(self.optimization_grid_points, "optimization_grid_points")
-        
-        # Validate Bayesian optimization parameters
-        validate_positive_number(self.optimization_n_calls, "optimization_n_calls")
-        validate_positive_number(self.optimization_n_initial_points, "optimization_n_initial_points")
-        validate_choice(self.optimization_acquisition_func, ['EI', 'PI', 'LCB', 'gp_hedge'], "optimization_acquisition_func")
         
         # Validate Optuna optimization parameters
         validate_positive_number(self.optimization_n_trials, "optimization_n_trials")
@@ -221,11 +211,8 @@ class ProjectConfig:
             'dt_nn': config_dict.get('dt_nn', 26298.0),
             'mag_type': config_dict.get('mag_type', 'ML'),
             'auto_optimize_parameters': config_dict.get('auto_optimize_parameters', False),
-            'optimization_method': config_dict.get('optimization_method', 'grid_search'),
+            'optimization_method': config_dict.get('optimization_method', 'optuna'),
             'optimization_grid_points': config_dict.get('optimization_grid_points', 25),
-            'optimization_n_calls': config_dict.get('optimization_n_calls', 50),
-            'optimization_n_initial_points': config_dict.get('optimization_n_initial_points', 10),
-            'optimization_acquisition_func': config_dict.get('optimization_acquisition_func', 'EI'),
             'optimization_n_trials': config_dict.get('optimization_n_trials', 50),
             'optimization_sampler': config_dict.get('optimization_sampler', 'tpe'),
             'optimization_n_startup_trials': config_dict.get('optimization_n_startup_trials', 10),
@@ -286,9 +273,6 @@ class ProjectConfig:
             'auto_optimize_parameters': self.fault_network.auto_optimize_parameters,
             'optimization_method': self.fault_network.optimization_method,
             'optimization_grid_points': self.fault_network.optimization_grid_points,
-            'optimization_n_calls': self.fault_network.optimization_n_calls,
-            'optimization_n_initial_points': self.fault_network.optimization_n_initial_points,
-            'optimization_acquisition_func': self.fault_network.optimization_acquisition_func,
             'optimization_n_trials': self.fault_network.optimization_n_trials,
             'optimization_sampler': self.fault_network.optimization_sampler,
             'optimization_n_startup_trials': self.fault_network.optimization_n_startup_trials,

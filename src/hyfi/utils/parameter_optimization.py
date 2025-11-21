@@ -30,15 +30,6 @@ from scipy.optimize import minimize_scalar, differential_evolution
 from scipy.spatial.distance import pdist
 from scipy.stats import zscore
 
-# Optional dependencies for different optimization methods
-try:
-    from skopt import gp_minimize
-    from skopt.space import Real
-    from skopt.plots import plot_convergence, plot_objective
-    from skopt.utils import use_named_args
-    HAS_SKOPT = True
-except ImportError:
-    HAS_SKOPT = False
 
 try:
     import optuna
@@ -83,7 +74,7 @@ class ParameterOptimizer:
         focal_mechanisms : pd.DataFrame, optional
             Focal mechanism data with Strike1, Dip1, Strike2, Dip2, A (active plane)
         method : str
-            Optimization method ('grid_search', 'bayesian', 'optuna', 'heuristic')
+            Optimization method ('grid_search', 'optuna', 'heuristic')
         custom_r_nn_range : tuple, optional
             Custom search radius range (min_meters, max_meters). If None, uses automatic calculation.
         custom_dt_nn_range : tuple, optional
@@ -1242,336 +1233,7 @@ class ParameterOptimizer:
         print(f"Heuristic estimation: r_nn={r_nn_heuristic:.1f}m, dt_nn={dt_nn_heuristic:.1f}h")
         
         return self.optimization_results
-    
-    def optimize_bayesian(self, n_calls=50, n_initial_points=10, 
-                         acquisition_func='EI', plot_results=False, 
-                         save_plot_path=None, verbose_optimization=False, random_state=None):
-        """
-        Perform Bayesian optimization using Gaussian Process regression.
-        
-        This method uses a probabilistic model to efficiently search the parameter space,
-        requiring fewer function evaluations than grid search while maintaining high quality results.
-        
-        Parameters
-        ----------
-        n_calls : int
-            Total number of objective function evaluations (default: 50)
-            Includes both initial random points and optimization iterations
-        n_initial_points : int  
-            Number of initial random evaluations before starting GP-based optimization (default: 10)
-        acquisition_func : str
-            Acquisition function to use for selecting next evaluation point (default: 'EI')
-            Options: 'EI' (Expected Improvement), 'PI' (Probability of Improvement), 
-                     'LCB' (Lower Confidence Bound), 'gp_hedge' (adaptive)
-        plot_results : bool
-            Whether to generate convergence and objective visualization plots
-        save_plot_path : str, optional
-            Path to save the plot (if plot_results=True)
-        verbose_optimization : bool
-            Whether to show verbose output during individual optimization runs (default: False)
-        random_state : int, optional
-            Random seed for reproducibility
-            
-        Returns
-        -------
-        dict
-            Optimization results containing best parameters and convergence history
-            
-        Raises
-        ------
-        ImportError
-            If scikit-optimize is not installed
-        """
-        
-        print(f"    Using Bayesian optimization with {n_calls} total evaluations")
-        print(f"    Initial random points: {n_initial_points}")
-        print(f"    Acquisition function: {acquisition_func}")
-        
-        # Temporarily override verbosity setting for optimization runs
-        original_verbose = self.verbose
-        self.verbose = verbose_optimization
-        
-        try:
-            # Define parameter ranges
-            (r_nn_min, r_nn_max), (dt_nn_min, dt_nn_max) = self._define_parameter_ranges()
-            
-            # Define search space (log scale for better coverage)
-            space = [
-                Real(np.log10(r_nn_min), np.log10(r_nn_max), name='log_r_nn'),
-                Real(np.log10(dt_nn_min), np.log10(dt_nn_max), name='log_dt_nn')
-            ]
-            
-            # Store evaluation history
-            results_history = []
-            evaluation_count = [0]  # Use list to modify in nested function
-            
-            # Define objective function wrapper for skopt
-            @use_named_args(space)
-            def objective(log_r_nn, log_dt_nn):
-                # Convert from log scale
-                r_nn = 10 ** log_r_nn
-                dt_nn = 10 ** log_dt_nn
-                
-                evaluation_count[0] += 1
-                
-                if evaluation_count[0] % 5 == 0:
-                    print(f"        Progress: {evaluation_count[0]}/{n_calls} evaluations completed")
-                
-                # Evaluate parameter combination
-                details = self._objective_function((r_nn, dt_nn), return_details=True)
-                score = details['objective_score']
-                
-                # Store result
-                results_history.append({
-                    'r_nn': r_nn,
-                    'dt_nn': dt_nn,
-                    'score': score,
-                    **details
-                })
-                
-                return score
-            
-            # Run Bayesian optimization
-            result = gp_minimize(
-                objective,
-                space,
-                n_calls=n_calls,
-                n_initial_points=n_initial_points,
-                acq_func=acquisition_func,
-                random_state=random_state,
-                verbose=False  # We handle our own progress reporting
-            )
-            
-            # Extract best parameters (convert from log scale)
-            best_log_r_nn, best_log_dt_nn = result.x
-            best_r_nn = 10 ** best_log_r_nn
-            best_dt_nn = 10 ** best_log_dt_nn
-            best_score = result.fun
-            
-            # Find details for best parameters
-            best_details = None
-            for res in results_history:
-                if np.isclose(res['r_nn'], best_r_nn, rtol=1e-3) and \
-                   np.isclose(res['dt_nn'], best_dt_nn, rtol=1e-3):
-                    best_details = {k: v for k, v in res.items() 
-                                   if k not in ['r_nn', 'dt_nn', 'score']}
-                    break
-            
-            if best_details is None:
-                # Fallback: evaluate best parameters if not found in history
-                best_details = self._objective_function((best_r_nn, best_dt_nn), return_details=True)
-                best_score = best_details['objective_score']
-        
-        finally:
-            # Restore original verbosity setting
-            self.verbose = original_verbose
-        
-        # Store results
-        self.optimization_results = {
-            'method': 'bayesian',
-            'best_params': {
-                'r_nn': best_r_nn,
-                'dt_nn': best_dt_nn
-            },
-            'best_score': best_score,
-            'best_details': best_details,
-            'all_results': results_history,
-            'skopt_result': result,  # Store full skopt result for advanced plotting
-            'parameter_ranges': {
-                'r_nn_range': (r_nn_min, r_nn_max),
-                'dt_nn_range': (dt_nn_min, dt_nn_max)
-            },
-            'optimization_settings': {
-                'n_calls': n_calls,
-                'n_initial_points': n_initial_points,
-                'acquisition_func': acquisition_func
-            }
-        }
-        
-        print(f"        Bayesian optimization completed.")
-        print(f"        Best found: r_nn={best_r_nn:.1f}m, dt_nn={best_dt_nn:.1f}h, score={best_score:.4f}")
-        
-        # Generate plots if requested
-        if plot_results:
-            try:
-                self.plot_bayesian_results(save_path=save_plot_path, show_plot=False)
-            except Exception as e:
-                logger.warning(f"Failed to generate Bayesian optimization plots: {e}")
-                import traceback
-                logger.debug(f"Full plotting error: {traceback.format_exc()}")
-        
-        return self.optimization_results
-    
-    def plot_bayesian_results(self, save_path=None, show_plot=True):
-        """
-        Plot Bayesian optimization results showing convergence and parameter exploration.
-        
-        Parameters
-        ----------
-        save_path : str, optional
-            Path to save the plot. If None, plot is not saved.
-        show_plot : bool
-            Whether to display the plot
-            
-        Returns
-        -------
-        matplotlib.figure.Figure
-            The created figure
-        """
-        if not self.optimization_results or self.optimization_results['method'] != 'bayesian':
-            raise ValueError("Bayesian optimization results not available. Run optimize_bayesian() first.")
-                
-        results = self.optimization_results['all_results']
-        skopt_result = self.optimization_results['skopt_result']
-        
-        # Create figure with subplots
-        fig = plt.figure(figsize=(16, 10))
-        gs = fig.add_gridspec(3, 3, hspace=0.3, wspace=0.3)
-        
-        # Extract parameter values and scores
-        r_nn_values = np.array([r['r_nn'] for r in results])
-        dt_nn_values = np.array([r['dt_nn'] for r in results])
-        scores = np.array([r['score'] for r in results])
-        
-        best_params = self.optimization_results['best_params']
-        best_score = self.optimization_results['best_score']
-        n_initial = self.optimization_results['optimization_settings']['n_initial_points']
-        
-        # 1. Convergence plot (top left, double width)
-        ax1 = fig.add_subplot(gs[0, :2])
-        iterations = np.arange(1, len(scores) + 1)
-        cumulative_best = np.minimum.accumulate(scores)
-        
-        ax1.plot(iterations, scores, 'o-', alpha=0.6, label='Objective value', color='steelblue', markersize=4)
-        ax1.plot(iterations, cumulative_best, 'r-', linewidth=2, label='Best value so far')
-        ax1.axvline(x=n_initial, color='gray', linestyle='--', alpha=0.5, label=f'End of random initialization')
-        ax1.set_xlabel('Iteration', fontsize=11)
-        ax1.set_ylabel('Objective Score (lower is better)', fontsize=11)
-        ax1.set_title('Bayesian Optimization Convergence', fontsize=12, fontweight='bold')
-        ax1.legend(loc='upper right', fontsize=9)
-        ax1.grid(True, alpha=0.3)
-        
-        # 2. Parameter exploration in 2D space (top right)
-        ax2 = fig.add_subplot(gs[0, 2])
-        scatter = ax2.scatter(r_nn_values, dt_nn_values, c=scores, s=50, 
-                             cmap='RdYlBu_r', alpha=0.6, edgecolors='black', linewidth=0.5)
-        ax2.scatter(best_params['r_nn'], best_params['dt_nn'], 
-                   c='red', s=300, marker='*', edgecolor='darkred', linewidth=2,
-                   label=f'Best: r={best_params["r_nn"]:.0f}m, dt={best_params["dt_nn"]:.0f}h', zorder=10)
-        
-        # Mark initial random points
-        ax2.scatter(r_nn_values[:n_initial], dt_nn_values[:n_initial], 
-                   c='gray', s=100, marker='x', linewidth=2, label='Initial random', zorder=5)
-        
-        ax2.set_xlabel('Search Radius (m)', fontsize=11)
-        ax2.set_ylabel('Time Window (hours)', fontsize=11)
-        ax2.set_title('Parameter Space Exploration', fontsize=12, fontweight='bold')
-        ax2.legend(loc='best', fontsize=8)
-        plt.colorbar(scatter, ax=ax2, label='Objective Score')
-        ax2.grid(True, alpha=0.3)
-        
-        # 3. Search radius evolution (middle left)
-        ax3 = fig.add_subplot(gs[1, 0])
-        ax3.plot(iterations, r_nn_values, 'o-', alpha=0.6, markersize=4, color='green')
-        ax3.axhline(y=best_params['r_nn'], color='red', linestyle='--', linewidth=2, 
-                   label=f'Best: {best_params["r_nn"]:.1f}m')
-        ax3.axvline(x=n_initial, color='gray', linestyle='--', alpha=0.5)
-        ax3.set_xlabel('Iteration', fontsize=11)
-        ax3.set_ylabel('Search Radius (m)', fontsize=11)
-        ax3.set_title('Search Radius Evolution', fontsize=12, fontweight='bold')
-        ax3.legend(loc='best', fontsize=9)
-        ax3.grid(True, alpha=0.3)
-        
-        # 4. Time window evolution (middle center)
-        ax4 = fig.add_subplot(gs[1, 1])
-        ax4.plot(iterations, dt_nn_values, 'o-', alpha=0.6, markersize=4, color='purple')
-        ax4.axhline(y=best_params['dt_nn'], color='red', linestyle='--', linewidth=2, 
-                   label=f'Best: {best_params["dt_nn"]:.1f}h')
-        ax4.axvline(x=n_initial, color='gray', linestyle='--', alpha=0.5)
-        ax4.set_xlabel('Iteration', fontsize=11)
-        ax4.set_ylabel('Time Window (hours)', fontsize=11)
-        ax4.set_title('Time Window Evolution', fontsize=12, fontweight='bold')
-        ax4.legend(loc='best', fontsize=9)
-        ax4.grid(True, alpha=0.3)
-        
-        # 5. Acquisition function behavior (middle right)
-        ax5 = fig.add_subplot(gs[1, 2])
-        # Plot improvement over random initialization
-        if len(scores) > n_initial:
-            random_phase_scores = scores[:n_initial]
-            bayesian_phase_scores = scores[n_initial:]
-            
-            ax5.hist(random_phase_scores, bins=10, alpha=0.6, label='Random initialization', color='gray')
-            ax5.hist(bayesian_phase_scores, bins=10, alpha=0.6, label='Bayesian phase', color='steelblue')
-            ax5.axvline(x=best_score, color='red', linestyle='--', linewidth=2, label=f'Best: {best_score:.4f}')
-            ax5.set_xlabel('Objective Score', fontsize=11)
-            ax5.set_ylabel('Frequency', fontsize=11)
-            ax5.set_title('Score Distribution by Phase', fontsize=12, fontweight='bold')
-            ax5.legend(loc='best', fontsize=9)
-            ax5.grid(True, alpha=0.3, axis='y')
-        
-        # 6. Quality metrics evolution (bottom left)
-        ax6 = fig.add_subplot(gs[2, 0])
-        n_planes = np.array([r.get('n_planes', 0) for r in results])
-        ax6.plot(iterations, n_planes, 'o-', alpha=0.6, markersize=4, color='orange')
-        ax6.set_xlabel('Iteration', fontsize=11)
-        ax6.set_ylabel('Number of Fault Planes', fontsize=11)
-        ax6.set_title('Fault Plane Detection', fontsize=12, fontweight='bold')
-        ax6.axvline(x=n_initial, color='gray', linestyle='--', alpha=0.5)
-        ax6.grid(True, alpha=0.3)
-        
-        # 7. Recovery rate evolution (bottom center)
-        ax7 = fig.add_subplot(gs[2, 1])
-        recovery_rates = np.array([r.get('plane_recovery_rate', 0) for r in results])
-        ax7.plot(iterations, recovery_rates * 100, 'o-', alpha=0.6, markersize=4, color='teal')
-        ax7.set_xlabel('Iteration', fontsize=11)
-        ax7.set_ylabel('Recovery Rate (%)', fontsize=11)
-        ax7.set_title('Plane Recovery Rate', fontsize=12, fontweight='bold')
-        ax7.axvline(x=n_initial, color='gray', linestyle='--', alpha=0.5)
-        ax7.grid(True, alpha=0.3)
-        
-        # 8. Summary statistics (bottom right)
-        ax8 = fig.add_subplot(gs[2, 2])
-        ax8.axis('off')
-        
-        summary_text = f"""
-        Bayesian Optimization Summary
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        
-        Best Parameters:
-          • Search Radius: {best_params['r_nn']:.1f} m
-          • Time Window: {best_params['dt_nn']:.1f} hours
-        
-        Performance:
-          • Best Score: {best_score:.4f}
-          • Fault Planes: {self.optimization_results['best_details']['n_planes']}
-          • Recovery Rate: {self.optimization_results['best_details']['plane_recovery_rate']*100:.1f}%
-        
-        Optimization Settings:
-          • Total Evaluations: {len(results)}
-          • Initial Random: {n_initial}
-          • Acquisition: {self.optimization_results['optimization_settings']['acquisition_func']}
-        
-        Efficiency Gain:
-          • vs Grid (25²): {625/len(results):.1f}x fewer evaluations
-        """
-        
-        ax8.text(0.1, 0.5, summary_text, fontsize=10, verticalalignment='center',
-                fontfamily='monospace', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
-        
-        plt.suptitle('Bayesian Parameter Optimization Results', 
-                    fontsize=14, fontweight='bold', y=0.995)
-        
-        if save_path:
-            plt.savefig(save_path, dpi=150, bbox_inches='tight')
-            print(f"Bayesian optimization plot saved to: {save_path}")
-        
-        if show_plot:
-            plt.show()
-        else:
-            plt.close()
-        
-        return fig
+
     
     def optimize_optuna(self, n_trials=50, sampler='tpe', n_startup_trials=10,
                        plot_results=False, save_plot_path=None, verbose_optimization=False, 
@@ -2845,7 +2507,7 @@ Best Balanced Solution:
         Parameters
         ----------
         method : str, optional
-            Optimization method ('grid_search', 'bayesian', 'optuna', 'pareto', 'heuristic')
+            Optimization method ('grid_search', 'optuna', 'pareto', 'heuristic')
         **kwargs
             Method-specific parameters
             
@@ -2862,8 +2524,6 @@ Best Balanced Solution:
 
         if method == 'grid_search':
             results = self.optimize_grid_search(**kwargs)
-        elif method == 'bayesian':
-            results = self.optimize_bayesian(**kwargs)
         elif method == 'optuna':
             results = self.optimize_optuna(**kwargs)
         elif method == 'pareto':
@@ -2872,7 +2532,7 @@ Best Balanced Solution:
             results = self.optimize_heuristic(**kwargs)
         else:
             raise ValueError(f"Unknown optimization method: {method}. "
-                           f"Choose from: 'grid_search', 'bayesian', 'optuna', 'pareto', 'heuristic'")
+                           f"Choose from: 'grid_search', 'optuna', 'pareto', 'heuristic'")
         
         end_time = datetime.now()
         optimization_time = end_time - start_time
@@ -2922,7 +2582,7 @@ Best Balanced Solution:
                 recommendation['mean_lambda23_ratio'] = best_solution['mean_lambda23_ratio']
             
         else:
-            # Handle single-objective optimization results (grid_search, bayesian, optuna, heuristic)
+            # Handle single-objective optimization results (grid_search, optuna, heuristic)
             recommendation = {
                 'search_radius_meters': results['best_params']['r_nn'],
                 'search_time_window_hours': results['best_params']['dt_nn'],
@@ -2956,7 +2616,7 @@ def optimize_fault_network_parameters(data_input, focal_mechanisms=None, method=
     focal_mechanisms : pd.DataFrame, optional
         Focal mechanism data with Strike1, Dip1, Strike2, Dip2, A columns
     method : str
-        Optimization method ('grid_search', 'bayesian', 'optuna', 'heuristic')
+        Optimization method ('grid_search', 'optuna', 'heuristic')
     custom_r_nn_range : tuple, optional
         Custom search radius range (min_meters, max_meters)
     custom_dt_nn_range : tuple, optional

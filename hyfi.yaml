@@ -198,7 +198,6 @@ dependencies:
   - requests=2.32.3=pyhd8ed1ab_1
   - retrying=1.4.2=pyhe01879c_0
   - scikit-learn=1.6.1=py312h7a48858_0
-  - scikit-optimize=0.10.2=pyhd8ed1ab_1
   - scipy=1.15.2=py312ha707e6e_0
   - scooby=0.10.1=pyhd8ed1ab_0
   - setuptools=75.8.2=pyhff2d567_0
