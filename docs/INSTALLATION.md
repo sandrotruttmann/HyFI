@@ -131,21 +131,31 @@ Check the output directory for results (VTP, OBJ, PLY files, visualizations, etc
 
 ---
 
+## Step 7: Install ParaView (Optional, for 3D Visualization)
 
-## Updating HyFI
+**ParaView** is a powerful open-source application for visualizing and analyzing 3D scientific data. HyFI exports VTP files that can be opened in ParaView for interactive visualization of hypocenters, focal mechanisms, rupture planes, fault systems and others.
 
-To get the latest changes from the repository:
+### Download and Install ParaView
 
-```bash
-cd ~/HyFI  # or wherever you cloned it
-git pull origin dev
-```
+**Official website:** https://www.paraview.org/download/
 
-If new dependencies were added to `hyfi.yaml`, update your environment:
+### Opening HyFI Results in ParaView
 
-```bash
-mamba env update -f hyfi.yaml --prune
-```
+1. **Launch ParaView**
+
+2. **Open VTP files:**
+   - File → Open
+   - Navigate to your HyFI output directory (e.g., `output_A0/vtp_export/`)
+   - Select one or more `.vtp` files (e.g., `faults_compiled.vtp`, `rupture_planes.vtp`)
+   - Click "Apply" in the Properties panel
+
+3. **Visualize your data:**
+   - Use the toolbar to change representation (Surface, Wireframe, Points)
+   - Apply filters (Clip, Slice, Threshold) to analyze specific regions
+   - Color by different attributes (cluster_id, magnitude, depth, etc.)
+   - Export images or animations
+
+**Note:** While ParaView is optional, it's highly recommended for interactive 3D exploration of your HyFI results. The OBJ and PLY exports can also be opened in other 3D software like Blender, MeshLab, or CloudCompare.
 
 ---
 
