@@ -71,6 +71,46 @@ def run(config_file, output_dir, interpolate_planes):
             else:
                 click.echo("Warning: Could not enable interpolation - configuration format not supported")
         
+        # Run analysis based on config type
+        from .config.schema import HyFIWorkflowDAG
+        from .config.multi_sequence_config import MultiSequenceConfig
+        
+        # Resolve relative paths for MultiSequenceConfig before validation
+        if isinstance(config, MultiSequenceConfig):
+            config_dir = Path(config_file).parent.resolve()
+            
+            # Resolve catalog_file path
+            if config.catalog_file:
+                catalog_path = Path(config.catalog_file)
+                if not catalog_path.is_absolute():
+                    config.catalog_file = (config_dir / catalog_path).resolve()
+            
+            # Resolve output_directory path
+            if config.output_directory:
+                output_path = Path(config.output_directory)
+                if not output_path.is_absolute():
+                    config.output_directory = (config_dir / output_path).resolve()
+            
+            # Resolve focal mechanism file path in template config if present
+            if (config.template_config and 
+                hasattr(config.template_config, 'model_validation') and
+                config.template_config.model_validation.foc_file):
+                foc_path = Path(config.template_config.model_validation.foc_file)
+                if not foc_path.is_absolute():
+                    config.template_config.model_validation.foc_file = (config_dir / foc_path).resolve()
+            
+            # Also resolve focal mechanism file path in cluster_workflow_template
+            if hasattr(config, 'cluster_workflow_template') and config.cluster_workflow_template:
+                workflow_dag = config.cluster_workflow_template.get('workflow_dag', {})
+                # Check both possible node names
+                for node_name in ['step_1_load_data', 'input_data']:
+                    if node_name in workflow_dag:
+                        input_node = workflow_dag[node_name]
+                        if 'focal_mechanism_file' in input_node and input_node['focal_mechanism_file']:
+                            foc_path = Path(input_node['focal_mechanism_file'])
+                            if not foc_path.is_absolute():
+                                input_node['focal_mechanism_file'] = str((config_dir / foc_path).resolve())
+        
         # Validate configuration
         if hasattr(config, 'validate_dag'):
             # DAG configuration
@@ -78,10 +118,6 @@ def run(config_file, output_dir, interpolate_planes):
         elif hasattr(config, 'validate'):
             # Legacy configuration
             config.validate()
-        
-        # Run analysis based on config type
-        from .config.schema import HyFIWorkflowDAG
-        from .config.multi_sequence_config import MultiSequenceConfig
         
         if isinstance(config, HyFIWorkflowDAG):
             # Run DAG-based workflow
@@ -92,7 +128,7 @@ def run(config_file, output_dir, interpolate_planes):
         elif isinstance(config, MultiSequenceConfig):
             # Run multi-sequence workflow
             from .core.multi_sequence_workflow import MultiSequenceWorkflow
-            workflow = MultiSequenceWorkflow(config)
+            workflow = MultiSequenceWorkflow(config, config_source_file=config_file)
             results = workflow.run_full_multi_sequence_analysis()
             summary = workflow.get_multi_sequence_summary()
         else:

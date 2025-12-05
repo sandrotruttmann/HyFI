@@ -5,20 +5,20 @@
     "created_date": "2025-10-03T00:00:00"
   },
   "global_settings": {
-    "output_directory": "./output_SECOS_VS",
+    "output_directory": "../output_SECOS_VS",
     "parallel_processing": true,
     "max_workers": 4,
     "save_individual_results": true,
     "coordinate_system": "EPSG:21781"
   },
   "workflow_dag": {
-    "input_data": {
-      "hypocenter_file": "./data_examples/SECOS_20250305_HyFI_VS_filtered.csv",
+    "step_1_load_data": {
+      "hypocenter_file": "../data_examples/SECOS_20250305_HyFI_VS_filtered.csv",
       "hypocenter_separator": ",",
-      "focal_mechanism_file": "./data_examples/SECOS_20250305_FM_HyFI.csv",
+      "focal_mechanism_file": "../data_examples/SECOS_20250305_FM_HyFI.csv",
       "focal_mechanism_separator": ","
     },
-    "multi_sequence_clustering": {
+    "step_2_catalog_segmentation": {
       "enabled": true,
       "segmentation_steps": [
         {
@@ -58,72 +58,93 @@
       "final_outlier_handling": "keep",
       "max_outlier_ratio": 0.7
     },
-    "fault_network": {
-      "parameters": {
-        "monte_carlo_simulations": 1,
-        "search_radius_meters": 135.0,
-        "search_time_window_hours": 30000.0,
-        "magnitude_type": "ML",
-        "auto_optimize_parameters": false,
-        "optimization_method": "optuna",
-        "optimization_grid_points": 10,
-        "optimization_plot_results": true,
-        "optimization_r_nn_range": [50, 1000],
-        "optimization_dt_nn_range": [1000, 50000],
-        "remove_outliers": true,
-        "use_focal_constraints": true
-      }
-    },
-    "model_validation": {
-      "enabled": true,
-      "parameters": {
-        "check_magnitude_consistency": true,
-        "check_location_consistency": true
-      }
-    },
-    "auto_classification": {
-      "enabled": true,
-      "parameters": {
-        "auto_determine_clusters": true,
-        "max_clusters": 2,
-        "clustering_algorithm": "vmf_soft",
-        "rotate_poles_before_analysis": true,
-        "enable_spatial_clustering": true,
-        "spatial_clustering_method": "dbscan",
-        "min_events_per_cluster": 10,
-        "use_fault_plane_points_for_clustering": true,
-        "fault_plane_clustering_eps_factor": 0.1,
-        "fault_plane_clustering_min_samples_factor": 0.15
-      }
-    },
-    "stress_analysis": {
-      "enabled": true,
-      "parameters": {
-        "stress_field": {
-          "sigma1_trend_degrees": 301,
-          "sigma1_plunge_degrees": 23,
-          "sigma3_trend_degrees": 43,
-          "sigma3_plunge_degrees": 26,
-          "stress_shape_ratio": 0.35
-        },
-        "mechanical_properties": {
-          "pore_pressure_mpa": 0.0,
-          "friction_coefficient": 0.75
+    "step_3_per_sequence_analysis": {
+      "description": "Apply HyFI core analysis to each sequence identified in step_2",
+      "fault_network": {
+        "parameters": {
+          "monte_carlo_simulations": 1,
+          "search_radius_meters": 135.0,
+          "search_time_window_hours": 30000.0,
+          "magnitude_type": "ML",
+          "auto_optimize_parameters": "auto",
+          "optimization_method": "optuna",
+          "optimization_grid_points": 10,
+          "optimization_plot_results": true,
+          "optimization_r_nn_range": [50, 1000],
+          "optimization_dt_nn_range": [1000, 50000],
+          "remove_outliers": true,
+          "use_focal_constraints": true
+        }
+      },
+      "model_validation": {
+        "enabled": true,
+        "parameters": {
+          "check_magnitude_consistency": true,
+          "check_location_consistency": true
+        }
+      },
+      "auto_classification": {
+        "enabled": true,
+        "parameters": {
+          "auto_determine_clusters": true,
+          "max_clusters": 2,
+          "clustering_algorithm": "vmf_soft",
+          "rotate_poles_before_analysis": true,
+          "enable_spatial_clustering": true,
+          "spatial_clustering_method": "dbscan",
+          "min_events_per_cluster": 10,
+          "use_fault_plane_points_for_clustering": true,
+          "fault_plane_clustering_eps_factor": 0.1,
+          "fault_plane_clustering_min_samples_factor": 0.15
+        }
+      },
+      "stress_analysis": {
+        "enabled": true,
+        "parameters": {
+          "stress_field": {
+            "sigma1_trend_degrees": 301,
+            "sigma1_plunge_degrees": 23,
+            "sigma3_trend_degrees": 43,
+            "sigma3_plunge_degrees": 26,
+            "stress_shape_ratio": 0.35
+          },
+          "mechanical_properties": {
+            "pore_pressure_mpa": 0.0,
+            "friction_coefficient": 0.75
+          }
+        }
+      },
+      "visualization": {
+        "enabled": true,
+        "parameters": {
+          "generate_3d_model": true,
+          "generate_stereonet": true,
+          "enable_plane_interpolation": true,
+          "poisson_depth": 2,
+          "density_threshold": 0.3,
+          "export_vtp": true,
+          "export_time_series": false,
+          "time_step_hours": 24,
+          "export_kml": false
         }
       }
     },
-    "visualization": {
+    "step_4_merge_and_export": {
       "enabled": true,
-      "parameters": {
-        "generate_3d_model": true,
-        "generate_stereonet": true,
-        "enable_plane_interpolation": true,
-        "poisson_depth": 2,
-        "density_threshold": 0.3,
-        "export_vtp": true,
-        "export_time_series": false,
-        "time_step_hours": 24,
-        "export_kml": false
+      "description": "Merge VTP files from individual sequences and save to SQL database",
+      "merge_vtp_files": true,
+      "sql_database": {
+        "enabled": true,
+        "database_type": "sqlite",
+        "database_path": "./output_SECOS_VS/hyfi_results.db",
+        "store_sequence_attributes": true,
+        "store_fault_parameters": true,
+        "store_stress_analysis": true
+      },
+      "merged_output": {
+        "merged_vtp_path": "./output_SECOS_VS/merged_sequences.vtp",
+        "export_merged_csv": true,
+        "export_summary_statistics": true
       }
     }
   }

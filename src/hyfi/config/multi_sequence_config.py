@@ -344,7 +344,7 @@ class MultiSequenceConfig:
         """Create MultiSequenceConfig from dictionary."""
         
         # Handle unified DAG format
-        if 'workflow_dag' in config_dict and 'multi_sequence_clustering' in config_dict['workflow_dag']:
+        if 'workflow_dag' in config_dict and 'step_2_catalog_segmentation' in config_dict['workflow_dag']:
             return cls._from_unified_dag_format(config_dict)
         
         # Handle legacy format with clustering and template_config/cluster_workflow_template
@@ -355,7 +355,7 @@ class MultiSequenceConfig:
     def _from_unified_dag_format(cls, config_dict: dict) -> 'MultiSequenceConfig':
         """Create MultiSequenceConfig from unified DAG format."""
         workflow_dag = config_dict['workflow_dag']
-        clustering_dict = workflow_dag['multi_sequence_clustering']
+        clustering_dict = workflow_dag['step_2_catalog_segmentation']
         
         # Create segmentation steps from the configuration
         segmentation_steps = []
@@ -371,19 +371,22 @@ class MultiSequenceConfig:
             max_outlier_ratio=clustering_dict.get('max_outlier_ratio', 0.3)
         )
         
+        # Get input data configuration (support both step_1_load_data and legacy input_data)
+        input_data_config = workflow_dag.get('step_1_load_data', workflow_dag.get('input_data', {}))
+        
         # Create a minimal template_config for backward compatibility
         template_dict = {
             'project_title': 'Template for Individual Clusters',
             'hypo_file': '',
-            'hypo_sep': workflow_dag.get('input_data', {}).get('hypocenter_separator', ','),
+            'hypo_sep': input_data_config.get('hypocenter_separator', ','),
             'out_dir': '',
             'n_mc': 1,
             'r_nn': 200.0,
             'dt_nn': 999999.0,
             'mag_type': 'ML',
             'validation_bool': False,
-            'foc_file': workflow_dag.get('input_data', {}).get('focal_mechanism_file', ''),
-            'foc_sep': workflow_dag.get('input_data', {}).get('focal_mechanism_separator', ','),
+            'foc_file': input_data_config.get('focal_mechanism_file', ''),
+            'foc_sep': input_data_config.get('focal_mechanism_separator', ','),
             'foc_mag_check': True,
             'foc_loc_check': True,
             'autoclass_bool': False,
@@ -404,15 +407,23 @@ class MultiSequenceConfig:
         
         # Store the entire workflow_dag as the cluster_workflow_template
         cluster_workflow_template = config_dict.copy()
-        # Remove the multi_sequence_clustering part for individual clusters
-        if 'workflow_dag' in cluster_workflow_template and 'multi_sequence_clustering' in cluster_workflow_template['workflow_dag']:
-            del cluster_workflow_template['workflow_dag']['multi_sequence_clustering']
+        # Remove the catalog segmentation and merge/export steps for individual clusters
+        if 'workflow_dag' in cluster_workflow_template:
+            if 'step_2_catalog_segmentation' in cluster_workflow_template['workflow_dag']:
+                del cluster_workflow_template['workflow_dag']['step_2_catalog_segmentation']
+            if 'step_4_merge_and_export' in cluster_workflow_template['workflow_dag']:
+                del cluster_workflow_template['workflow_dag']['step_4_merge_and_export']
         
+        # Get paths and resolve relative to config file if needed
+        catalog_file = input_data_config.get('hypocenter_file', '')
+        output_dir = config_dict.get('global_settings', {}).get('output_directory', Path.cwd() / "multi_sequence_output")
+        
+        # Store these for resolution in __post_init__ if needed
         return cls(
             project_title=config_dict.get('metadata', {}).get('workflow_name', 'Multi-Sequence Fault Imaging Analysis'),
-            catalog_file=workflow_dag.get('input_data', {}).get('hypocenter_file', ''),
-            catalog_sep=workflow_dag.get('input_data', {}).get('hypocenter_separator', '\t'),
-            output_directory=config_dict.get('global_settings', {}).get('output_directory', Path.cwd() / "multi_sequence_output"),
+            catalog_file=catalog_file,
+            catalog_sep=input_data_config.get('hypocenter_separator', '\t'),
+            output_directory=output_dir,
             clustering=clustering_config,
             template_config=template_config,
             cluster_workflow_template=cluster_workflow_template,

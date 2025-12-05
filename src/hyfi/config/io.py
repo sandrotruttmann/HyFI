@@ -193,8 +193,8 @@ def auto_load_config(file_path: Union[str, Path]) -> Union[HyFIWorkflowDAG, 'Mul
             
             # Check for DAG configuration (unified format)
             if 'workflow_dag' in content or 'metadata' in content:
-                # Check if it's a multi-sequence DAG by looking for multi_sequence_clustering node
-                if 'workflow_dag' in content and 'multi_sequence_clustering' in content['workflow_dag']:
+                # Check if it's a multi-sequence DAG by looking for step_2_catalog_segmentation node
+                if 'workflow_dag' in content and 'step_2_catalog_segmentation' in content['workflow_dag']:
                     from .multi_sequence_config import MultiSequenceConfig
                     return MultiSequenceConfig.from_dict(content)
                 else:

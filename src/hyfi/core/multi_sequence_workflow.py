@@ -36,7 +36,7 @@ class MultiSequenceWorkflow:
     and applies the standard HyFI workflow to each identified cluster.
     """
     
-    def __init__(self, config: MultiSequenceConfig):
+    def __init__(self, config: MultiSequenceConfig, config_source_file: Optional[str] = None):
         """
         Initialize the multi-sequence workflow.
         
@@ -44,8 +44,37 @@ class MultiSequenceWorkflow:
         ----------
         config : MultiSequenceConfig
             Configuration object containing clustering and workflow parameters
+        config_source_file : str, optional
+            Path to the source configuration file (used for resolving relative paths)
         """
         self.config = config
+        self.config_source_file = config_source_file
+        
+        # Resolve relative paths BEFORE validation if config_source_file is provided
+        if config_source_file:
+            config_dir = Path(config_source_file).parent.resolve()
+            
+            # Resolve catalog_file path
+            if self.config.catalog_file:
+                catalog_path = Path(self.config.catalog_file)
+                if not catalog_path.is_absolute():
+                    self.config.catalog_file = (config_dir / catalog_path).resolve()
+            
+            # Resolve output_directory path
+            if self.config.output_directory:
+                output_path = Path(self.config.output_directory)
+                if not output_path.is_absolute():
+                    self.config.output_directory = (config_dir / output_path).resolve()
+            
+            # Resolve focal mechanism file path in template config if present
+            if (self.config.template_config and 
+                hasattr(self.config.template_config, 'model_validation') and
+                self.config.template_config.model_validation.foc_file):
+                foc_path = Path(self.config.template_config.model_validation.foc_file)
+                if not foc_path.is_absolute():
+                    self.config.template_config.model_validation.foc_file = (config_dir / foc_path).resolve()
+        
+        # Now validate after paths are resolved
         self.config.validate()
         
         # Results storage
@@ -98,7 +127,10 @@ class MultiSequenceWorkflow:
         # Step 7: Merge and export combined VTP files
         self._merge_and_export_vtp_files()
         
-        # Step 8: Save all results
+        # Step 8: Export to SQL database
+        self._export_to_sql_database()
+        
+        # Step 9: Save all results
         self._save_multi_sequence_results()
         
         self.end_time = time.time()
@@ -291,26 +323,38 @@ class MultiSequenceWorkflow:
         if 'workflow_dag' in template:
             dag_template = template['workflow_dag']
             
+            # Detect which input data node name is used in template
+            input_node_name = 'step_1_load_data' if 'step_1_load_data' in dag_template else 'input_data'
+            template_input = dag_template.get(input_node_name, {})
+            
+            # Get focal mechanism file path and resolve if relative
+            focal_mech_file = template_input.get('focal_mechanism_file', '')
+            if focal_mech_file:
+                focal_path = Path(focal_mech_file)
+                # If path is relative, resolve it relative to the original config file
+                if not focal_path.is_absolute() and self.config_source_file:
+                    config_dir = Path(self.config_source_file).parent.resolve()
+                    focal_mech_file = str((config_dir / focal_path).resolve())
+            
             # Set up input_data node with cluster-specific file
             dag_dict['workflow_dag']['input_data'] = {
                 "hypocenter_file": str(cluster_file),
                 "hypocenter_separator": self.config.catalog_sep,
-                "focal_mechanism_file": "",
-                "focal_mechanism_separator": ","
+                "focal_mechanism_file": focal_mech_file,
+                "focal_mechanism_separator": template_input.get('focal_mechanism_separator', ',')
             }
             
-            # Copy focal mechanism file from template if specified
-            if 'input_data' in dag_template:
-                template_input = dag_template['input_data']
-                if 'focal_mechanism_file' in template_input and template_input['focal_mechanism_file']:
-                    dag_dict['workflow_dag']['input_data']['focal_mechanism_file'] = template_input['focal_mechanism_file']
-                if 'focal_mechanism_separator' in template_input:
-                    dag_dict['workflow_dag']['input_data']['focal_mechanism_separator'] = template_input['focal_mechanism_separator']
-            
-            # Copy all other DAG nodes from template
+            # Copy all other DAG nodes from template (except the input node and multi-sequence specific nodes)
             for node_name, node_config in dag_template.items():
-                if node_name != 'input_data':  # input_data is already set above
-                    dag_dict['workflow_dag'][node_name] = node_config.copy()
+                if node_name not in ['input_data', 'step_1_load_data', 'step_2_catalog_segmentation', 'step_4_merge_and_export']:
+                    # For step_3_per_sequence_analysis, unwrap it and copy its contents
+                    if node_name == 'step_3_per_sequence_analysis':
+                        # Copy all sub-nodes from step_3
+                        for sub_node_name, sub_node_config in node_config.items():
+                            if sub_node_name != 'description':
+                                dag_dict['workflow_dag'][sub_node_name] = sub_node_config.copy() if isinstance(sub_node_config, dict) else sub_node_config
+                    else:
+                        dag_dict['workflow_dag'][node_name] = node_config.copy() if isinstance(node_config, dict) else node_config
         
         # Create HyFIWorkflowDAG from dictionary
         return HyFIWorkflowDAG.from_dict(dag_dict)
@@ -1055,6 +1099,278 @@ class MultiSequenceWorkflow:
         ])
         
         return '\n'.join(kml_lines)
+    
+    def _export_to_sql_database(self):
+        """Export sequence attributes, fault parameters, and stress analysis to SQL database."""
+        print("Exporting results to SQL database...")
+        
+        # Check if SQL database export is enabled in config
+        if not hasattr(self.config, 'cluster_workflow_template') or not self.config.cluster_workflow_template:
+            print("  SQL database export not configured, skipping...")
+            return
+        
+        workflow_dag = self.config.cluster_workflow_template.get('workflow_dag', {})
+        merge_export_config = workflow_dag.get('step_4_merge_and_export', {})
+        sql_config = merge_export_config.get('sql_database', {})
+        
+        if not sql_config.get('enabled', False):
+            print("  SQL database export disabled in configuration, skipping...")
+            return
+        
+        try:
+            import sqlite3
+        except ImportError:
+            print("  Warning: sqlite3 not available, skipping SQL export")
+            return
+        
+        # Get database configuration
+        db_type = sql_config.get('database_type', 'sqlite')
+        db_path = Path(sql_config.get('database_path', './output_SECOS_VS/hyfi_results.db'))
+        
+        # Ensure the database directory exists
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Create absolute path if relative
+        if not db_path.is_absolute():
+            db_path = Path(self.config.output_directory) / db_path
+        
+        print(f"  Database: {db_path}")
+        
+        # Connect to database
+        conn = sqlite3.connect(str(db_path))
+        cursor = conn.cursor()
+        
+        # Create tables
+        self._create_sql_tables(cursor, sql_config)
+        
+        # Export enriched catalog (all events with clustering and analysis results)
+        if 'enriched_catalog' in self.aggregated_results:
+            self._export_enriched_catalog_to_sql(cursor, self.aggregated_results['enriched_catalog'])
+        
+        # Export cluster statistics
+        if 'cluster_statistics' in self.aggregated_results:
+            self._export_cluster_statistics_to_sql(cursor, self.aggregated_results['cluster_statistics'])
+        
+        # Export fault planes
+        if 'combined_fault_planes' in self.aggregated_results:
+            self._export_fault_planes_to_sql(cursor, self.aggregated_results['combined_fault_planes'])
+        
+        # Export clustering details
+        if 'clustering_details' in self.aggregated_results:
+            self._export_clustering_details_to_sql(cursor, self.aggregated_results['clustering_details'])
+        
+        # Commit and close
+        conn.commit()
+        conn.close()
+        
+        print(f"  SQL database export completed: {db_path}")
+    
+    def _create_sql_tables(self, cursor, sql_config):
+        """Create SQL tables for storing results."""
+        
+        # Table for enriched event catalog
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS events (
+                id INTEGER PRIMARY KEY,
+                event_id INTEGER,
+                lat REAL,
+                lon REAL,
+                depth REAL,
+                x REAL,
+                y REAL,
+                z REAL,
+                ex REAL,
+                ey REAL,
+                ez REAL,
+                year INTEGER,
+                month INTEGER,
+                day INTEGER,
+                hour INTEGER,
+                minute INTEGER,
+                second REAL,
+                magnitude REAL,
+                cluster_label TEXT,
+                segmentation_level TEXT,
+                fault_plane_azimuth REAL,
+                fault_plane_dip REAL,
+                fault_plane_strike REAL,
+                normal_vector_x REAL,
+                normal_vector_y REAL,
+                normal_vector_z REAL,
+                clustering_quality_r REAL,
+                clustering_quality_n REAL,
+                clustering_quality_ratio REAL,
+                kent_kappa REAL,
+                kent_beta REAL,
+                nr_fault_fits INTEGER,
+                effective_normal_stress REAL,
+                shear_stress REAL,
+                rake_angle REAL,
+                instability_index REAL,
+                slip_tendency REAL,
+                dilation_tendency REAL,
+                analysis_status TEXT,
+                fault_network_outlier INTEGER
+            )
+        ''')
+        
+        # Table for cluster statistics
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cluster_statistics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                cluster_name TEXT UNIQUE,
+                n_events INTEGER,
+                n_fault_planes INTEGER,
+                execution_status TEXT,
+                runtime_seconds REAL,
+                nodes_executed TEXT
+            )
+        ''')
+        
+        # Table for fault planes
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS fault_planes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                cluster_name TEXT,
+                event_id INTEGER,
+                azimuth REAL,
+                dip REAL,
+                strike REAL,
+                normal_x REAL,
+                normal_y REAL,
+                normal_z REAL,
+                r_value REAL,
+                n_value REAL,
+                kappa REAL,
+                beta REAL
+            )
+        ''')
+        
+        # Table for clustering details
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS clustering_summary (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                total_clusters INTEGER,
+                total_events_clustered INTEGER,
+                final_outliers INTEGER,
+                outlier_ratio REAL,
+                segmentation_steps TEXT
+            )
+        ''')
+        
+        print("  Created SQL tables: events, cluster_statistics, fault_planes, clustering_summary")
+    
+    def _export_enriched_catalog_to_sql(self, cursor, enriched_catalog):
+        """Export enriched catalog to SQL database."""
+        print("  Exporting enriched catalog to SQL...")
+        
+        # Select relevant columns
+        columns_to_export = [
+            'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'EX', 'EY', 'EZ',
+            'YR', 'MO', 'DY', 'HR', 'MI', 'SC', 'MAG',
+            'cluster_label', 'segmentation_level',
+            'fault_plane_azimuth', 'fault_plane_dip', 'fault_plane_strike',
+            'normal_vector_x', 'normal_vector_y', 'normal_vector_z',
+            'clustering_quality_R', 'clustering_quality_N', 'clustering_quality_ratio',
+            'kent_kappa', 'kent_beta', 'nr_fault_fits',
+            'effective_normal_stress', 'shear_stress', 'rake_angle',
+            'instability_index', 'slip_tendency', 'dilation_tendency',
+            'analysis_status', 'fault_network_outlier'
+        ]
+        
+        # Filter to only columns that exist
+        available_columns = [col for col in columns_to_export if col in enriched_catalog.columns]
+        
+        # Prepare data for insertion
+        for _, row in enriched_catalog.iterrows():
+            values = []
+            for col in available_columns:
+                val = row[col]
+                # Handle NaN values
+                if pd.isna(val):
+                    values.append(None)
+                else:
+                    values.append(val)
+            
+            # Build SQL insert statement
+            placeholders = ','.join(['?' for _ in available_columns])
+            sql_columns = ','.join([col.lower().replace('/', '_') for col in available_columns])
+            
+            cursor.execute(f'''
+                INSERT OR REPLACE INTO events ({sql_columns})
+                VALUES ({placeholders})
+            ''', values)
+        
+        print(f"    Exported {len(enriched_catalog)} events to SQL database")
+    
+    def _export_cluster_statistics_to_sql(self, cursor, cluster_statistics):
+        """Export cluster statistics to SQL database."""
+        print("  Exporting cluster statistics to SQL...")
+        
+        for cluster_name, stats in cluster_statistics.items():
+            cursor.execute('''
+                INSERT OR REPLACE INTO cluster_statistics 
+                (cluster_name, n_events, n_fault_planes, execution_status, runtime_seconds, nodes_executed)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+                cluster_name,
+                stats.get('input_events', 0),
+                stats.get('n_fault_planes', 0),
+                stats.get('status', 'unknown'),
+                stats.get('runtime_seconds', 0),
+                ','.join(stats.get('nodes_executed', []))
+            ))
+        
+        print(f"    Exported statistics for {len(cluster_statistics)} clusters")
+    
+    def _export_fault_planes_to_sql(self, cursor, fault_planes):
+        """Export fault planes to SQL database."""
+        print("  Exporting fault planes to SQL...")
+        
+        for _, row in fault_planes.iterrows():
+            cursor.execute('''
+                INSERT INTO fault_planes 
+                (cluster_name, event_id, azimuth, dip, strike, normal_x, normal_y, normal_z, 
+                 r_value, n_value, kappa, beta)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                row.get('source_cluster', 'unknown'),
+                row.get('ID', None),
+                row.get('mean_azi', None),
+                row.get('mean_dip', None),
+                row.get('mean_azi', None) - 90 if pd.notna(row.get('mean_azi')) else None,  # Strike
+                row.get('nor_x_mean', None),
+                row.get('nor_y_mean', None),
+                row.get('nor_z_mean', None),
+                row.get('R', None),
+                row.get('N', None),
+                row.get('kappa', None),
+                row.get('beta', None)
+            ))
+        
+        print(f"    Exported {len(fault_planes)} fault planes")
+    
+    def _export_clustering_details_to_sql(self, cursor, clustering_details):
+        """Export clustering details to SQL database."""
+        print("  Exporting clustering details to SQL...")
+        
+        # Format step results as JSON string
+        import json
+        step_results_str = json.dumps(clustering_details.get('step_results', {}))
+        
+        cursor.execute('''
+            INSERT INTO clustering_summary 
+            (total_clusters, total_events_clustered, final_outliers, outlier_ratio, segmentation_steps)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (
+            clustering_details.get('total_clusters', 0),
+            clustering_details.get('total_events_clustered', 0),
+            clustering_details.get('final_outliers', 0),
+            clustering_details.get('outlier_ratio', 0.0),
+            step_results_str
+        ))
+        
+        print("    Exported clustering summary")
     
     def _create_multi_sequence_visualizations(self):
         """Create visualizations combining results from all clusters."""
