@@ -896,6 +896,427 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     return combined_mesh, individual_meshes, combined_pcd, fault_disc_meshes
 
 
+def export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, output_dir, df_hyfi=None):
+    """
+    Export mesh data (faults, focals, rupture planes, slip vectors) as .obj files.
+    
+    Exports all mesh geometries in Wavefront OBJ format for use in external 3D software
+    like Blender, MeshLab, CloudCompare, etc.
+    
+    Parameters
+    ----------
+    combined_mesh : pyvista.PolyData
+        Combined mesh of all fault planes
+    individual_meshes : list
+        List of individual mesh dictionaries
+    fault_disc_meshes : list
+        List of circular disc mesh dictionaries
+    output_dir : str
+        Output directory path
+    df_hyfi : DataFrame, optional
+        Hypocenter dataframe for exporting slip vectors and focal planes
+    """
+    print("Exporting mesh data as OBJ files...")
+    
+    # Create OBJ export directory
+    obj_dir = os.path.join(output_dir, 'obj_export')
+    os.makedirs(obj_dir, exist_ok=True)
+    
+    # Clean up old OBJ files to avoid confusion from previous runs
+    import glob
+    old_obj_files = glob.glob(os.path.join(obj_dir, '*.obj'))
+    if old_obj_files:
+        print(f"  Cleaning up {len(old_obj_files)} old OBJ files...")
+        for old_file in old_obj_files:
+            try:
+                os.remove(old_file)
+            except Exception as e:
+                print(f"  Warning: Could not remove {old_file}: {e}")
+    
+    # Export combined fault mesh
+    if combined_mesh is not None and combined_mesh.n_points > 0:
+        try:
+            # PyVista can save directly as .obj using the file extension
+            combined_file = os.path.join(obj_dir, 'faults_compiled.obj')
+            combined_mesh.save(combined_file)
+            print(f"  ✓ Saved combined fault mesh: faults_compiled.obj ({combined_mesh.n_points} vertices, {combined_mesh.n_cells} faces)")
+        except Exception as e:
+            print(f"  Warning: Could not export combined fault mesh as OBJ: {e}")
+    
+    # Export individual fault meshes
+    if individual_meshes:
+        print(f"  Exporting {len(individual_meshes)} individual fault meshes...")
+        for mesh_info in individual_meshes:
+            try:
+                mesh = mesh_info['mesh']
+                cluster_id = mesh_info['cluster_id']
+                
+                # Use F-based cluster naming for consistency
+                if cluster_id.startswith('F') and cluster_id != 'F_noise':
+                    filename = f"fault_{cluster_id}.obj"
+                else:
+                    fault_idx = mesh_info['fault_idx']
+                    filename = f"fault_{fault_idx}.obj"
+                
+                filepath = os.path.join(obj_dir, filename)
+                mesh.save(filepath)
+                
+            except Exception as e:
+                print(f"    Warning: Could not export individual fault mesh {cluster_id}: {e}")
+    
+    # Export rupture plane meshes (circular discs)
+    if fault_disc_meshes is not None and len(fault_disc_meshes) > 0:
+        print(f"  Exporting rupture plane meshes...")
+        try:
+            # Create combined rupture plane mesh
+            combined_disc_mesh = None
+            
+            for i, disc_info in enumerate(fault_disc_meshes):
+                try:
+                    # Handle both dictionary format and direct mesh format
+                    if hasattr(disc_info, 'get'):
+                        disc_mesh = disc_info.get('mesh')
+                    else:
+                        disc_mesh = disc_info
+                    
+                    if disc_mesh is not None and hasattr(disc_mesh, 'n_points') and disc_mesh.n_points > 0:
+                        if combined_disc_mesh is None:
+                            combined_disc_mesh = disc_mesh.copy()
+                        else:
+                            combined_disc_mesh = combined_disc_mesh.merge(disc_mesh)
+                
+                except Exception as e:
+                    print(f"    Warning: Could not add rupture plane {i} to combined mesh: {e}")
+                    continue
+            
+            if combined_disc_mesh is not None and combined_disc_mesh.n_points > 0:
+                combined_disc_file = os.path.join(obj_dir, 'rupture_planes.obj')
+                combined_disc_mesh.save(combined_disc_file)
+                print(f"  ✓ Saved rupture planes: rupture_planes.obj ({combined_disc_mesh.n_points} vertices, {combined_disc_mesh.n_cells} faces)")
+            
+        except Exception as e:
+            print(f"  Warning: Could not export rupture planes as OBJ: {e}")
+    
+    # Export focal mechanism meshes if available
+    if df_hyfi is not None:
+        try:
+            # Check if focal mechanism data exists
+            focal_cols = ['Strike1', 'Dip1', 'Strike2', 'Dip2', 'pref_foc']
+            if all(col in df_hyfi.columns for col in focal_cols):
+                valid_focal_mask = (
+                    df_hyfi['pref_foc'].notna() &
+                    df_hyfi['pref_foc'].isin([1, 2]) &
+                    (((df_hyfi['pref_foc'] == 1) & df_hyfi['Strike1'].notna() & df_hyfi['Dip1'].notna()) |
+                     ((df_hyfi['pref_foc'] == 2) & df_hyfi['Strike2'].notna() & df_hyfi['Dip2'].notna()))
+                )
+                
+                focal_events = df_hyfi[valid_focal_mask].copy()
+                
+                if len(focal_events) > 0:
+                    print(f"  Exporting focal mechanism meshes...")
+                    # Create focal mechanism disc meshes
+                    focal_meshes = _create_focal_mechanism_disc_meshes(focal_events)
+                    
+                    if focal_meshes:
+                        # Create combined focal mesh
+                        combined_focal_mesh = None
+                        
+                        for mesh_info in focal_meshes:
+                            try:
+                                mesh = mesh_info['mesh']
+                                
+                                if mesh is not None and mesh.n_points > 0:
+                                    if combined_focal_mesh is None:
+                                        combined_focal_mesh = mesh.copy()
+                                    else:
+                                        combined_focal_mesh = combined_focal_mesh.merge(mesh)
+                            except Exception as e:
+                                continue
+                        
+                        if combined_focal_mesh is not None and combined_focal_mesh.n_points > 0:
+                            combined_focal_file = os.path.join(obj_dir, 'focals_compiled.obj')
+                            combined_focal_mesh.save(combined_focal_file)
+                            print(f"  ✓ Saved focal mechanisms: focals_compiled.obj ({combined_focal_mesh.n_points} vertices, {combined_focal_mesh.n_cells} faces)")
+        
+        except Exception as e:
+            print(f"  Warning: Could not export focal mechanisms as OBJ: {e}")
+    
+    # Export slip vectors if available
+    if df_hyfi is not None:
+        try:
+            required_cols = ['X', 'Y', 'Z', 'nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_r', 'rake']
+            df_valid = df_hyfi.dropna(subset=required_cols).copy()
+            
+            if len(df_valid) > 0:
+                print(f"  Exporting slip vectors...")
+                
+                # Create slip vector line segments
+                line_points = []
+                line_connections = []
+                
+                for i, (pt, row) in enumerate(zip(df_valid[['X', 'Y', 'Z']].values, df_valid.iterrows())):
+                    _, row_data = row
+                    x, y, z = pt
+                    p = [x, y, z]
+                    r = row_data['rupt_r']
+                    nor = np.array([row_data['nor_x_mean'], row_data['nor_y_mean'], row_data['nor_z_mean']])
+                    rake = row_data['rake']
+                    
+                    # Calculate slip vector endpoint
+                    u, v, w = utilities_plot.slipvector_3D(p, r, nor, rake)
+                    
+                    # Bidirectional vector
+                    slip_vec = np.array([2 * (u - x), 2 * (v - y), 2 * (w - z)])
+                    
+                    start = pt - slip_vec / 2
+                    end = pt + slip_vec / 2
+                    
+                    line_points.append(start)
+                    line_points.append(end)
+                    line_connections.append([2, len(line_points)-2, len(line_points)-1])
+                
+                line_points = np.array(line_points, dtype=np.float64)
+                line_connections = np.hstack(line_connections)
+                
+                # Create line mesh
+                line_mesh = pv.PolyData(line_points, lines=line_connections)
+                
+                # Apply tube filter
+                tube_radius = 2.0
+                tubes = line_mesh.tube(radius=tube_radius, n_sides=8)
+                
+                # Save as OBJ
+                slip_vectors_file = os.path.join(obj_dir, 'slip_vectors.obj')
+                tubes.save(slip_vectors_file)
+                print(f"  ✓ Saved slip vectors: slip_vectors.obj ({tubes.n_points} vertices, {tubes.n_cells} faces)")
+        
+        except Exception as e:
+            print(f"  Warning: Could not export slip vectors as OBJ: {e}")
+    
+    print(f"OBJ export complete. Files saved to: {obj_dir}")
+
+
+def export_meshes_as_ply(combined_mesh, individual_meshes, fault_disc_meshes, point_cloud, output_dir, df_hyfi=None):
+    """
+    Export mesh and point cloud data as .ply files.
+    
+    Exports all mesh geometries and point clouds in PLY format, which preserves vertex attributes,
+    colors, and is widely supported by point cloud processing software.
+    
+    Parameters
+    ----------
+    combined_mesh : pyvista.PolyData
+        Combined mesh of all fault planes
+    individual_meshes : list
+        List of individual mesh dictionaries
+    fault_disc_meshes : list
+        List of circular disc mesh dictionaries
+    point_cloud : pyvista.PolyData
+        Combined point cloud of fault plane points
+    output_dir : str
+        Output directory path
+    df_hyfi : DataFrame, optional
+        Hypocenter dataframe for exporting additional point clouds
+    """
+    print("Exporting mesh and point cloud data as PLY files...")
+    
+    # Create PLY export directory
+    ply_dir = os.path.join(output_dir, 'ply_export')
+    os.makedirs(ply_dir, exist_ok=True)
+    
+    # Clean up old PLY files to avoid confusion from previous runs
+    import glob
+    old_ply_files = glob.glob(os.path.join(ply_dir, '*.ply'))
+    if old_ply_files:
+        print(f"  Cleaning up {len(old_ply_files)} old PLY files...")
+        for old_file in old_ply_files:
+            try:
+                os.remove(old_file)
+            except Exception as e:
+                print(f"  Warning: Could not remove {old_file}: {e}")
+    
+    # Export combined fault mesh
+    if combined_mesh is not None and combined_mesh.n_points > 0:
+        try:
+            combined_file = os.path.join(ply_dir, 'faults_compiled.ply')
+            combined_mesh.save(combined_file)
+            print(f"  ✓ Saved combined fault mesh: faults_compiled.ply ({combined_mesh.n_points} vertices)")
+        except Exception as e:
+            print(f"  Warning: Could not export combined fault mesh as PLY: {e}")
+    
+    # Export individual fault meshes
+    if individual_meshes:
+        print(f"  Exporting {len(individual_meshes)} individual fault meshes...")
+        for mesh_info in individual_meshes:
+            try:
+                mesh = mesh_info['mesh']
+                cluster_id = mesh_info['cluster_id']
+                
+                # Use F-based cluster naming for consistency
+                if cluster_id.startswith('F') and cluster_id != 'F_noise':
+                    filename = f"fault_{cluster_id}.ply"
+                else:
+                    fault_idx = mesh_info['fault_idx']
+                    filename = f"fault_{fault_idx}.ply"
+                
+                filepath = os.path.join(ply_dir, filename)
+                mesh.save(filepath)
+                
+            except Exception as e:
+                print(f"    Warning: Could not export individual fault mesh {cluster_id}: {e}")
+    
+    # Export rupture plane meshes
+    if fault_disc_meshes is not None and len(fault_disc_meshes) > 0:
+        print(f"  Exporting rupture plane meshes...")
+        try:
+            # Create combined rupture plane mesh
+            combined_disc_mesh = None
+            
+            for i, disc_info in enumerate(fault_disc_meshes):
+                try:
+                    if hasattr(disc_info, 'get'):
+                        disc_mesh = disc_info.get('mesh')
+                    else:
+                        disc_mesh = disc_info
+                    
+                    if disc_mesh is not None and hasattr(disc_mesh, 'n_points') and disc_mesh.n_points > 0:
+                        if combined_disc_mesh is None:
+                            combined_disc_mesh = disc_mesh.copy()
+                        else:
+                            combined_disc_mesh = combined_disc_mesh.merge(disc_mesh)
+                
+                except Exception as e:
+                    print(f"    Warning: Could not add rupture plane {i}: {e}")
+                    continue
+            
+            if combined_disc_mesh is not None and combined_disc_mesh.n_points > 0:
+                combined_disc_file = os.path.join(ply_dir, 'rupture_planes.ply')
+                combined_disc_mesh.save(combined_disc_file)
+                print(f"  ✓ Saved rupture planes: rupture_planes.ply ({combined_disc_mesh.n_points} vertices)")
+            
+        except Exception as e:
+            print(f"  Warning: Could not export rupture planes as PLY: {e}")
+    
+    # Export fault plane point cloud
+    if point_cloud is not None and point_cloud.n_points > 0:
+        try:
+            pcd_file = os.path.join(ply_dir, 'fault_plane_pointcloud.ply')
+            point_cloud.save(pcd_file)
+            print(f"  ✓ Saved fault plane point cloud: fault_plane_pointcloud.ply ({point_cloud.n_points} points)")
+        except Exception as e:
+            print(f"  Warning: Could not export fault plane point cloud as PLY: {e}")
+    
+    # Export hypocenter point cloud
+    if df_hyfi is not None and len(df_hyfi) > 0:
+        try:
+            hypocenter_points = df_hyfi[['X', 'Y', 'Z']].values
+            hypocenter_pcd = pv.PolyData(hypocenter_points)
+            
+            # Add attributes
+            for col in ['ID', 'MAG', 'EX', 'EY', 'EZ']:
+                if col in df_hyfi.columns:
+                    hypocenter_pcd[col] = df_hyfi[col].values
+            
+            hypocenter_file = os.path.join(ply_dir, 'hypocenters.ply')
+            hypocenter_pcd.save(hypocenter_file)
+            print(f"  ✓ Saved hypocenter point cloud: hypocenters.ply ({len(df_hyfi)} points)")
+        except Exception as e:
+            print(f"  Warning: Could not export hypocenter point cloud as PLY: {e}")
+    
+    # Export focal mechanism meshes if available
+    if df_hyfi is not None:
+        try:
+            focal_cols = ['Strike1', 'Dip1', 'Strike2', 'Dip2', 'pref_foc']
+            if all(col in df_hyfi.columns for col in focal_cols):
+                valid_focal_mask = (
+                    df_hyfi['pref_foc'].notna() &
+                    df_hyfi['pref_foc'].isin([1, 2]) &
+                    (((df_hyfi['pref_foc'] == 1) & df_hyfi['Strike1'].notna() & df_hyfi['Dip1'].notna()) |
+                     ((df_hyfi['pref_foc'] == 2) & df_hyfi['Strike2'].notna() & df_hyfi['Dip2'].notna()))
+                )
+                
+                focal_events = df_hyfi[valid_focal_mask].copy()
+                
+                if len(focal_events) > 0:
+                    print(f"  Exporting focal mechanism meshes...")
+                    focal_meshes = _create_focal_mechanism_disc_meshes(focal_events)
+                    
+                    if focal_meshes:
+                        combined_focal_mesh = None
+                        
+                        for mesh_info in focal_meshes:
+                            try:
+                                mesh = mesh_info['mesh']
+                                
+                                if mesh is not None and mesh.n_points > 0:
+                                    if combined_focal_mesh is None:
+                                        combined_focal_mesh = mesh.copy()
+                                    else:
+                                        combined_focal_mesh = combined_focal_mesh.merge(mesh)
+                            except Exception as e:
+                                continue
+                        
+                        if combined_focal_mesh is not None and combined_focal_mesh.n_points > 0:
+                            combined_focal_file = os.path.join(ply_dir, 'focals_compiled.ply')
+                            combined_focal_mesh.save(combined_focal_file)
+                            print(f"  ✓ Saved focal mechanisms: focals_compiled.ply ({combined_focal_mesh.n_points} vertices)")
+        
+        except Exception as e:
+            print(f"  Warning: Could not export focal mechanisms as PLY: {e}")
+    
+    # Export slip vectors if available
+    if df_hyfi is not None:
+        try:
+            required_cols = ['X', 'Y', 'Z', 'nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_r', 'rake']
+            df_valid = df_hyfi.dropna(subset=required_cols).copy()
+            
+            if len(df_valid) > 0:
+                print(f"  Exporting slip vectors...")
+                
+                # Create slip vector line segments
+                line_points = []
+                line_connections = []
+                
+                for i, (pt, row) in enumerate(zip(df_valid[['X', 'Y', 'Z']].values, df_valid.iterrows())):
+                    _, row_data = row
+                    x, y, z = pt
+                    p = [x, y, z]
+                    r = row_data['rupt_r']
+                    nor = np.array([row_data['nor_x_mean'], row_data['nor_y_mean'], row_data['nor_z_mean']])
+                    rake = row_data['rake']
+                    
+                    # Calculate slip vector endpoint
+                    u, v, w = utilities_plot.slipvector_3D(p, r, nor, rake)
+                    
+                    # Bidirectional vector
+                    slip_vec = np.array([2 * (u - x), 2 * (v - y), 2 * (w - z)])
+                    
+                    start = pt - slip_vec / 2
+                    end = pt + slip_vec / 2
+                    
+                    line_points.append(start)
+                    line_points.append(end)
+                    line_connections.append([2, len(line_points)-2, len(line_points)-1])
+                
+                line_points = np.array(line_points, dtype=np.float64)
+                line_connections = np.hstack(line_connections)
+                
+                # Create line mesh and apply tube filter
+                line_mesh = pv.PolyData(line_points, lines=line_connections)
+                tube_radius = 2.0
+                tubes = line_mesh.tube(radius=tube_radius, n_sides=8)
+                
+                # Save as PLY
+                slip_vectors_file = os.path.join(ply_dir, 'slip_vectors.ply')
+                tubes.save(slip_vectors_file)
+                print(f"  ✓ Saved slip vectors: slip_vectors.ply ({tubes.n_points} vertices)")
+        
+        except Exception as e:
+            print(f"  Warning: Could not export slip vectors as PLY: {e}")
+    
+    print(f"PLY export complete. Files saved to: {ply_dir}")
+
+
 def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud, output_dir, fault_disc_meshes=None, df_hyfi=None, use_focal_constraints=False, export_time_series=False, time_step_hours=24):
     """
     Export interpolated planes, original hypocenters, and circular disc meshes as VTP files.
@@ -1147,6 +1568,12 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
     # Export time series VTP files if requested and available
     if export_time_series and df_hyfi is not None:
         export_hypo_time_series(df_hyfi, output_dir, time_step_hours)
+    
+    # Export as OBJ files
+    export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, output_dir, df_hyfi)
+    
+    # Export as PLY files
+    export_meshes_as_ply(combined_mesh, individual_meshes, fault_disc_meshes, point_cloud, output_dir, df_hyfi)
     
     print(f"VTP export complete. Files saved to: {vtp_dir}")
 
