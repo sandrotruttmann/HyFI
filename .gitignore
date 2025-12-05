@@ -25,3 +25,6 @@ data_examples/A37_data.csv
 /src/hyfi/utils/__pycache__
 /src/hyfi/visualization/__pycache__
 /data_examples/Stressfield
+data_examples/SECOS_20250305_HyFI_VS_filtered_2.csv
+data_examples/SECOS_20250305_HyFI_VS_filtered_2.qmd
+/output_SECOS_VS_small

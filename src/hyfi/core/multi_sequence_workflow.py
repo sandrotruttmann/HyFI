@@ -141,6 +141,11 @@ class MultiSequenceWorkflow:
         print(f'Total runtime: {runtime}')
         print(f'Processed {len(self.clusters)} clusters')
         
+        runtime_seconds = self.end_time - self.start_time
+        hours, remainder = divmod(int(runtime_seconds), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        runtime_formatted = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        
         return {
             'clusters': self.clusters,
             'cluster_results': self.cluster_results,
@@ -148,7 +153,8 @@ class MultiSequenceWorkflow:
             'metadata': {
                 'n_clusters': len(self.clusters),
                 'total_events': len(self.full_catalog),
-                'runtime_seconds': (self.end_time - self.start_time)
+                'runtime_seconds': runtime_seconds,
+                'runtime_formatted': runtime_formatted
             }
         }
     
@@ -349,15 +355,52 @@ class MultiSequenceWorkflow:
                 if node_name not in ['input_data', 'step_1_load_data', 'step_2_catalog_segmentation', 'step_4_merge_and_export']:
                     # For step_3_per_sequence_analysis, unwrap it and copy its contents
                     if node_name == 'step_3_per_sequence_analysis':
-                        # Copy all sub-nodes from step_3
+                        # Copy all sub-nodes from step_3 and flatten nested parameters
                         for sub_node_name, sub_node_config in node_config.items():
                             if sub_node_name != 'description':
-                                dag_dict['workflow_dag'][sub_node_name] = sub_node_config.copy() if isinstance(sub_node_config, dict) else sub_node_config
+                                # Deep copy the config
+                                import copy
+                                copied_config = copy.deepcopy(sub_node_config)
+                                
+                                # Flatten nested parameter structures for backward compatibility
+                                if isinstance(copied_config, dict) and 'parameters' in copied_config:
+                                    copied_config['parameters'] = self._flatten_nested_params(copied_config['parameters'])
+                                
+                                dag_dict['workflow_dag'][sub_node_name] = copied_config
                     else:
                         dag_dict['workflow_dag'][node_name] = node_config.copy() if isinstance(node_config, dict) else node_config
         
         # Create HyFIWorkflowDAG from dictionary
         return HyFIWorkflowDAG.from_dict(dag_dict)
+    
+    def _flatten_nested_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Flatten nested parameter structures for backward compatibility.
+        
+        Converts nested structures like:
+        {
+            "core_network": {"monte_carlo_simulations": 1},
+            "outlier_detection": {"remove_outliers": true}
+        }
+        
+        To flat structure:
+        {
+            "monte_carlo_simulations": 1,
+            "remove_outliers": true
+        }
+        """
+        if not isinstance(params, dict):
+            return params
+        
+        flattened = {}
+        for key, value in params.items():
+            if isinstance(value, dict):
+                # Recursively flatten nested dicts
+                flattened.update(self._flatten_nested_params(value))
+            else:
+                flattened[key] = value
+        
+        return flattened
     
     def _convert_template_config_to_dag(self):
         """Convert old template_config format to DAG format."""
@@ -631,7 +674,7 @@ class MultiSequenceWorkflow:
                     enriched_data.loc[mask, 'analysis_status'] = 'processed_with_error'
         
         # Save enriched CSV
-        enriched_file = output_dir / 'enriched_catalog_with_analysis_results.csv'
+        enriched_file = output_dir / 'HyFI_results_multi.csv'
         enriched_data.to_csv(enriched_file, index=False)
         
         # Store in aggregated results
@@ -644,40 +687,30 @@ class MultiSequenceWorkflow:
         processed_no_results = len(enriched_data[enriched_data['analysis_status'] == 'processed_no_results'])
         outlier_events = len(enriched_data[enriched_data['fault_network_outlier'] == True])
         
-        print(f"Enriched CSV created: {enriched_file}")
+        print(f"HyFI results CSV of multi-sequence analysis created: {enriched_file}")
         print(f"  Total events: {total_events}")
         print(f"  Clustered events: {clustered_events} ({clustered_events/total_events:.1%})")
         print(f"  Successfully analyzed: {processed_events} ({processed_events/total_events:.1%})")
         if processed_no_results > 0:
             print(f"  Processed without detailed results: {processed_no_results} ({processed_no_results/total_events:.1%})")
         print(f"  Fault network outliers: {outlier_events} ({outlier_events/total_events:.1%})")
-        print("")
-        print("Available columns in enriched CSV:")
-        print("  Original data: ID, LAT, LON, DEPTH, X, Y, Z, EX, EY, EZ, YR, MO, DY, HR, MI, SC, MAG, etc.")
-        print("  Clustering: cluster_label, segmentation_level")
-        print("  Fault plane orientation: fault_plane_azimuth, fault_plane_dip, fault_plane_strike")
-        print("  Normal vectors: normal_vector_x, normal_vector_y, normal_vector_z")
-        print("  Quality metrics: clustering_quality_R, clustering_quality_N, clustering_quality_ratio")
-        print("  Statistical parameters: kent_kappa, kent_beta, nr_fault_fits")
-        print("  Stress analysis: effective_normal_stress, shear_stress, rake_angle, instability_index")
-        print("  Fault mechanics: slip_tendency, dilation_tendency")
-        print("  Status: analysis_status, fault_network_outlier")
     
     def _merge_and_export_vtp_files(self):
         """Merge VTP files from all clusters and export combined versions."""
         print("Merging and exporting combined VTP files...")
         
         output_dir = Path(self.config.output_directory)
-        combined_vtp_dir = output_dir / 'vtp_export_combined'
+        combined_vtp_dir = output_dir / 'vtp_export_multi'
         combined_vtp_dir.mkdir(exist_ok=True)
         
         # Define the VTP files to merge
         vtp_files_to_merge = {
             'hypocenters_ALL.vtp': 'hypocenters.vtp',
-            'interpolated_active_faults_ALL.vtp': 'interpolated_active_faults.vtp',
+            'faults_ALL.vtp': 'faults_compiled.vtp',
             'rupture_planes_ALL.vtp': 'rupture_planes.vtp',
             'enhanced_pointcloud_ALL.vtp': 'enhanced_pointcloud.vtp',
-            'enhanced_focalplanes_ALL.vtp': 'enhanced_focalplanes.vtp'
+            'focals_ALL.vtp': 'focals_compiled.vtp',
+            'slip_vectors_ALL.vtp': 'slip_vectors.vtp'
         }
         
         for combined_filename, source_filename in vtp_files_to_merge.items():
@@ -763,15 +796,14 @@ class MultiSequenceWorkflow:
             return
         
         # Create a new VTK data structure to hold all merged data
-        merged_data = vtk.vtpAppendPolyData()
-        merged_data.SetInputData(0, vtk.vtpPolyData())  # Initialize with empty data
+        merged_data = vtk.vtkAppendPolyData()
         
         point_count = 0
         
         for i, (vtp_file, cluster_name) in enumerate(zip(vtp_files, cluster_sources)):
             try:
-                # Read the VTK file
-                reader = vtk.vtpPolyDataReader()
+                # Read the VTK file (XML format)
+                reader = vtk.vtkXMLPolyDataReader()
                 reader.SetFileName(str(vtp_file))
                 reader.Update()
                 
@@ -779,7 +811,7 @@ class MultiSequenceWorkflow:
                 
                 if polydata.GetNumberOfPoints() > 0:
                     # Add cluster information as point data
-                    cluster_array = vtk.vtpStringArray()
+                    cluster_array = vtk.vtkStringArray()
                     cluster_array.SetName("cluster_source")
                     cluster_array.SetNumberOfTuples(polydata.GetNumberOfPoints())
                     
@@ -789,7 +821,7 @@ class MultiSequenceWorkflow:
                     polydata.GetPointData().AddArray(cluster_array)
                     
                     # Add cluster ID as numerical array for visualization
-                    cluster_id_array = vtk.vtpIntArray()
+                    cluster_id_array = vtk.vtkIntArray()
                     cluster_id_array.SetName("cluster_id")
                     cluster_id_array.SetNumberOfTuples(polydata.GetNumberOfPoints())
                     
@@ -811,8 +843,8 @@ class MultiSequenceWorkflow:
             # Update the merged data
             merged_data.Update()
             
-            # Write the merged VTK file
-            writer = vtk.vtpPolyDataWriter()
+            # Write the merged VTK file (XML format)
+            writer = vtk.vtkXMLPolyDataWriter()
             writer.SetFileName(str(output_file))
             writer.SetInputData(merged_data.GetOutput())
             writer.Write()
@@ -1440,7 +1472,7 @@ class MultiSequenceWorkflow:
             self.aggregated_results['combined_fault_planes'].to_csv(combined_file, index=False)
         
         # Save cluster summary
-        summary_file = output_dir / 'cluster_summary.txt'
+        summary_file = output_dir / 'segmentation_summary.txt'
         with open(summary_file, 'w') as f:
             f.write(f"Multi-Sequence Analysis Summary\n")
             f.write(f"{'='*50}\n")
@@ -1473,7 +1505,11 @@ class MultiSequenceWorkflow:
         }
         
         if self.start_time and self.end_time:
-            summary["runtime_seconds"] = self.end_time - self.start_time
+            runtime_seconds = self.end_time - self.start_time
+            hours, remainder = divmod(int(runtime_seconds), 3600)
+            minutes, seconds = divmod(remainder, 60)
+            summary["runtime_seconds"] = runtime_seconds
+            summary["runtime_formatted"] = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
         
         if 'combined_fault_planes' in self.aggregated_results:
             summary["total_fault_planes"] = len(self.aggregated_results['combined_fault_planes'])
