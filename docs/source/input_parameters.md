@@ -1,6 +1,6 @@
-# Configuration Template Documentation
+# HyFI Input Parameters
 
-This document provides detailed explanations for all parameters in `config_TEMPLATE.json` for single-sequence HyFI analysis.
+This document provides detailed explanations for all parameters in `config_TEMPLATE.json` for HyFI analysis.
 
 ---
 

@@ -1,0 +1,40 @@
+<svg width="400" height="120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="120" fill="#ffffff"/>
+  
+  <!-- Fault plane representation - stylized geometric shapes -->
+  <g id="fault-planes">
+    <!-- Left plane -->
+    <path d="M 30 70 L 50 30 L 70 35 L 50 75 Z" fill="#2c3e50" opacity="0.8"/>
+    <path d="M 50 75 L 70 35 L 85 40 L 65 80 Z" fill="#34495e" opacity="0.7"/>
+    
+    <!-- Middle plane -->
+    <path d="M 60 85 L 75 50 L 95 55 L 80 90 Z" fill="#3498db" opacity="0.8"/>
+    <path d="M 80 90 L 95 55 L 110 60 L 95 95 Z" fill="#2980b9" opacity="0.7"/>
+    
+    <!-- Right plane -->
+    <path d="M 90 80 L 105 45 L 125 50 L 110 85 Z" fill="#e74c3c" opacity="0.8"/>
+    <path d="M 110 85 L 125 50 L 140 55 L 125 90 Z" fill="#c0392b" opacity="0.7"/>
+  </g>
+  
+  <!-- Hypocenter points -->
+  <g id="hypocenters">
+    <circle cx="55" cy="50" r="3" fill="#e67e22"/>
+    <circle cx="70" cy="55" r="2.5" fill="#e67e22"/>
+    <circle cx="85" cy="65" r="3" fill="#e67e22"/>
+    <circle cx="100" cy="60" r="2.5" fill="#e67e22"/>
+    <circle cx="115" cy="70" r="3" fill="#e67e22"/>
+    <circle cx="65" cy="75" r="2" fill="#e67e22"/>
+    <circle cx="95" cy="80" r="2" fill="#e67e22"/>
+  </g>
+  
+  <!-- Text: HyFI -->
+  <text x="160" y="65" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#2c3e50">
+    HyFI
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="160" y="90" font-family="Arial, sans-serif" font-size="14" fill="#7f8c8d">
+    Hypocenter-based 3D Fault Imaging
+  </text>
+</svg>

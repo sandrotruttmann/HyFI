@@ -1,0 +1,11 @@
+# Sphinx documentation build artifacts
+build/
+_build/
+source/_autosummary/
+
+# Sphinx cache
+.doctrees/
+*.doctree
+
+# Generated files
+source/api/hyfi*.rst

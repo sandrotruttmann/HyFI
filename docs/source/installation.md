@@ -1,4 +1,4 @@
-# HyFI Installation Guide
+# Installation Guide
 
 This guide will walk you through installing HyFI from scratch, even if you have no previous installations.
 
@@ -159,31 +159,29 @@ Check the output directory for results (VTP, OBJ, PLY files, visualizations, etc
 
 ---
 
-## Environment Details
-
-The HyFI environment includes:
-
-- **Python 3.12.9** - Core programming language
-- **ObsPy 1.4.1** - Seismological data processing
-- **PyVista 0.46.3** - 3D visualization and mesh processing
-- **VTK 9.4.2** - Visualization Toolkit
-- **Open3D 0.19.0** - 3D data processing
-- **NumPy, SciPy, Pandas** - Scientific computing
-- **Scikit-learn** - Machine learning for clustering
-- **Optuna** - Hyperparameter optimization
-- **Plotly, Matplotlib** - Plotting and visualization
-- **Shapely, PyProj** - Geospatial processing
-
-For a complete list, see the [`hyfi.yaml`](../hyfi.yaml) file.
-
----
-
 ## Next Steps
 
-- Read the [INPUT_PARAMETER_DOCU.md](INPUT_PARAMETER_DOCU.md) to understand configuration parameters
-- Check out example configurations in `example_projects/`
-- Review the [README.md](../README.md) for usage examples
-- Explore the [docs/](.) directory for additional documentation
+Now that HyFI is installed, continue with:
+
+- **[Configuration Guide](configuration)**: Learn how to set up JSON configuration files for your analysis
+- **[Input Parameters](input_parameters)**: Detailed documentation of all configuration parameters
+- **[HyFI Modules](modules/index)**: Understand the different analysis modules (fault network, validation, classification, stress analysis)
+- **[Output Guide](output)**: Learn about the generated output files and visualizations
+- **[Examples](examples)**: Explore example projects and use cases
+
+### Quick Start
+
+Try running one of the example configurations:
+
+```bash
+cd example_projects
+hyfi run config_A0.json
+```
+
+Check the `output_A0/` directory for results including:
+- `HyFI_results.csv` - Main results table
+- `3D_model.html` - Interactive 3D visualization
+- `vtp_export/` - ParaView-compatible files
 
 ---
 

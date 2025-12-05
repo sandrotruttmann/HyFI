@@ -1,12 +1,21 @@
+<div align="center">
+  <img src="hyfi_logo.svg" alt="HyFI Logo" width="500">
+</div>
 
+<div align="center">
 
 [![DOI](https://zenodo.org/badge/582537470.svg)](https://zenodo.org/badge/latestdoi/582537470)
+[![Documentation Status](https://readthedocs.org/projects/hyfi/badge/?version=latest)](https://hyfi.readthedocs.io/en/latest/?badge=latest)
 
-
+</div>
 
 # HyFI: Hypocenter-based 3D Imaging of Active Faults
 
 The code in this repository allows to image active faults in 3D based on relatively relocated hypocenter datasets after the method presented in Truttmann et al. (2023) (https://doi.org/10.1029/2023JB026352).
+
+## Documentation
+
+Full documentation is available at [Read the Docs](https://hyfi.readthedocs.io/).
 
 ## Scientific publication
 If you use the code in this repository please cite the following scientific publication:
