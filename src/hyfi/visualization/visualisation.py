@@ -797,6 +797,11 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             # Calculate maximum magnitude from FILTERED area using Leonard (2014) scaling law as default
             max_Mw = _calculate_max_magnitude_from_area(mesh_area, 'leonard2014')
             
+            # Ensure mesh is fully triangulated immediately after creation (before any other operations)
+            if not mesh.is_all_triangles:
+                print(f"    Note: Mesh for cluster {cluster_id} contains non-triangular faces, triangulating...")
+                mesh = mesh.triangulate()
+            
             # Add cluster metadata attributes to mesh
             mesh['fault_idx'] = np.full(mesh.n_points, i)
             mesh['cluster_id'] = np.full(mesh.n_points, str(cluster_id))
@@ -863,11 +868,6 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 # Add to existing combined mesh
                 combined_mesh = combined_mesh + mesh
             
-            # Ensure mesh is triangulated (critical for subdivision)
-            if not mesh.is_all_triangles:
-                print(f"    Note: Mesh for cluster {cluster_id} contains non-triangular faces, triangulating...")
-                mesh = mesh.triangulate()
-            
             individual_meshes.append({
                 'mesh': mesh,
                 'cluster_id': str(cluster_id),
@@ -896,10 +896,10 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             print(f"  Warning: Combined mesh is empty ({combined_mesh.n_cells} faces), skipping subdivision")
         else:
             # Ensure combined mesh is fully triangulated before subdivision
-            if not combined_mesh.is_all_triangles:
-                print(f"  Note: Combined mesh contains non-triangular faces, triangulating...")
-                combined_mesh = combined_mesh.triangulate()
-                print(f"  Triangulated combined mesh: {combined_mesh.n_cells} faces")
+            # Always triangulate after combining meshes, as the + operator can introduce non-triangular faces
+            print(f"  Triangulating combined mesh before subdivision...")
+            combined_mesh = combined_mesh.triangulate()
+            print(f"  Triangulated combined mesh: {combined_mesh.n_cells} faces, all_triangles={combined_mesh.is_all_triangles}")
             
             # Subdivide combined mesh using Loop subdivision (maintains smoothness)
             try:
@@ -1425,6 +1425,116 @@ def export_meshes_as_ply(combined_mesh, individual_meshes, fault_disc_meshes, po
             print(f"  Warning: Could not export slip vectors as PLY: {e}")
     
     print(f"PLY export complete. Files saved to: {ply_dir}")
+
+
+def export_basic_vtp(df_hyfi, output_dir, fault_disc_meshes=None, use_focal_constraints=False, export_time_series=False, time_step_hours=24):
+    """
+    Export basic VTP files (hypocenters, rupture planes, focals, slip vectors) without interpolated meshes.
+    
+    This function is called when interpolation is disabled or fails, but we still want to export
+    the fundamental data for visualization.
+    
+    Parameters
+    ----------
+    df_hyfi : DataFrame
+        HyFI results dataframe with hypocenter data
+    output_dir : str
+        Output directory path
+    fault_disc_meshes : list, optional
+        List of circular disc mesh dictionaries for rupture planes
+    use_focal_constraints : bool, default=False
+        Whether to also export enhanced focal fault planes
+    export_time_series : bool, default=False
+        Whether to export time series VTP files for ParaView animation
+    time_step_hours : float, default=24
+        Time step in hours for time series export
+    """
+    print("Exporting basic VTP files (without interpolated meshes)...")
+    
+    # Create VTP output directory
+    vtp_dir = os.path.join(output_dir, 'vtp_export')
+    os.makedirs(vtp_dir, exist_ok=True)
+    
+    # Export hypocenters
+    if df_hyfi is not None and len(df_hyfi) > 0:
+        # Create point cloud from hypocenter coordinates
+        points = df_hyfi[['X', 'Y', 'Z']].values
+        hypocenter_pcd = pv.PolyData(points)
+        
+        # Add all scalar data
+        for col in df_hyfi.columns:
+            if col not in ['X', 'Y', 'Z']:
+                try:
+                    values = df_hyfi[col].values
+                    hypocenter_pcd[col] = values
+                except Exception as e:
+                    print(f"    Warning: Could not add {col} column to VTP: {e}")
+        
+        # Add temporal data if Date column exists
+        if 'Date' in df_hyfi.columns:
+            try:
+                dates = pd.to_datetime(df_hyfi['Date'])
+                min_date = dates.min()
+                days_since_first = (dates - min_date).dt.days.values
+                hypocenter_pcd['days_since_first'] = days_since_first
+                
+                unix_timestamps = dates.astype('int64') // 10**9
+                hypocenter_pcd['unix_timestamp'] = unix_timestamps.astype(float)
+                
+                decimal_years = dates.dt.year + dates.dt.dayofyear / 365.25
+                hypocenter_pcd['decimal_year'] = decimal_years.values
+                
+                hypocenter_pcd['month'] = dates.dt.month.values
+                date_strings = dates.astype(str).values
+                hypocenter_pcd['date_string'] = date_strings
+                
+                print(f"    Added temporal data spanning {days_since_first.max()} days")
+            except Exception as e:
+                print(f"    Warning: Could not add Date column to VTP: {e}")
+        
+        hypocenter_file = os.path.join(vtp_dir, 'hypocenters.vtp')
+        hypocenter_pcd.save(hypocenter_file)
+        print(f"  Saved hypocenter point cloud: {hypocenter_file} ({len(df_hyfi)} points)")
+    
+    # Export rupture plane meshes
+    if fault_disc_meshes is not None and len(fault_disc_meshes) > 0:
+        print(f"  Exporting {len(fault_disc_meshes)} rupture plane meshes...")
+        
+        try:
+            combined_disc_mesh = None
+            for i, disc_info in enumerate(fault_disc_meshes):
+                try:
+                    disc_mesh = disc_info.get('mesh') if hasattr(disc_info, 'get') else disc_info
+                    
+                    if disc_mesh is not None and hasattr(disc_mesh, 'n_points') and disc_mesh.n_points > 0:
+                        if combined_disc_mesh is None:
+                            combined_disc_mesh = disc_mesh.copy()
+                        else:
+                            combined_disc_mesh = combined_disc_mesh.merge(disc_mesh)
+                except Exception as e:
+                    print(f"    Warning: Failed to add disc mesh {i}: {e}")
+                    continue
+            
+            if combined_disc_mesh is not None and combined_disc_mesh.n_points > 0:
+                combined_disc_file = os.path.join(vtp_dir, 'rupture_planes.vtp')
+                combined_disc_mesh.save(combined_disc_file)
+                print(f"  Saved rupture planes: {combined_disc_file}")
+        except Exception as e:
+            print(f"  Warning: Failed to create combined disc mesh: {e}")
+    
+    # Export enhanced focal fault planes if requested
+    if use_focal_constraints and df_hyfi is not None:
+        export_enhanced_focal_planes_vtp(df_hyfi, output_dir, use_focal_constraints)
+    
+    # Export slip vectors
+    if df_hyfi is not None:
+        export_slip_vectors_vtp(df_hyfi, output_dir)
+    
+    # Export time series if requested
+    if export_time_series and df_hyfi is not None:
+        export_hypo_time_series(df_hyfi, output_dir, time_step_hours)
+    
+    print(f"Basic VTP export complete. Files saved to: {vtp_dir}")
 
 
 def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud, output_dir, fault_disc_meshes=None, df_hyfi=None, use_focal_constraints=False, export_time_series=False, time_step_hours=24):

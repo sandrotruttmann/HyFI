@@ -652,14 +652,20 @@ class DAGExecutor:
                                        for param in [stress_params['S1_trend'], stress_params['S1_plunge'],
                                                    stress_params['S3_trend'], stress_params['S3_plunge'],
                                                    stress_params['stress_R']]):
-                                    # Calculate stress on mesh faces
+                                    # Calculate stress on mesh faces (only if mesh has polygonal cells)
                                     # Note: Mesh subdivision is already handled in create_interpolated_fault_planes()
                                     from hyfi.core.stress_analysis import calculate_mesh_stress
-                                    combined_mesh = calculate_mesh_stress(combined_mesh, stress_params)
+                                    
+                                    # Check if combined_mesh has faces (not just vertices)
+                                    if combined_mesh.n_cells > 0:
+                                        combined_mesh = calculate_mesh_stress(combined_mesh, stress_params)
+                                    else:
+                                        logger.info("Combined mesh has no faces - skipping stress calculation")
                                     
                                     # Also apply to individual meshes
                                     for mesh_info in individual_meshes:
-                                        mesh_info['mesh'] = calculate_mesh_stress(mesh_info['mesh'], stress_params)
+                                        if mesh_info['mesh'].n_cells > 0:
+                                            mesh_info['mesh'] = calculate_mesh_stress(mesh_info['mesh'], stress_params)
                                 else:
                                     logger.info("Stress parameters incomplete - skipping mesh stress calculation")
                             else:
@@ -670,6 +676,15 @@ class DAGExecutor:
                         output_dir = input_params.get('out_dir', str(self.output_dir))
                         visualisation.export_interpolated_planes_vtp(
                             combined_mesh, individual_meshes, point_cloud, output_dir, fault_disc_meshes, df_hyfi,
+                            use_focal_constraints=input_params.get('use_focal_constraints', False),
+                            export_time_series=viz_params.get('export_time_series', False),
+                            time_step_hours=viz_params.get('time_step_hours', 24)
+                        )
+                    elif viz_params.get('export_vtp', False):
+                        # Export basic VTP even without interpolated meshes
+                        output_dir = input_params.get('out_dir', str(self.output_dir))
+                        visualisation.export_basic_vtp(
+                            df_hyfi, output_dir, fault_disc_meshes,
                             use_focal_constraints=input_params.get('use_focal_constraints', False),
                             export_time_series=viz_params.get('export_time_series', False),
                             time_step_hours=viz_params.get('time_step_hours', 24)
