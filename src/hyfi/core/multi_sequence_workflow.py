@@ -83,6 +83,10 @@ class MultiSequenceWorkflow:
         self.sequence_results = {}
         self.aggregated_results = {}
         
+        # Global fault system counter (FS0001, FS0002, ...)
+        self.global_fault_counter = 1
+        self.fault_system_metadata = []  # Track all fault systems across sequences
+        
         # Timing
         self.start_time = None
         self.end_time = None
@@ -123,6 +127,9 @@ class MultiSequenceWorkflow:
         
         # Step 6: Create enriched CSV output
         self._create_enriched_csv_output()
+        
+        # Step 6.5: Export fault system metadata
+        self._export_fault_system_metadata()
         
         # Step 7: Merge and export combined VTP files
         self._merge_and_export_vtp_files()
@@ -230,8 +237,20 @@ class MultiSequenceWorkflow:
                 
                 # Run DAG-based workflow
                 from .dag_executor import DAGExecutor
-                executor = DAGExecutor(sequence_dag_config, cluster_name=sequence_name)
+                executor = DAGExecutor(
+                    sequence_dag_config, 
+                    cluster_name=sequence_name,
+                    global_fault_counter=self.global_fault_counter,
+                    sequence_label=sequence_name,
+                    segmentation_level=sequence_name[0] if sequence_name and len(sequence_name) > 0 else None
+                )
                 sequence_results = executor.execute()
+                
+                # Update global counter and collect metadata
+                if 'fault_system_metadata' in sequence_results:
+                    self.fault_system_metadata.extend(sequence_results['fault_system_metadata'])
+                if 'next_fault_counter' in sequence_results:
+                    self.global_fault_counter = sequence_results['next_fault_counter']
                 
                 # Store results
                 self.sequence_results[sequence_name] = {
@@ -586,6 +605,11 @@ class MultiSequenceWorkflow:
             'slip_tendency': np.nan,
             'dilation_tendency': np.nan,
             
+            # Fault system clustering results
+            'fault_system_id': None,  # Global FS ID (FS0001, FS0002, ...)
+            'orientation_cluster': np.nan,
+            'spatial_cluster': np.nan,
+            
             # Additional metadata
             'analysis_status': 'not_processed',
             'sequence_outlier': False
@@ -663,6 +687,11 @@ class MultiSequenceWorkflow:
                         enriched_data.loc[event_mask, 'instability_index'] = hyfi_row.get('instab', np.nan)
                         enriched_data.loc[event_mask, 'slip_tendency'] = hyfi_row.get('sliptend', np.nan)
                         enriched_data.loc[event_mask, 'dilation_tendency'] = hyfi_row.get('dilatend', np.nan)
+                        
+                        # Fault system clustering (global FS IDs)
+                        enriched_data.loc[event_mask, 'fault_system_id'] = hyfi_row.get('final_cluster_id', None)
+                        enriched_data.loc[event_mask, 'orientation_cluster'] = hyfi_row.get('orient_cluster', np.nan)
+                        enriched_data.loc[event_mask, 'spatial_cluster'] = hyfi_row.get('spatial_cluster', np.nan)
                 
                 print(f"  Merged {len(cluster_hyfi_results)} results from {sequence_name}")
                 
@@ -696,6 +725,47 @@ class MultiSequenceWorkflow:
         if processed_no_results > 0:
             print(f"  Processed without detailed results: {processed_no_results} ({processed_no_results/total_events:.1%})")
         print(f"  Fault network outliers: {outlier_events} ({outlier_events/total_events:.1%})")
+    
+    def _export_fault_system_metadata(self):
+        """Export comprehensive fault system metadata to CSV."""
+        print("Exporting fault system metadata...")
+        
+        if not self.fault_system_metadata:
+            print("  No fault system metadata available to export")
+            return
+        
+        output_dir = Path(self.config.output_directory)
+        metadata_file = output_dir / 'active_faults_database.csv'
+        
+        # Convert to DataFrame
+        df_metadata = pd.DataFrame(self.fault_system_metadata)
+        
+        # Sort by fault_system_id
+        df_metadata = df_metadata.sort_values('fault_system_id')
+        
+        # Add additional computed fields if possible
+        if 'mean_strike' in df_metadata.columns and 'mean_dip' in df_metadata.columns:
+            df_metadata['fault_orientation'] = df_metadata.apply(
+                lambda row: f"Strike: {row['mean_strike']:.1f}°, Dip: {row['mean_dip']:.1f}°" 
+                if not pd.isna(row['mean_strike']) and not pd.isna(row['mean_dip']) else None,
+                axis=1
+            )
+        
+        # Export to CSV
+        df_metadata.to_csv(metadata_file, index=False)
+        
+        print(f"  Active faults database exported: {metadata_file}")
+        print(f"  Total active fault systems: {len(df_metadata)}")
+        
+        # Print summary by sequence
+        if 'sequence_label' in df_metadata.columns:
+            sequence_counts = df_metadata['sequence_label'].value_counts()
+            print(f"  Fault systems by sequence:")
+            for seq, count in sequence_counts.items():
+                print(f"    {seq}: {count} fault systems")
+        
+        # Store in aggregated results
+        self.aggregated_results['fault_system_metadata'] = df_metadata
     
     def _merge_and_export_vtp_files(self):
         """Merge VTP files from all clusters and export combined versions."""

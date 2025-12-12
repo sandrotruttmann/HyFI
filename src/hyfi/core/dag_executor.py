@@ -34,7 +34,8 @@ class DAGExecutor:
     nodes in the correct order based on their dependencies.
     """
     
-    def __init__(self, dag_config: HyFIWorkflowDAG, config_source_file: Optional[str] = None, cluster_name: Optional[str] = None):
+    def __init__(self, dag_config: HyFIWorkflowDAG, config_source_file: Optional[str] = None, cluster_name: Optional[str] = None, 
+                 global_fault_counter: int = 1, sequence_label: Optional[str] = None, segmentation_level: Optional[str] = None):
         """
         Initialize the DAG executor.
         
@@ -46,14 +47,24 @@ class DAGExecutor:
             Path to the original configuration file (for copying to output)
         cluster_name : str, optional
             Name of the cluster being processed (used for special handling)
+        global_fault_counter : int, optional
+            Starting value for global fault system counter (default: 1)
+        sequence_label : str, optional
+            Label of the sequence being processed (e.g., 'A1', 'B2')
+        segmentation_level : str, optional
+            Segmentation level letter (e.g., 'A', 'B', 'C')
         """
         self.dag = dag_config
         self.config_source_file = config_source_file
         self.cluster_name = cluster_name
+        self.global_fault_counter = global_fault_counter
+        self.sequence_label = sequence_label
+        self.segmentation_level = segmentation_level
         self.results = {}
         self.execution_log = []
         self.start_time = None
         self.end_time = None
+        self.fault_system_metadata = []
         
         # Setup logging
         logging.basicConfig(level=getattr(logging, dag_config.log_level.upper()))
@@ -128,7 +139,12 @@ class DAGExecutor:
             # Execution summary is now saved in _save_workflow_results()
             # self._save_execution_summary()
             
-            return self.results
+            # Include fault system metadata in results
+            results_with_metadata = self.results.copy()
+            results_with_metadata['fault_system_metadata'] = self.fault_system_metadata
+            results_with_metadata['next_fault_counter'] = self.global_fault_counter
+            
+            return results_with_metadata
             
         except Exception as e:
             self.end_time = datetime.now()
@@ -459,12 +475,24 @@ class DAGExecutor:
         input_params = fault_network_results.get('legacy_params', {}) if isinstance(fault_network_results, dict) else {}
         
         # Run auto classification using the updated single dataframe function
-        result_df_hyfi = auto_classification(input_params, df_hyfi)
+        result_df_hyfi, fault_metadata, next_counter = auto_classification(
+            input_params, 
+            df_hyfi,
+            starting_fault_counter=self.global_fault_counter,
+            sequence_label=self.sequence_label,
+            segmentation_level=self.segmentation_level
+        )
+        
+        # Store fault system metadata and update counter
+        self.fault_system_metadata.extend(fault_metadata)
+        self.global_fault_counter = next_counter
                 
         return {
             'classification_results': result_df_hyfi,
             'df_hyfi': result_df_hyfi,
-            'parameters': node.parameters
+            'parameters': node.parameters,
+            'fault_system_metadata': fault_metadata,
+            'next_fault_counter': next_counter
         }
     
     def _execute_stress_analysis(self, node) -> Dict[str, Any]:
@@ -591,9 +619,13 @@ class DAGExecutor:
                 
                 try:
                     # Create interpolated fault planes using single dataframe
-                    combined_mesh, individual_meshes, point_cloud, fault_disc_meshes = visualisation.create_interpolated_fault_planes(
+                    combined_mesh, individual_meshes, point_cloud, fault_disc_meshes, interpolation_metadata = visualisation.create_interpolated_fault_planes(
                         df_hyfi, viz_params
                     )
+                    
+                    # Store interpolation metadata (only for successfully interpolated fault systems)
+                    if interpolation_metadata:
+                        self.fault_system_metadata.extend(interpolation_metadata)
                     
                     # Calculate stress on mesh faces if enabled and stress data available
                     if viz_params.get('enable_mesh_stress', False) and combined_mesh is not None:

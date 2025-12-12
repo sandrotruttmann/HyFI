@@ -118,7 +118,8 @@ def _orientation_clustering_optimized(df_valid, input_params):
     return df_valid
 
 
-def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_params):
+def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_params, starting_fault_counter=1, 
+                                              sequence_label=None, segmentation_level=None):
     """
     Perform spatial clustering using pre-generated enhanced point cloud.
     
@@ -130,11 +131,21 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
         Enhanced point cloud from generate_enhanced_fault_dataset
     input_params : dict
         Parameters including spatial clustering configuration
+    starting_fault_counter : int
+        Starting value for global fault system counter
+    sequence_label : str, optional
+        Sequence label (e.g., 'A1', 'B2')
+    segmentation_level : str, optional
+        Segmentation level (e.g., 'A', 'B')
         
     Returns
     -------
     df_clustered : DataFrame
-        Input dataframe with added spatial clustering columns
+        Input dataframe with added spatial clustering columns and global fault IDs
+    fault_metadata : list
+        Metadata for each fault system
+    next_counter : int
+        Next available counter value
     """
     from .enhanced_point_cloud import get_enhanced_coordinates, get_fault_mapping, aggregate_cluster_labels_to_faults
     from sklearn.cluster import DBSCAN
@@ -152,8 +163,9 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
     df_clustered['spatial_cluster'] = 0
     df_clustered['final_cluster_id'] = df_clustered['orient_cluster'].astype(str)
     
-    # Initialize fault counter for F1, F2, F3... naming
-    fault_counter = 1
+    # Initialize fault counter with global counter
+    fault_counter = starting_fault_counter
+    fault_metadata = []
     
     # Process each orientation cluster separately
     unique_classes = df_clustered['orient_cluster'].unique()
@@ -201,21 +213,22 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
             # Aggregate point labels back to fault labels
             fault_clusters = aggregate_cluster_labels_to_faults(point_labels, fault_mapping)
             
-            # Create mapping from spatial labels to F-numbered names
+            # Create mapping from spatial labels to global FS names
             unique_spatial_labels = set(fault_clusters.values())
-            spatial_to_f_map = {}
+            spatial_to_fs_map = {}
             for spatial_id in sorted(unique_spatial_labels):
                 if spatial_id != -1:  # Skip noise points
-                    spatial_to_f_map[spatial_id] = f"F{fault_counter}"
+                    fs_id = f"FS{fault_counter:04d}"
+                    spatial_to_fs_map[spatial_id] = fs_id
                     fault_counter += 1
                 else:
-                    spatial_to_f_map[spatial_id] = np.nan  # Use NaN for noise points
+                    spatial_to_fs_map[spatial_id] = np.nan  # Use NaN for noise points
             
             # Update the main dataframe
             for fault_idx, spatial_label in fault_clusters.items():
                 if fault_idx in df_clustered.index:
                     df_clustered.loc[fault_idx, 'spatial_cluster'] = spatial_label
-                    final_id = spatial_to_f_map[spatial_label]
+                    final_id = spatial_to_fs_map[spatial_label]
                     df_clustered.loc[fault_idx, 'final_cluster_id'] = final_id
             
             # Print results
@@ -229,10 +242,11 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
         else:
             print(f"    Warning: Spatial method '{spatial_method}' not implemented for enhanced points")
     
-    return df_clustered
+    return df_clustered, fault_metadata, fault_counter
 
 
-def _spatial_clustering_by_orientation(df_clustered, input_params):
+def _spatial_clustering_by_orientation(df_clustered, input_params, starting_fault_counter=1, 
+                                        sequence_label=None, segmentation_level=None):
     """
     Perform spatial sub-clustering within each orientation cluster.
     
@@ -242,11 +256,21 @@ def _spatial_clustering_by_orientation(df_clustered, input_params):
         DataFrame with orientation clustering results
     input_params : dict
         Parameters including spatial clustering configuration
+    starting_fault_counter : int
+        Starting value for global fault system counter
+    sequence_label : str, optional
+        Sequence label (e.g., 'A1', 'B2')
+    segmentation_level : str, optional
+        Segmentation level (e.g., 'A', 'B')
         
     Returns
     -------
     df_clustered : DataFrame
-        Input dataframe with added spatial clustering columns
+        Input dataframe with added spatial clustering columns and global fault IDs
+    fault_metadata : list
+        Metadata for each fault system
+    next_counter : int
+        Next available counter value
     """
     # Get spatial clustering parameters
     spatial_method = input_params.get('spatial_clustering_method', 'dbscan')
@@ -276,8 +300,9 @@ def _spatial_clustering_by_orientation(df_clustered, input_params):
     
     print("  Performing spatial sub-clustering within each orientation cluster...")
     
-    # Initialize fault counter for F1, F2, F3... naming
-    fault_counter = 1
+    # Initialize fault counter with global counter
+    fault_counter = starting_fault_counter
+    fault_metadata = []
     
     # Process each orientation cluster separately
     unique_classes = df_clustered['orient_cluster'].unique()
@@ -310,30 +335,31 @@ def _spatial_clustering_by_orientation(df_clustered, input_params):
             spatial_counts = {label: np.sum(spatial_labels == label) for label in unique_spatial}
             print(f"    Spatial clusters found: {spatial_counts}")
             
-            # Create final cluster IDs using F1, F2, F3... convention
+            # Create final cluster IDs using global FS counter convention
             # Use proper indexing to avoid alignment issues
             cluster_indices = df_clustered[cluster_mask].index
             unique_spatial_labels = np.unique(spatial_labels)
             
-            # Create mapping from spatial labels to F-numbered names
-            spatial_to_f_map = {}
+            # Create mapping from spatial labels to global FS names
+            spatial_to_fs_map = {}
             for spatial_id in sorted(unique_spatial_labels):
                 if spatial_id != -1:  # Skip noise points
-                    spatial_to_f_map[spatial_id] = f"F{fault_counter}"
+                    fs_id = f"FS{fault_counter:04d}"
+                    spatial_to_fs_map[spatial_id] = fs_id
                     fault_counter += 1
                 else:
-                    spatial_to_f_map[spatial_id] = np.nan  # Use NaN for noise points
+                    spatial_to_fs_map[spatial_id] = np.nan  # Use NaN for noise points
             
             # Assign final cluster IDs
             for i, (idx, spatial_id) in enumerate(zip(cluster_indices, spatial_labels)):
-                final_id = spatial_to_f_map[spatial_id]
+                final_id = spatial_to_fs_map[spatial_id]
                 df_clustered.loc[idx, 'final_cluster_id'] = final_id
                 
         except Exception as e:
             print(f"    Warning: Spatial clustering failed for cluster {class_id}: {e}")
             continue
     
-    return df_clustered
+    return df_clustered, fault_metadata, fault_counter
 
 
 def _filter_small_clusters(df_clustered, min_events_per_cluster):
@@ -1092,7 +1118,7 @@ def _select_best_cluster_count(results):
     return best_n_clusters
 
 
-def auto_classification(input_params, df_hyfi):
+def auto_classification(input_params, df_hyfi, starting_fault_counter=1, sequence_label=None, segmentation_level=None):
     """
     Automatic classification of point cloud based on fault orientations.
 
@@ -1103,11 +1129,21 @@ def auto_classification(input_params, df_hyfi):
     df_hyfi : DataFrame
         Input dataframe containing all hypocenter data and computed fault parameters.
         Clustering results will be added as new columns to this dataframe.
+    starting_fault_counter : int, optional
+        Starting value for global fault system counter (default: 1)
+    sequence_label : str, optional
+        Label of the sequence being processed (e.g., 'A1', 'B2')
+    segmentation_level : str, optional
+        Segmentation level letter (e.g., 'A', 'B', 'C')
 
     Returns
     -------
     df_hyfi : DataFrame
-        Input dataframe with added clustering columns (class, spatial_cluster, final_cluster_id).
+        Input dataframe with added clustering columns and global fault system IDs.
+    fault_system_metadata : list
+        List of dictionaries containing metadata for each fault system
+    next_fault_counter : int
+        Next available fault counter value
     """
     print('\n')
     print('='*50)
@@ -1119,7 +1155,7 @@ def auto_classification(input_params, df_hyfi):
     
     if not autoclass_bool:
         print("Auto classification is disabled")
-        return df_hyfi
+        return df_hyfi, [], starting_fault_counter
     
     # Check if we have the required fault plane data
     required_columns = ['rupt_plane_azi', 'rupt_plane_dip']
@@ -1128,7 +1164,7 @@ def auto_classification(input_params, df_hyfi):
     if missing_columns:
         print(f"Warning: Missing or empty fault plane data: {missing_columns}")
         print("Skipping auto classification")
-        return df_hyfi
+        return df_hyfi, [], starting_fault_counter
     
     # Filter out rows with missing fault plane data for clustering
     valid_mask = df_hyfi['rupt_plane_azi'].notna() & df_hyfi['rupt_plane_dip'].notna()
@@ -1136,7 +1172,7 @@ def auto_classification(input_params, df_hyfi):
     
     if len(df_valid) == 0:
         print("No valid fault plane data available for clustering")
-        return df_hyfi
+        return df_hyfi, [], starting_fault_counter
 
     print(f"Using {len(df_valid)} events with valid fault plane data for clustering")
     
@@ -1177,16 +1213,23 @@ def auto_classification(input_params, df_hyfi):
     print("\n--- ORIENTATION CLUSTERING ---")
     df_clustered = _orientation_clustering_optimized(df_valid, input_params)    # Check if spatial clustering is enabled
     spatial_bool = input_params.get('enable_spatial_clustering', True)
+    next_counter = starting_fault_counter
     
     if spatial_bool:
         print("\n--- SPATIAL SUB-CLUSTERING ---")
         
         if use_enhanced_points and hasattr(df_hyfi, '_enhanced_point_cloud'):
             print("Using enhanced point cloud for spatial clustering")
-            df_clustered = _spatial_clustering_with_enhanced_points(df_clustered, df_hyfi._enhanced_point_cloud, input_params)
+            df_clustered, _, next_counter = _spatial_clustering_with_enhanced_points(
+                df_clustered, df_hyfi._enhanced_point_cloud, input_params,
+                starting_fault_counter, sequence_label, segmentation_level
+            )
         else:
             print("Using single hypocenter points for spatial clustering")
-            df_clustered = _spatial_clustering_by_orientation(df_clustered, input_params)
+            df_clustered, _, next_counter = _spatial_clustering_by_orientation(
+                df_clustered, input_params,
+                starting_fault_counter, sequence_label, segmentation_level
+            )
         
         # Apply post-clustering quality control
         min_events_per_cluster = input_params.get('min_events_per_cluster', 10)
@@ -1202,10 +1245,19 @@ def auto_classification(input_params, df_hyfi):
     df_hyfi['orient_cluster'] = np.nan
     df_hyfi['spatial_cluster'] = np.nan
     df_hyfi['final_cluster_id'] = None
+    df_hyfi['final_cluster_id_local'] = None  # Local numeric ID for individual sequence outputs
+    df_hyfi['sequence_label'] = sequence_label
+    df_hyfi['segmentation_level'] = segmentation_level
     
     # Update rows that had valid fault plane data
     for col in ['orient_cluster', 'spatial_cluster', 'final_cluster_id']:
         df_hyfi.loc[valid_mask, col] = df_clustered[col].values
+    
+    # Create local numeric IDs (1, 2, 3) for individual sequence visualization
+    unique_fs_ids = df_clustered['final_cluster_id'].dropna().unique()
+    fs_to_local = {fs_id: str(i+1) for i, fs_id in enumerate(sorted(unique_fs_ids))}
+    df_clustered['final_cluster_id_local'] = df_clustered['final_cluster_id'].map(fs_to_local)
+    df_hyfi.loc[valid_mask, 'final_cluster_id_local'] = df_clustered['final_cluster_id_local'].values
     
     # Summary statistics
     n_orientation_clusters = df_clustered['orient_cluster'].nunique()
@@ -1222,7 +1274,8 @@ def auto_classification(input_params, df_hyfi):
             print(f"  {cluster_id}: {count} events")
     print(f"Events clustered: {len(df_valid)} / {len(df_hyfi)}")
     
-    return df_hyfi
+    # Return empty metadata - will be generated after successful mesh interpolation
+    return df_hyfi, [], next_counter
 
 
 # def auto_classification(input_params, data_output, data_input=None):

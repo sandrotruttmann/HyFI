@@ -700,7 +700,13 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     print(f"Using {len(df)} events with valid fault plane data (from {total_events} total events)")
     
     # Determine clustering approach based on available columns
-    if 'final_cluster_id' in df.columns and df['final_cluster_id'].notna().any():
+    # For individual sequence outputs, use local IDs (1, 2, 3) instead of global FS IDs
+    use_local_ids = 'final_cluster_id_local' in df.columns and df['final_cluster_id_local'].notna().any()
+    
+    if use_local_ids:
+        cluster_column = 'final_cluster_id_local'
+        print("Using local cluster IDs for individual sequence visualization")
+    elif 'final_cluster_id' in df.columns and df['final_cluster_id'].notna().any():
         cluster_column = 'final_cluster_id'
         print("Using combined orientation+spatial clustering results")
     elif 'orient_cluster' in df.columns:
@@ -808,17 +814,29 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 mesh['max_Mw_thingbaijam2017'] = np.full(mesh.n_points, max_Mw_T17)
             
             # Determine orientation and spatial cluster info for export naming
-            if cluster_column == 'final_cluster_id':
-                # Parse new F1, F2, F3 format or legacy "ori_X_spatial_Y" format
+            if cluster_column == 'final_cluster_id_local':
+                # Local numeric format (1, 2, 3) for individual sequences
+                ori_cluster = str(cluster_id)
+                spatial_cluster = '0'
+            elif cluster_column == 'final_cluster_id':
+                # Parse cluster format: FS0001, FS0002 (global) or legacy formats
                 cluster_str = str(cluster_id)
                 if pd.isna(cluster_id) or cluster_str == 'nan':
                     # Handle NaN noise points (should not reach here due to dropna() but safety check)
                     ori_cluster = 'noise'
                     spatial_cluster = '0'
+                elif cluster_str.startswith('FS'):
+                    # Global FS format - use full ID
+                    ori_cluster = cluster_str  # FS0001, FS0002, etc.
+                    spatial_cluster = '0'
+                elif cluster_str.isdigit():
+                    # Local numeric format (for individual sequences) - use directly
+                    ori_cluster = cluster_str
+                    spatial_cluster = '0'
                 elif cluster_str.startswith('F'):
-                    # New F1, F2, F3 format - simple sequential numbering
-                    ori_cluster = cluster_str  # Use the F number directly
-                    spatial_cluster = '0'  # No spatial subdivision info needed
+                    # Legacy F1, F2, F3 format - use directly
+                    ori_cluster = cluster_str
+                    spatial_cluster = '0'
                 elif '_spatial_' in cluster_str:
                     # Legacy format: "ori_X_spatial_Y" 
                     parts = cluster_str.split('_spatial_')
@@ -844,6 +862,11 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             else:
                 # Add to existing combined mesh
                 combined_mesh = combined_mesh + mesh
+            
+            # Ensure mesh is triangulated (critical for subdivision)
+            if not mesh.is_all_triangles:
+                print(f"    Note: Mesh for cluster {cluster_id} contains non-triangular faces, triangulating...")
+                mesh = mesh.triangulate()
             
             individual_meshes.append({
                 'mesh': mesh,
@@ -872,6 +895,12 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         if combined_mesh.n_cells == 0:
             print(f"  Warning: Combined mesh is empty ({combined_mesh.n_cells} faces), skipping subdivision")
         else:
+            # Ensure combined mesh is fully triangulated before subdivision
+            if not combined_mesh.is_all_triangles:
+                print(f"  Note: Combined mesh contains non-triangular faces, triangulating...")
+                combined_mesh = combined_mesh.triangulate()
+                print(f"  Triangulated combined mesh: {combined_mesh.n_cells} faces")
+            
             # Subdivide combined mesh using Loop subdivision (maintains smoothness)
             try:
                 for i in range(n_subdivisions):
@@ -887,6 +916,12 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             if mesh_info['mesh'].n_cells == 0:
                 print(f"  Warning: Cluster {mesh_info['cluster_id']} mesh is empty, skipping subdivision")
                 continue
+            
+            # Ensure mesh is triangulated before subdivision
+            if not mesh_info['mesh'].is_all_triangles:
+                print(f"  Note: Cluster {mesh_info['cluster_id']} contains non-triangular faces, triangulating...")
+                mesh_info['mesh'] = mesh_info['mesh'].triangulate()
+            
             try:
                 for i in range(n_subdivisions):
                     mesh_info['mesh'] = mesh_info['mesh'].subdivide(nsub=1, subfilter='loop')
@@ -896,6 +931,58 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 print(f"  Continuing with original mesh ({original_faces} faces)")
     
     print(f"✓ Interpolation complete. Created {len(individual_meshes)} fault plane meshes and {len(fault_disc_meshes)} circular disc meshes.")
+    
+    # Generate fault system metadata for successfully interpolated meshes
+    fault_system_metadata = []
+    for mesh_info in individual_meshes:
+        # Get fault system ID from cluster_id (could be local numeric or global FS ID)
+        cluster_id_str = str(mesh_info['cluster_id'])
+        
+        # Find the corresponding data in df to get global FS ID and sequence info
+        if cluster_column == 'final_cluster_id_local':
+            # Map local ID back to global FS ID
+            cluster_mask = df[cluster_column] == mesh_info['cluster_id']
+            cluster_data = df[cluster_mask]
+            
+            if len(cluster_data) > 0:
+                # Get global FS ID from first row (all should be same)
+                fs_id = cluster_data['final_cluster_id'].iloc[0]
+                sequence_label = cluster_data.get('sequence_label', pd.Series([None])).iloc[0]
+                segmentation_level = cluster_data.get('segmentation_level', pd.Series([None])).iloc[0]
+        else:
+            # Already using global IDs
+            cluster_mask = df[cluster_column] == mesh_info['cluster_id']
+            cluster_data = df[cluster_mask]
+            
+            if len(cluster_data) > 0:
+                fs_id = mesh_info['cluster_id']
+                sequence_label = cluster_data.get('sequence_label', pd.Series([None])).iloc[0]
+                segmentation_level = cluster_data.get('segmentation_level', pd.Series([None])).iloc[0]
+        
+        if len(cluster_data) > 0:
+            # Only create metadata for successfully interpolated fault systems
+            metadata = {
+                'fault_system_id': str(fs_id) if not pd.isna(fs_id) else None,
+                'sequence_label': sequence_label,
+                'segmentation_level': segmentation_level,
+                'orientation_cluster': int(cluster_data['orient_cluster'].iloc[0]) if 'orient_cluster' in cluster_data.columns and not pd.isna(cluster_data['orient_cluster'].iloc[0]) else None,
+                'spatial_cluster': int(cluster_data['spatial_cluster'].iloc[0]) if 'spatial_cluster' in cluster_data.columns and not pd.isna(cluster_data['spatial_cluster'].iloc[0]) else None,
+                'n_rupture_planes': len(cluster_data),
+                'n_events': int(cluster_data['N'].sum()) if 'N' in cluster_data.columns else len(cluster_data),
+                'centroid_x': float(cluster_data['X'].mean()) if 'X' in cluster_data.columns else None,
+                'centroid_y': float(cluster_data['Y'].mean()) if 'Y' in cluster_data.columns else None,
+                'centroid_z': float(cluster_data['Z'].mean()) if 'Z' in cluster_data.columns else None,
+                'mean_strike': float(cluster_data['rupt_plane_strike'].mean()) if 'rupt_plane_strike' in cluster_data.columns else None,
+                'mean_dip': float(cluster_data['rupt_plane_dip'].mean()) if 'rupt_plane_dip' in cluster_data.columns else None,
+                'mean_azimuth': float(cluster_data['rupt_plane_azi'].mean()) if 'rupt_plane_azi' in cluster_data.columns else None,
+                'interpolated_mesh_area_m2': mesh_info.get('area_m2'),
+                'max_magnitude_leonard2014': mesh_info.get('max_Mw'),
+                'mesh_vertices': mesh_info['mesh'].n_points,
+                'mesh_faces': mesh_info['mesh'].n_cells,
+            }
+            fault_system_metadata.append(metadata)
+    
+    print(f"  Generated metadata for {len(fault_system_metadata)} interpolated fault systems")
     
     # Print total area and magnitude range if meshes were created
     if len(individual_meshes) > 0:
@@ -914,9 +1001,9 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         print("Warning: No fault plane meshes were successfully created.")
         print("This may be due to insufficient valid fault plane data or reconstruction failures.")
         # Still return the point cloud and disc meshes if they exist
-        return None, [], combined_pcd if combined_pcd.n_points > 0 else None, fault_disc_meshes
+        return None, [], combined_pcd if combined_pcd.n_points > 0 else None, fault_disc_meshes, []
     
-    return combined_mesh, individual_meshes, combined_pcd, fault_disc_meshes
+    return combined_mesh, individual_meshes, combined_pcd, fault_disc_meshes, fault_system_metadata
 
 
 def export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, output_dir, df_hyfi=None):
