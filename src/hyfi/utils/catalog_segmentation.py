@@ -96,12 +96,10 @@ def multi_step_catalog_segmentation(catalog: pd.DataFrame,
                 else:  # Keep outliers for final handling
                     new_remaining_data = pd.concat([new_remaining_data, sequence_data], ignore_index=True)
             else:
-                # Add sequence with step level prefix (A1, A2, B1, B2, etc.)
-                # Remove "cluster_" prefix since step level already indicates it's a cluster
-                clean_sequence_name = sequence_name.replace("cluster_", "")
-                sequence_key = f"{step_level}{clean_sequence_name}"
-                all_sequences[sequence_key] = sequence_data
+                # Add sequence with step level prefix and continuous numbering (A1, A2, B1, B2, etc.)
                 step_sequence_count += 1
+                sequence_key = f"{step_level}{step_sequence_count}"
+                all_sequences[sequence_key] = sequence_data
                 total_clustered += len(sequence_data)
                 logger.info(f"Found sequence {sequence_key}: {len(sequence_data)} events")
         

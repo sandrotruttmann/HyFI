@@ -838,7 +838,13 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 spatial_cluster = '0'
             
             # Add to combined mesh and individual list
-            combined_mesh = combined_mesh + mesh
+            if combined_mesh.n_points == 0:
+                # First mesh - just assign it
+                combined_mesh = mesh.copy()
+            else:
+                # Add to existing combined mesh
+                combined_mesh = combined_mesh + mesh
+            
             individual_meshes.append({
                 'mesh': mesh,
                 'cluster_id': str(cluster_id),
@@ -862,18 +868,32 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         print(f"\nApplying mesh subdivision ({n_subdivisions} iterations)...")
         combined_mesh_original_faces = combined_mesh.n_cells
         
-        # Subdivide combined mesh using Loop subdivision (maintains smoothness)
-        for i in range(n_subdivisions):
-            combined_mesh = combined_mesh.subdivide(nsub=1, subfilter='loop')
-        
-        print(f"  Combined mesh: {combined_mesh_original_faces} → {combined_mesh.n_cells} faces ({combined_mesh.n_cells/combined_mesh_original_faces:.1f}x)")
+        # Check if combined mesh is valid before subdivision
+        if combined_mesh.n_cells == 0:
+            print(f"  Warning: Combined mesh is empty ({combined_mesh.n_cells} faces), skipping subdivision")
+        else:
+            # Subdivide combined mesh using Loop subdivision (maintains smoothness)
+            try:
+                for i in range(n_subdivisions):
+                    combined_mesh = combined_mesh.subdivide(nsub=1, subfilter='loop')
+                print(f"  Combined mesh: {combined_mesh_original_faces} → {combined_mesh.n_cells} faces ({combined_mesh.n_cells/combined_mesh_original_faces:.1f}x)")
+            except Exception as e:
+                print(f"  Warning: Combined mesh subdivision failed: {e}")
+                print(f"  Continuing with original combined mesh ({combined_mesh_original_faces} faces)")
         
         # Subdivide individual meshes
         for mesh_info in individual_meshes:
             original_faces = mesh_info['mesh'].n_cells
-            for i in range(n_subdivisions):
-                mesh_info['mesh'] = mesh_info['mesh'].subdivide(nsub=1, subfilter='loop')
-            print(f"  Cluster {mesh_info['cluster_id']}: {original_faces} → {mesh_info['mesh'].n_cells} faces")
+            if mesh_info['mesh'].n_cells == 0:
+                print(f"  Warning: Cluster {mesh_info['cluster_id']} mesh is empty, skipping subdivision")
+                continue
+            try:
+                for i in range(n_subdivisions):
+                    mesh_info['mesh'] = mesh_info['mesh'].subdivide(nsub=1, subfilter='loop')
+                print(f"  Cluster {mesh_info['cluster_id']}: {original_faces} → {mesh_info['mesh'].n_cells} faces")
+            except Exception as e:
+                print(f"  Warning: Cluster {mesh_info['cluster_id']} subdivision failed: {e}")
+                print(f"  Continuing with original mesh ({original_faces} faces)")
     
     print(f"✓ Interpolation complete. Created {len(individual_meshes)} fault plane meshes and {len(fault_disc_meshes)} circular disc meshes.")
     
@@ -885,6 +905,9 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         if magnitudes:
             min_mag = min(magnitudes)
             max_mag = max(magnitudes)
+        
+        # Print combined mesh info
+        print(f"  Combined mesh: {combined_mesh.n_points} vertices, {combined_mesh.n_cells} faces")
     
     # Check if we have any valid results
     if len(individual_meshes) == 0:
@@ -1873,15 +1896,15 @@ def export_enhanced_focal_planes_vtp(df_hyfi, output_dir, use_focal_constraints=
         try:
             mesh = mesh_info['mesh']
             event_id = mesh_info['event_id']
-            active_plane = mesh_info['active_plane']
-            area_m2 = mesh_info['area_m2']
+            pref_foc = mesh_info.get('pref_foc', 'unknown')
+            area_m2 = mesh_info.get('area_m2', 0)
             
             if mesh is not None and mesh.n_points > 0:
                 # Save individual file
                 individual_file = os.path.join(focal_dir, f'focal_{event_id}.vtp')
                 mesh.save(individual_file)
                 individual_count += 1
-                print(f"    Saved focal mesh: focal_{event_id}.vtp (plane {active_plane}, {area_m2:.1f} m² area)")
+                print(f"    Saved focal mesh: focal_{event_id}.vtp (plane {pref_foc}, {area_m2:.1f} m² area)")
         except Exception as e:
             print(f"    Warning: Failed to save individual focal mesh for event {mesh_info.get('event_id', 'unknown')}: {e}")
             continue
