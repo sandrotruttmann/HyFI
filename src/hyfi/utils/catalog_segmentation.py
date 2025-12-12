@@ -1,4 +1,4 @@
-# DBSCAN clustering of regional catalog
+# Catalog segmentation for multi-sequence analysis
 
 import pandas as pd
 import numpy as np
@@ -9,14 +9,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def multi_step_catalog_clustering(catalog: pd.DataFrame,
+def multi_step_catalog_segmentation(catalog: pd.DataFrame,
                                   segmentation_steps: List,
                                   final_outlier_handling: str = 'keep',
                                   max_outlier_ratio: float = 0.3) -> Tuple[Dict[str, pd.DataFrame], Dict[str, Any]]:
     """
-    Multi-step clustering for full earthquake catalogs.
+    Multi-step segmentation for full earthquake catalogs.
     
-    Clusters are named with hierarchical levels:
+    Sequences are named with hierarchical levels:
     - Level A: First segmentation step (e.g., A1, A2, A3...)
     - Level B: Second segmentation step (e.g., B1, B2, B3...)  
     - Level C: Third segmentation step (e.g., C1, C2, C3...)
@@ -36,16 +36,16 @@ def multi_step_catalog_clustering(catalog: pd.DataFrame,
     Returns
     -------
     Tuple[Dict[str, pd.DataFrame], Dict[str, Any]]
-        Dictionary of cluster DataFrames and detailed results from each step
+        Dictionary of sequence DataFrames and detailed results from each step
     """
     
-    logger.info(f"Starting multi-step catalog clustering with {len(segmentation_steps)} steps")
+    logger.info(f"Starting multi-step catalog segmentation with {len(segmentation_steps)} steps")
     logger.info(f"Input catalog size: {len(catalog)} events")
     
     # Create step level mapping (A, B, C, ...)
     step_level_names = [chr(ord('A') + i) for i in range(len(segmentation_steps))]
     
-    all_clusters = {}
+    all_sequences = {}
     step_results = {}
     remaining_data = catalog.copy()
     remaining_data['original_index'] = remaining_data.index
@@ -58,11 +58,11 @@ def multi_step_catalog_clustering(catalog: pd.DataFrame,
         logger.info(f"Input data for this step: {len(remaining_data)} events")
         
         if len(remaining_data) < step.min_cluster_size:
-            logger.info(f"Remaining data too small for clustering (< {step.min_cluster_size}), stopping")
+            logger.info(f"Remaining data too small for segmentation (< {step.min_cluster_size}), stopping")
             break
         
         # Apply clustering to remaining data
-        step_clusters, cluster_labels = advanced_catalog_clustering(
+        step_sequences, cluster_labels = advanced_catalog_segmentation(
             remaining_data,
             method=step.method,
             features=step.features,
@@ -70,48 +70,48 @@ def multi_step_catalog_clustering(catalog: pd.DataFrame,
         )
         
         # Process clusters from this step
-        step_cluster_count = 0
+        step_sequence_count = 0
         new_remaining_data = pd.DataFrame()
         
-        for cluster_name, cluster_data in step_clusters.items():
-            if cluster_name == 'noise':
+        for sequence_name, sequence_data in step_sequences.items():
+            if sequence_name == 'noise':
                 # Handle outliers according to step configuration
                 if step.process_outliers and step.outlier_handling == 'next_step':
-                    new_remaining_data = pd.concat([new_remaining_data, cluster_data], ignore_index=True)
-                    logger.info(f"Passing {len(cluster_data)} outliers to next step")
+                    new_remaining_data = pd.concat([new_remaining_data, sequence_data], ignore_index=True)
+                    logger.info(f"Passing {len(sequence_data)} outliers to next step")
                 elif step.outlier_handling == 'merge_smallest':
                     # Merge with smallest existing cluster
-                    if all_clusters:
-                        smallest_cluster = min(all_clusters.keys(), 
-                                             key=lambda k: len(all_clusters[k]))
-                        all_clusters[smallest_cluster] = pd.concat([
-                            all_clusters[smallest_cluster], cluster_data
+                    if all_sequences:
+                        smallest_sequence = min(all_sequences.keys(), 
+                                             key=lambda k: len(all_sequences[k]))
+                        all_sequences[smallest_sequence] = pd.concat([
+                            all_sequences[smallest_sequence], sequence_data
                         ], ignore_index=True)
-                        logger.info(f"Merged {len(cluster_data)} outliers with {smallest_cluster}")
+                        logger.info(f"Merged {len(sequence_data)} outliers with {smallest_sequence}")
                     else:
                         # No existing clusters, keep as outliers for final handling
-                        new_remaining_data = pd.concat([new_remaining_data, cluster_data], ignore_index=True)
+                        new_remaining_data = pd.concat([new_remaining_data, sequence_data], ignore_index=True)
                 elif step.outlier_handling == 'discard':
-                    logger.info(f"Discarded {len(cluster_data)} outliers from {step.step_name}")
+                    logger.info(f"Discarded {len(sequence_data)} outliers from {step.step_name}")
                 else:  # Keep outliers for final handling
-                    new_remaining_data = pd.concat([new_remaining_data, cluster_data], ignore_index=True)
+                    new_remaining_data = pd.concat([new_remaining_data, sequence_data], ignore_index=True)
             else:
-                # Add cluster with step level prefix (A1, A2, B1, B2, etc.)
+                # Add sequence with step level prefix (A1, A2, B1, B2, etc.)
                 # Remove "cluster_" prefix since step level already indicates it's a cluster
-                clean_cluster_name = cluster_name.replace("cluster_", "")
-                cluster_key = f"{step_level}{clean_cluster_name}"
-                all_clusters[cluster_key] = cluster_data
-                step_cluster_count += 1
-                total_clustered += len(cluster_data)
-                logger.info(f"Found cluster {cluster_key}: {len(cluster_data)} events")
+                clean_sequence_name = sequence_name.replace("cluster_", "")
+                sequence_key = f"{step_level}{clean_sequence_name}"
+                all_sequences[sequence_key] = sequence_data
+                step_sequence_count += 1
+                total_clustered += len(sequence_data)
+                logger.info(f"Found sequence {sequence_key}: {len(sequence_data)} events")
         
         # Store step results
         step_results[step.step_name] = {
             'input_size': len(remaining_data),
-            'clusters_found': step_cluster_count,
-            'events_clustered': sum(len(cluster_data) for name, cluster_data in step_clusters.items() 
+            'sequences_found': step_sequence_count,
+            'events_clustered': sum(len(sequence_data) for name, sequence_data in step_sequences.items() 
                                   if name != 'noise'),
-            'outliers': len(step_clusters.get('noise', pd.DataFrame())),
+            'outliers': len(step_sequences.get('noise', pd.DataFrame())),
             'clustering_method': step.method,
             'clustering_features': step.features,
             'quality_metrics': evaluate_clustering_quality(
@@ -132,40 +132,40 @@ def multi_step_catalog_clustering(catalog: pd.DataFrame,
     # Handle final outliers
     if len(remaining_data) > 0:
         final_outliers = _handle_final_outliers(
-            remaining_data, all_clusters, final_outlier_handling
+            remaining_data, all_sequences, final_outlier_handling
         )
         
         if final_outliers is not None and len(final_outliers) > 0:
-            all_clusters['Z_outliers'] = final_outliers
+            all_sequences['Z_outliers'] = final_outliers
     
     # Check outlier ratio
-    outlier_count = len(all_clusters.get('Z_outliers', pd.DataFrame()))
+    outlier_count = len(all_sequences.get('Z_outliers', pd.DataFrame()))
     outlier_ratio = outlier_count / len(catalog)
     
     if outlier_ratio > max_outlier_ratio:
         logger.warning(f"High outlier ratio: {outlier_ratio:.2%} (threshold: {max_outlier_ratio:.2%})")
     
     # Summary
-    logger.info(f"\n=== Multi-Step Clustering Summary ===")
+    logger.info(f"\n=== Multi-Step Segmentation Summary ===")
     logger.info(f"Total input events: {len(catalog)}")
-    logger.info(f"Total clusters found: {len([k for k in all_clusters.keys() if k != 'Z_outliers'])}")
+    logger.info(f"Total sequences found: {len([k for k in all_sequences.keys() if k != 'Z_outliers'])}")
     logger.info(f"Total events clustered: {total_clustered}")
     logger.info(f"Final outliers: {outlier_count} ({outlier_ratio:.2%})")
     
-    for cluster_name, cluster_data in all_clusters.items():
-        logger.info(f"  {cluster_name}: {len(cluster_data)} events")
+    for sequence_name, sequence_data in all_sequences.items():
+        logger.info(f"  {sequence_name}: {len(sequence_data)} events")
     
     # Compile overall results
     overall_results = {
         'step_results': step_results,
-        'total_clusters': len([k for k in all_clusters.keys() if k != 'Z_outliers']),
+        'total_sequences': len([k for k in all_sequences.keys() if k != 'Z_outliers']),
         'total_events_clustered': total_clustered,
         'final_outliers': outlier_count,
         'outlier_ratio': outlier_ratio,
         'steps_executed': len(step_results)
     }
     
-    return all_clusters, overall_results
+    return all_sequences, overall_results
 
 
 def _step_to_clustering_params(step) -> Dict[str, Any]:
@@ -183,33 +183,33 @@ def _step_to_clustering_params(step) -> Dict[str, Any]:
 
 
 def _handle_final_outliers(outlier_data: pd.DataFrame, 
-                          existing_clusters: Dict[str, pd.DataFrame],
+                          existing_sequences: Dict[str, pd.DataFrame],
                           handling_method: str) -> Optional[pd.DataFrame]:
     """Handle final outliers according to specified method."""
     
     if handling_method == 'discard':
         logger.info("Discarding final outliers")
         return None
-    elif handling_method == 'merge_largest' and existing_clusters:
+    elif handling_method == 'merge_largest' and existing_sequences:
         # Merge with largest existing cluster
-        largest_cluster = max(existing_clusters.keys(), 
-                            key=lambda k: len(existing_clusters[k]))
-        existing_clusters[largest_cluster] = pd.concat([
-            existing_clusters[largest_cluster], outlier_data
+        largest_sequence = max(existing_sequences.keys(), 
+                            key=lambda k: len(existing_sequences[k]))
+        existing_sequences[largest_sequence] = pd.concat([
+            existing_sequences[largest_sequence], outlier_data
         ], ignore_index=True)
-        logger.info(f"Merged {len(outlier_data)} final outliers with {largest_cluster}")
+        logger.info(f"Merged {len(outlier_data)} final outliers with {largest_sequence}")
         return None
     else:  # 'keep' or fallback
         logger.info("Keeping final outliers as separate group")
         return outlier_data
 
 
-def advanced_catalog_clustering(catalog: pd.DataFrame, 
+def advanced_catalog_segmentation(catalog: pd.DataFrame, 
                                method: str = 'dbscan',
                                features: List[str] = ['spatial'],
                                **clustering_params) -> Tuple[Dict[str, pd.DataFrame], np.ndarray]:
     """
-    Advanced clustering for full earthquake catalogs.
+    Advanced segmentation for full earthquake catalogs.
     
     Parameters
     ----------
@@ -218,21 +218,21 @@ def advanced_catalog_clustering(catalog: pd.DataFrame,
     method : str
         Clustering method ('dbscan', 'hdbscan', 'temporal', 'spatial_temporal')
     features : List[str]
-        Features to use for clustering ('spatial', 'temporal', 'magnitude')
+        Features to use for segmentation ('spatial', 'temporal', 'magnitude')
     **clustering_params : dict
         Method-specific clustering parameters
         
     Returns
     -------
     Tuple[Dict[str, pd.DataFrame], np.ndarray]
-        Dictionary of cluster DataFrames and cluster labels array
+        Dictionary of sequence DataFrames and cluster labels array
     """
     
-    logger.info(f"Starting catalog clustering with method: {method}")
+    logger.info(f"Starting catalog segmentation with method: {method}")
     logger.info(f"Input catalog size: {len(catalog)} events")
     logger.info(f"Clustering features: {features}")
     
-    # Prepare features for clustering
+    # Prepare features for segmentation
     feature_matrix = _prepare_clustering_features(catalog, features, clustering_params)
     
     # Apply clustering algorithm
@@ -247,20 +247,20 @@ def advanced_catalog_clustering(catalog: pd.DataFrame,
     else:
         raise ValueError(f"Unknown clustering method: {method}")
     
-    # Organize results into clusters
-    clusters = _organize_clusters(catalog, cluster_labels, clustering_params.get('min_cluster_size', 20))
+    # Organize results into sequences
+    sequences = _organize_sequences(catalog, cluster_labels, clustering_params.get('min_cluster_size', 20))
     
-    logger.info(f"Clustering completed. Found {len(clusters)} clusters:")
-    for cluster_name, cluster_data in clusters.items():
-        logger.info(f"  {cluster_name}: {len(cluster_data)} events")
+    logger.info(f"Segmentation completed. Found {len(sequences)} sequences:")
+    for sequence_name, sequence_data in sequences.items():
+        logger.info(f"  {sequence_name}: {len(sequence_data)} events")
     
-    return clusters, cluster_labels
+    return sequences, cluster_labels
 
 
 def _prepare_clustering_features(catalog: pd.DataFrame, 
                                 features: List[str], 
                                 params: Dict[str, Any]) -> np.ndarray:
-    """Prepare feature matrix for clustering."""
+    """Prepare feature matrix for segmentation."""
     
     feature_arrays = []
     
@@ -313,7 +313,7 @@ def _prepare_clustering_features(catalog: pd.DataFrame,
             logger.warning("Magnitude feature requested but no magnitude column found")
     
     if not feature_arrays:
-        raise ValueError("No valid features found for clustering")
+        raise ValueError("No valid features found for segmentation")
     
     feature_matrix = np.hstack(feature_arrays)
     logger.info(f"Final feature matrix shape: {feature_matrix.shape}")
@@ -423,12 +423,12 @@ def _apply_spatial_temporal_clustering(features: np.ndarray, params: Dict[str, A
     return _apply_dbscan_clustering(features_weighted, params)
 
 
-def _organize_clusters(catalog: pd.DataFrame, 
+def _organize_sequences(catalog: pd.DataFrame, 
                       cluster_labels: np.ndarray, 
                       min_cluster_size: int) -> Dict[str, pd.DataFrame]:
-    """Organize clustering results into separate DataFrames."""
+    """Organize segmentation results into separate DataFrames."""
     
-    clusters = {}
+    sequences = {}
     catalog_with_labels = catalog.copy()
     catalog_with_labels['cluster_id'] = cluster_labels
     
@@ -438,26 +438,26 @@ def _organize_clusters(catalog: pd.DataFrame,
         if label == -1:
             # Handle noise/outliers
             cluster_mask = catalog_with_labels['cluster_id'] == label
-            cluster_data = catalog_with_labels[cluster_mask].copy()
-            if len(cluster_data) > 0:
-                clusters['noise'] = cluster_data.reset_index(drop=True)
+            sequence_data = catalog_with_labels[cluster_mask].copy()
+            if len(sequence_data) > 0:
+                sequences['noise'] = sequence_data.reset_index(drop=True)
         else:
             # Handle regular clusters
             cluster_mask = catalog_with_labels['cluster_id'] == label
-            cluster_data = catalog_with_labels[cluster_mask].copy()
+            sequence_data = catalog_with_labels[cluster_mask].copy()
             
             # Only keep clusters that meet minimum size requirement
-            if len(cluster_data) >= min_cluster_size:
-                clusters[f"cluster_{label}"] = cluster_data.reset_index(drop=True)
+            if len(sequence_data) >= min_cluster_size:
+                sequences[f"cluster_{label}"] = sequence_data.reset_index(drop=True)
             else:
-                logger.info(f"Cluster {label} too small ({len(cluster_data)} events), merging with noise")
+                logger.info(f"Cluster {label} too small ({len(sequence_data)} events), merging with noise")
                 # Merge small clusters with noise
-                if 'noise' not in clusters:
-                    clusters['noise'] = cluster_data.reset_index(drop=True)
+                if 'noise' not in sequences:
+                    sequences['noise'] = sequence_data.reset_index(drop=True)
                 else:
-                    clusters['noise'] = pd.concat([clusters['noise'], cluster_data], ignore_index=True)
+                    sequences['noise'] = pd.concat([sequences['noise'], sequence_data], ignore_index=True)
     
-    return clusters
+    return sequences
 
 
 def evaluate_clustering_quality(catalog: pd.DataFrame, 
@@ -473,7 +473,7 @@ def evaluate_clustering_quality(catalog: pd.DataFrame,
     cluster_labels : np.ndarray
         Cluster labels from clustering algorithm
     features : np.ndarray
-        Feature matrix used for clustering
+        Feature matrix used for segmentation
         
     Returns
     -------

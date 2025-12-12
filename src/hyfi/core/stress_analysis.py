@@ -486,8 +486,8 @@ def fault_stress(df_hyfi, input_params):
         S3_mag = -1
             
         # Calculate the stresses on each fault plane
-        strike_arr = np.array((df_hyfi['mean_azi'] - 90) % 360)
-        dip_arr = np.array(df_hyfi['mean_dip'])
+        strike_arr = np.array((df_hyfi['rupt_plane_azi'] - 90) % 360)
+        dip_arr = np.array(df_hyfi['rupt_plane_dip'])
         Sn_eff_list = []
         Tau_list = []
         rake_list = []
@@ -497,7 +497,7 @@ def fault_stress(df_hyfi, input_params):
         
         for i in range(len(df_hyfi)):
             # Skip events without fault plane data
-            if pd.isna(df_hyfi.loc[i, 'mean_azi']) or pd.isna(df_hyfi.loc[i, 'mean_dip']):
+            if pd.isna(df_hyfi.loc[i, 'rupt_plane_azi']) or pd.isna(df_hyfi.loc[i, 'rupt_plane_dip']):
                 Sn_eff_list.append(np.nan)
                 Tau_list.append(np.nan)
                 rake_list.append(np.nan)
@@ -548,7 +548,7 @@ def fault_stress(df_hyfi, input_params):
         df_hyfi['Sn_eff'] = Sn_eff_list
         df_hyfi['Tau'] = Tau_list
         df_hyfi['rake'] = rake_list
-        df_hyfi['I'] = I_list
+        df_hyfi['instab'] = I_list
         df_hyfi['sliptend'] = sliptend_list
         df_hyfi['dilatend'] = dilatend_list
         
@@ -558,7 +558,7 @@ def fault_stress(df_hyfi, input_params):
         S2_trend = np.nan
         S2_plunge = np.nan
         # Initialize columns with NaN if stress analysis is disabled
-        stress_columns = ['Sn_eff', 'Tau', 'rake', 'I', 'sliptend', 'dilatend']
+        stress_columns = ['Sn_eff', 'Tau', 'rake', 'instab', 'sliptend', 'dilatend']
         for col in stress_columns:
             df_hyfi[col] = np.nan
 
@@ -689,7 +689,7 @@ def calculate_mesh_stress(mesh, stress_params):
     mesh.cell_data['Sn_eff'] = Sn_eff_array
     mesh.cell_data['Tau'] = Tau_array
     mesh.cell_data['rake'] = rake_array
-    mesh.cell_data['I'] = I_array
+    mesh.cell_data['instab'] = I_array
     mesh.cell_data['sliptend'] = sliptend_array
     mesh.cell_data['dilatend'] = dilatend_array
     

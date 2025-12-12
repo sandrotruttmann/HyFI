@@ -334,7 +334,7 @@ class ParameterOptimizer:
             
             # Calculate basic metrics
             n_events = len(data_output)
-            n_planes = len(data_output['mean_azi'].dropna())
+            n_planes = len(data_output['rupt_plane_azi'].dropna())
             plane_recovery_rate = n_planes / n_events if n_events > 0 else 0
             
             # Quality metrics

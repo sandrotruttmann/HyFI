@@ -46,7 +46,7 @@ Parameters:
 ## Outputs
 
 The classification adds cluster labels to `HyFI_results.csv`:
-- `class`: Orientation cluster ID (0, 1, 2, ...)
+- `orient_cluster`: Orientation cluster ID (0, 1, 2, ...)
 - `spatial_cluster`: Spatial domain ID (if enabled)
 
 ## Visualization

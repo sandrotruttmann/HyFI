@@ -55,7 +55,7 @@ def generate_enhanced_fault_dataset(df_hyfi: pd.DataFrame,
         return df_hyfi, df_enhanced
     
     # Check required columns
-    required_cols = ['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_r', 'X', 'Y', 'Z']
+    required_cols = ['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_radius', 'X', 'Y', 'Z']
     missing_cols = [col for col in required_cols if col not in df_hyfi.columns]
     
     if missing_cols:
@@ -77,7 +77,7 @@ def generate_enhanced_fault_dataset(df_hyfi: pd.DataFrame,
     # Estimate point count
     total_estimated_points = 0
     for _, row in df_valid.iterrows():
-        r = row['rupt_r']
+        r = row['rupt_radius']
         n_rings = max(1, int(r / radius_interval))
         avg_points_per_ring = max(1, int(2 * np.pi * (r/2) / point_density_meters))
         total_estimated_points += 1 + n_rings * avg_points_per_ring
@@ -101,7 +101,7 @@ def generate_enhanced_fault_dataset(df_hyfi: pd.DataFrame,
         center = np.array([row['X'], row['Y'], row['Z']])
         normal = np.array([row['nor_x_mean'], row['nor_y_mean'], row['nor_z_mean']])
         normal = normal / np.linalg.norm(normal)  # Normalize
-        radius = row['rupt_r']
+        radius = row['rupt_radius']
         
         # Add the hypocenter (center point)
         center_point = row.copy()

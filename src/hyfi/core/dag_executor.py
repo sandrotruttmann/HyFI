@@ -525,7 +525,7 @@ class DAGExecutor:
         except Exception as e:
             logger.error(f"Stress analysis failed: {e}")
             # Return original dataframe with stress columns as NaN
-            stress_columns = ['Sn_eff', 'Tau', 'rake', 'I', 'sliptend', 'dilatend']
+            stress_columns = ['Sn_eff', 'Tau', 'rake', 'instab', 'sliptend', 'dilatend']
             for col in stress_columns:
                 df_hyfi[col] = np.nan
             return {
@@ -657,10 +657,10 @@ class DAGExecutor:
                 # Generate stereoplot (still needs legacy format for now)
                 if viz_params.get('generate_stereoplot', True):
                     # Create temporary data_output for stereoplot (legacy function)
-                    events_with_planes = df_hyfi[df_hyfi['mean_azi'].notna()].copy()
+                    events_with_planes = df_hyfi[df_hyfi['rupt_plane_azi'].notna()].copy()
                     if not events_with_planes.empty:
-                        output_cols = ['ID', 'mean_azi', 'mean_dip'] + [col for col in df_hyfi.columns 
-                                     if col not in ['ID', 'mean_azi', 'mean_dip'] and col not in 
+                        output_cols = ['ID', 'rupt_plane_azi', 'rupt_plane_dip'] + [col for col in df_hyfi.columns 
+                                     if col not in ['ID', 'rupt_plane_azi', 'rupt_plane_dip'] and col not in 
                                      ['LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date']]
                         data_output = events_with_planes[output_cols].copy()
                         visualisation.faults_stereoplot(input_params, data_output)
@@ -776,7 +776,7 @@ class DAGExecutor:
             summary = {
                 'workflow_execution_time': execution_time,
                 'total_events': int(len(df_hyfi)),
-                'events_with_fault_planes': int(df_hyfi['mean_azi'].count()),
+                'events_with_fault_planes': int(df_hyfi['rupt_plane_azi'].count()),
                 'workflow_steps_completed': list(self.results.keys()),
                 'execution_date': datetime.now().isoformat()
             }

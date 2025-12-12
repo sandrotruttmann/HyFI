@@ -34,7 +34,7 @@ def _orientation_clustering_optimized(df_valid, input_params):
     Returns
     -------
     df_valid : DataFrame
-        Input dataframe with added 'class' column containing orientation cluster labels
+        Input dataframe with added 'orient_cluster' column containing orientation cluster labels
     """
     # Extract parameters
     auto_determine_clusters = input_params.get('auto_determine_clusters', True)
@@ -113,7 +113,7 @@ def _orientation_clustering_optimized(df_valid, input_params):
         raise ValueError('Unsupported clustering algorithm: {}'.format(algorithm))
     
     # Add the orientation cluster labels
-    df_valid['class'] = labels
+    df_valid['orient_cluster'] = labels
     
     return df_valid
 
@@ -150,17 +150,17 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
     
     # Initialize spatial cluster columns
     df_clustered['spatial_cluster'] = 0
-    df_clustered['final_cluster_id'] = df_clustered['class'].astype(str)
+    df_clustered['final_cluster_id'] = df_clustered['orient_cluster'].astype(str)
     
     # Initialize fault counter for F1, F2, F3... naming
     fault_counter = 1
     
     # Process each orientation cluster separately
-    unique_classes = df_clustered['class'].unique()
+    unique_classes = df_clustered['orient_cluster'].unique()
     
     for class_id in unique_classes:
         # Get faults in this orientation cluster
-        cluster_fault_indices = df_clustered[df_clustered['class'] == class_id].index
+        cluster_fault_indices = df_clustered[df_clustered['orient_cluster'] == class_id].index
         
         print(f"    Cluster {class_id}: applying spatial sub-clustering to {len(cluster_fault_indices)} rupture planes")
         
@@ -266,7 +266,7 @@ def _spatial_clustering_by_orientation(df_clustered, input_params):
     
     # Initialize spatial cluster columns
     df_clustered['spatial_cluster'] = 0
-    df_clustered['final_cluster_id'] = df_clustered['class'].astype(str)
+    df_clustered['final_cluster_id'] = df_clustered['orient_cluster'].astype(str)
     
     # Check if we have coordinate data available for spatial clustering
     coord_cols = ['X', 'Y', 'Z']
@@ -280,10 +280,10 @@ def _spatial_clustering_by_orientation(df_clustered, input_params):
     fault_counter = 1
     
     # Process each orientation cluster separately
-    unique_classes = df_clustered['class'].unique()
+    unique_classes = df_clustered['orient_cluster'].unique()
     
     for class_id in unique_classes:
-        cluster_mask = df_clustered['class'] == class_id
+        cluster_mask = df_clustered['orient_cluster'] == class_id
         df_cluster = df_clustered[cluster_mask].copy()
         
         print(f"    Cluster {class_id}: applying spatial sub-clustering to {len(df_cluster)} points")
@@ -426,7 +426,7 @@ def _spatial_clustering(df_cluster, method='dbscan', n_clusters=2, min_points=10
     
     if coord_cols is None:
         # Check if we have fault plane center coordinates that can be derived
-        if all(col in df_cluster.columns for col in ['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_r']):
+        if all(col in df_cluster.columns for col in ['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_radius']):
             print(f"    No direct coordinates found, but fault plane data available")
             print(f"    Available columns: {list(df_cluster.columns)}")
             
@@ -461,7 +461,7 @@ def _spatial_clustering(df_cluster, method='dbscan', n_clusters=2, min_points=10
         print(f"    Generating fault plane points for enhanced spatial clustering")
         
         # Check if we have the required fault plane data for point generation
-        required_cols = ['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_r']
+        required_cols = ['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_radius']
         if not all(col in df_cluster.columns for col in required_cols):
             print(f"    Warning: Missing fault plane data for point generation. Required: {required_cols}")
             print(f"    Available columns: {list(df_cluster.columns)}")
@@ -474,7 +474,7 @@ def _spatial_clustering(df_cluster, method='dbscan', n_clusters=2, min_points=10
             # Safety check: estimate point count before generation
             estimated_points = 0
             for _, row in df_cluster.iterrows():
-                r = row['rupt_r']
+                r = row['rupt_radius']
                 # Rough estimate of points per fault
                 n_rings = int(r / radius_interval_meters) + 2  # +2 for safety
                 avg_points_per_ring = int(2 * np.pi * (r/2) / point_density_meters)
@@ -503,7 +503,7 @@ def _spatial_clustering(df_cluster, method='dbscan', n_clusters=2, min_points=10
             
             for fault_idx, (_, row) in enumerate(df_cluster.iterrows()):
                 # Calculate how many points this fault should have generated
-                r = row['rupt_r']
+                r = row['rupt_radius']
                 
                 # Replicate the logic from _generate_fault_plane_points
                 # 1. Center point
@@ -585,7 +585,7 @@ def _spatial_clustering(df_cluster, method='dbscan', n_clusters=2, min_points=10
             eps = hypocenter_range * eps_factor  # Configurable sensitivity
             
             # Also consider typical fault plane size for context
-            avg_fault_radius = df_cluster['rupt_r'].mean() if 'rupt_r' in df_cluster.columns else 50.0
+            avg_fault_radius = df_cluster['rupt_radius'].mean() if 'rupt_radius' in df_cluster.columns else 50.0
             
             # Use the smaller of hypocenter-based or fault-size-based eps
             fault_size_eps = avg_fault_radius * 0.8  # Allow some overlap between nearby faults
@@ -1122,7 +1122,7 @@ def auto_classification(input_params, df_hyfi):
         return df_hyfi
     
     # Check if we have the required fault plane data
-    required_columns = ['mean_azi', 'mean_dip']
+    required_columns = ['rupt_plane_azi', 'rupt_plane_dip']
     missing_columns = [col for col in required_columns if col not in df_hyfi.columns or df_hyfi[col].isna().all()]
     
     if missing_columns:
@@ -1131,7 +1131,7 @@ def auto_classification(input_params, df_hyfi):
         return df_hyfi
     
     # Filter out rows with missing fault plane data for clustering
-    valid_mask = df_hyfi['mean_azi'].notna() & df_hyfi['mean_dip'].notna()
+    valid_mask = df_hyfi['rupt_plane_azi'].notna() & df_hyfi['rupt_plane_dip'].notna()
     df_valid = df_hyfi[valid_mask].copy()
     
     if len(df_valid) == 0:
@@ -1195,20 +1195,20 @@ def auto_classification(input_params, df_hyfi):
     else:
         # No spatial clustering - set spatial_cluster to 0 for all
         df_clustered['spatial_cluster'] = 0
-        df_clustered['final_cluster_id'] = df_clustered['class'].astype(str)
+        df_clustered['final_cluster_id'] = df_clustered['orient_cluster'].astype(str)
     
     # Merge clustering results back to the full dataframe
     # Initialize clustering columns with NaN for all rows
-    df_hyfi['class'] = np.nan
+    df_hyfi['orient_cluster'] = np.nan
     df_hyfi['spatial_cluster'] = np.nan
     df_hyfi['final_cluster_id'] = None
     
     # Update rows that had valid fault plane data
-    for col in ['class', 'spatial_cluster', 'final_cluster_id']:
+    for col in ['orient_cluster', 'spatial_cluster', 'final_cluster_id']:
         df_hyfi.loc[valid_mask, col] = df_clustered[col].values
     
     # Summary statistics
-    n_orientation_clusters = df_clustered['class'].nunique()
+    n_orientation_clusters = df_clustered['orient_cluster'].nunique()
     n_final_clusters = df_clustered['final_cluster_id'].nunique()
     
     print(f"\n--- CLUSTERING SUMMARY ---")
@@ -1276,7 +1276,7 @@ def auto_classification(input_params, df_hyfi):
 #         if len(data) == 0:
 #             print('Warning: No valid fault plane normal vectors found for automatic classification. Skipping classification.')
 #             # Add empty class column and return original data
-#             data_output['class'] = np.nan
+#             data_output['orient_cluster'] = np.nan
 #             return data_output
         
 #         X, Y, Z = data['nor_x_mean'], data['nor_y_mean'], data['nor_z_mean']
@@ -1337,7 +1337,7 @@ def auto_classification(input_params, df_hyfi):
 #             raise ValueError('Unsupported clustering algorithm: {}'.format(algorithm))
         
 #         # Add the orientation cluster labels to data_output
-#         data_output.loc[data_output['nor_x_mean'].notna(), 'class'] = labels
+#         data_output.loc[data_output['nor_x_mean'].notna(), 'orient_cluster'] = labels
 #         # Reset the index
 #         data_output = data_output.reset_index(drop=True)
         
@@ -1354,7 +1354,7 @@ def auto_classification(input_params, df_hyfi):
         
 #         # Initialize spatial cluster columns
 #         data_output['spatial_cluster'] = 0
-#         data_output['final_cluster_id'] = data_output['class'].astype(str)
+#         data_output['final_cluster_id'] = data_output['orient_cluster'].astype(str)
         
 #         if enable_spatial_clustering:
 #             # Check if we have coordinate data available for spatial clustering
@@ -1370,10 +1370,10 @@ def auto_classification(input_params, df_hyfi):
             
 #             # Process each orientation cluster for spatial sub-clustering
 #             if enable_spatial_clustering:
-#                 unique_orientation_clusters = data_output['class'].dropna().unique()
+#                 unique_orientation_clusters = data_output['orient_cluster'].dropna().unique()
                 
 #                 for ori_cluster in unique_orientation_clusters:
-#                     ori_cluster_data = data_output[data_output['class'] == ori_cluster].reset_index(drop=True)
+#                     ori_cluster_data = data_output[data_output['orient_cluster'] == ori_cluster].reset_index(drop=True)
                     
 #                     if len(ori_cluster_data) < min_points_spatial:
 #                         print(f"  Orientation cluster {ori_cluster}: too few points ({len(ori_cluster_data)}) - no spatial sub-clustering")
@@ -1416,7 +1416,7 @@ def auto_classification(input_params, df_hyfi):
 #                                     print(f"    ✓ Spatial clustering beneficial: split into {len(valid_spatial_clusters)} sub-clusters")
                                     
 #                                     # Update spatial cluster labels in main dataframe
-#                                     ori_indices = data_output[data_output['class'] == ori_cluster].index
+#                                     ori_indices = data_output[data_output['orient_cluster'] == ori_cluster].index
 #                                     data_output.loc[ori_indices, 'spatial_cluster'] = clustered_data['spatial_cluster'].values
                                     
 #                                     # Create final cluster IDs (e.g., "0_0", "0_1", "1_0", etc.)
@@ -1476,7 +1476,7 @@ def auto_classification(input_params, df_hyfi):
 
 #             # ## Estimate the confidence angle a95
 #             # # Extract all planes from class q
-#             # df_q = data_output.loc[data_output['class'] == q]
+#             # df_q = data_output.loc[data_output['orient_cluster'] == q]
 #             # df_q = df_q.reset_index(drop=True)
 #             # nor_x_list = np.array(df_q['nor_x_mean'])
 #             # nor_y_list = np.array(df_q['nor_y_mean'])
@@ -1511,7 +1511,7 @@ def auto_classification(input_params, df_hyfi):
 #             # a95 = np.arccos(1-((N-R)/R)*((1/p)**(1/(N-1)-1)))
             
 #     else:
-#         data_output['class'] = np.nan
+#         data_output['orient_cluster'] = np.nan
 
 #     return(data_output)
 

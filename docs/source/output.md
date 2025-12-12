@@ -55,8 +55,8 @@ The main results table containing all events with computed fault plane parameter
 - `epsilon` - Angular misfit between focal mechanism and fitted rupture plane
 
 #### Computed Rupture Plane Parameters
-- `mean_azi` - Mean fault strike azimuth (degrees, 0-360°)
-- `mean_dip` - Mean fault dip angle (degrees, 0-90°)
+- `rupt_plane_azi` - Mean fault strike azimuth (degrees, 0-360°)
+- `rupt_plane_dip` - Mean fault dip angle (degrees, 0-90°)
 - `nor_x_mean`, `nor_y_mean`, `nor_z_mean` - Fault normal vector components
 - `nr_fits` - Number of successfully fitted fault planes in Monte Carlo simulations
 - `kappa` - Concentration parameter (higher = more consistent orientations)
@@ -67,19 +67,19 @@ The main results table containing all events with computed fault plane parameter
 - `N` - Total number of neighbors considered
 - `R/N` - Neighbor ratio
 - `rupt_area` - Estimated rupture area (m²)
-- `rupt_r` - Estimated rupture radius (m)
+- `rupt_radius` - Estimated rupture radius (m)
 
 #### Clustering Results
 - `clust_labels` - Orientation cluster assignment
 - `spatial_cluster` - Spatial sub-cluster assignment
 - `final_cluster_id` - Combined cluster identifier (e.g., "F1", "F2")
-- `class` - Final classification label
+- `orient_cluster` - Final classification label
 
 #### Stress Analysis Results (if enabled)
 - `Sn_eff` - Effective normal stress (MPa)
 - `Tau` - Shear stress (MPa)
 - `rake` - Calculated slip rake angle (degrees)
-- `I` - Instability index (Tau / Sn_eff)
+- `instab` - Instability index (Tau / Sn_eff)
 - `sliptend` - Slip tendency
 - `dilatend` - Dilation tendency
 
@@ -135,7 +135,7 @@ Details of focal mechanism validation and active plane selection for each event 
 - `plane_determination_method` - How the plane was selected:
   - `"Pre-specified (A=1 or A=2)"` - User/catalog provided active plane
   - `"Newly determined (A=0, geometric selection)"` - Algorithm selected plane
-- `mean_azi`, `mean_dip` - Fitted rupture plane orientation
+- `rupt_plane_azi`, `rupt_plane_dip` - Fitted rupture plane orientation
 - `preferred_strike`, `preferred_dip`, `preferred_rake` - Selected nodal plane parameters
 
 **Interpretation:**

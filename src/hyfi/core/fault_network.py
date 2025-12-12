@@ -172,8 +172,8 @@ def generate_focal_mechanism_points(df_row, radius_interval=10.0, point_density_
 
     # Calculate fault radius - use a reasonable estimate based on typical values
     # If rupture radius is available from other calculations, use it; otherwise estimate
-    if 'rupt_r' in df_row and not pd.isna(df_row['rupt_r']):
-        r = df_row['rupt_r']
+    if 'rupt_radius' in df_row and not pd.isna(df_row['rupt_radius']):
+        r = df_row['rupt_radius']
     else:
         # Calculate radius based on magnitude using Leonard (2014) scaling relationship
         if 'MAG' in df_row and not pd.isna(df_row['MAG']):
@@ -185,7 +185,7 @@ def generate_focal_mechanism_points(df_row, radius_interval=10.0, point_density_
             # Calculate rupture area and radius using Leonard (2014) scaling
             A, r = faultscalingL14_Mag_A(Mw)
         else:
-            raise ValueError("Cannot estimate rupture radius: missing 'rupt_r' and 'MAG' in df_row")
+            raise ValueError("Cannot estimate rupture radius: missing 'rupt_radius' and 'MAG' in df_row")
     
     # Convert strike and dip to normal vector using correct geological convention
     # Strike: measured clockwise from North (0° = North, 90° = East)
@@ -1414,8 +1414,8 @@ def faultnetwork3D(input_params):
             azi, dip = utilities.plane_normal_to_azidip(nor_x, nor_y, nor_z)
         azi_list.append(azi)
         dip_list.append(dip)
-    df_hyfi['mean_azi'] = azi_list
-    df_hyfi['mean_dip'] = dip_list
+    df_hyfi['rupt_plane_azi'] = azi_list
+    df_hyfi['rupt_plane_dip'] = dip_list
 
     ###########################################################################
     # Magnitude - Fault Area Scaling
@@ -1431,7 +1431,7 @@ def faultnetwork3D(input_params):
     # circular rupture plane (after Leonard 2014)
     A, r = np.vectorize(faultscalingL14_Mag_A)(df_hyfi['Mw'])
     df_hyfi['rupt_area'] = A  # Changed from 'A' to avoid conflict with focal mechanism 'A' column
-    df_hyfi['rupt_r'] = r  # Changed from 'r' to 'rupt_r' for clarity
+    df_hyfi['rupt_radius'] = r  # Changed from 'r' to 'rupt_radius' for clarity
 
     ###########################################################################
 

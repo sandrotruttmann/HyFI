@@ -102,7 +102,7 @@ for r_nn_idx, r_nn in enumerate(r_nn_list):
                     linestyle=linestyles[r_nn_idx % len(linestyles)])
                 
         # Plot number of recovered fault planes
-        msize = 2**(len(data_output['mean_azi'].dropna())/20)
+        msize = 2**(len(data_output['rupt_plane_azi'].dropna())/20)
         axs[1].scatter(r_nn, dt_nn, s=msize,
                        c='black', alpha=0.8)
 

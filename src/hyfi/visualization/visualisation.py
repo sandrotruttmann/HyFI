@@ -39,15 +39,15 @@ def _compute_normal_vectors(df_subcluster):
     Parameters
     ----------
     df_subcluster : DataFrame
-        DataFrame containing 'mean_azi' and 'mean_dip' columns
+        DataFrame containing 'rupt_plane_azi' and 'rupt_plane_dip' columns
         
     Returns
     -------
     numpy.ndarray
         Array of normal vectors (n_points, 3)
     """
-    azi = np.radians(df_subcluster['mean_azi'].values)
-    dip = np.radians(df_subcluster['mean_dip'].values)
+    azi = np.radians(df_subcluster['rupt_plane_azi'].values)
+    dip = np.radians(df_subcluster['rupt_plane_dip'].values)
     
     normals_x = np.sin(dip) * np.sin(azi)
     normals_y = np.sin(dip) * np.cos(azi)
@@ -64,7 +64,7 @@ def _evaluate_orientation_consistency(df_cluster, max_angular_deviation=45):
     Parameters
     ----------
     df_cluster : DataFrame
-        DataFrame containing fault plane data with 'mean_azi' and 'mean_dip' columns
+        DataFrame containing fault plane data with 'rupt_plane_azi' and 'rupt_plane_dip' columns
     max_angular_deviation : float
         Maximum allowed angular deviation from cluster mean (degrees)
         
@@ -78,7 +78,7 @@ def _evaluate_orientation_consistency(df_cluster, max_angular_deviation=45):
     """
     
     if len(df_cluster) < 2:
-        return True, 0.0, df_cluster['mean_azi'].iloc[0], df_cluster['mean_dip'].iloc[0]
+        return True, 0.0, df_cluster['rupt_plane_azi'].iloc[0], df_cluster['rupt_plane_dip'].iloc[0]
     
     # Convert orientations to unit normal vectors (using existing normal vectors if available)
     if all(col in df_cluster.columns for col in ['nor_x_mean', 'nor_y_mean', 'nor_z_mean']):
@@ -86,8 +86,8 @@ def _evaluate_orientation_consistency(df_cluster, max_angular_deviation=45):
         normals = df_cluster[['nor_x_mean', 'nor_y_mean', 'nor_z_mean']].values
     else:
         # Calculate normal vectors from azimuth/dip
-        azi_rad = np.radians(df_cluster['mean_azi'].values)
-        dip_rad = np.radians(df_cluster['mean_dip'].values)
+        azi_rad = np.radians(df_cluster['rupt_plane_azi'].values)
+        dip_rad = np.radians(df_cluster['rupt_plane_dip'].values)
         
         normals_x = np.sin(dip_rad) * np.sin(azi_rad)
         normals_y = np.sin(dip_rad) * np.cos(azi_rad)
@@ -155,7 +155,7 @@ def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_dens
     ----------
     df_subcluster : DataFrame
         DataFrame containing fault plane data with columns:
-        'X', 'Y', 'Z' (hypocenter coordinates), 'rupt_r' (rupture radius),
+        'X', 'Y', 'Z' (hypocenter coordinates), 'rupt_radius' (rupture radius),
         'nor_x_mean', 'nor_y_mean', 'nor_z_mean' (normal vectors)
     radius_interval : float
         Fixed interval in meters between concentric circles (default: 20.0)
@@ -180,7 +180,7 @@ def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_dens
     for i, row in df_subcluster.iterrows():
         # Get fault plane parameters
         p = np.array([row['X'], row['Y'], row['Z']])  # Hypocenter (center of circular plane)
-        r = row['rupt_r']  # Rupture radius
+        r = row['rupt_radius']  # Rupture radius
         nor = np.array([row['nor_x_mean'], row['nor_y_mean'], row['nor_z_mean']])  # Normal vector
         
         # Skip this fault plane if any parameters are NaN or invalid
@@ -261,7 +261,7 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_ri
     ----------
     df_subcluster : DataFrame
         DataFrame containing fault plane data with columns:
-        'X', 'Y', 'Z' (hypocenter coordinates), 'rupt_r' (rupture radius),
+        'X', 'Y', 'Z' (hypocenter coordinates), 'rupt_radius' (rupture radius),
         'nor_x_mean', 'nor_y_mean', 'nor_z_mean' (normal vectors)
     n_radial_segments : int
         Number of angular segments around each ring (default: 16)
@@ -279,7 +279,7 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_ri
     for i, row in df_subcluster.iterrows():
         # Get fault plane parameters
         center = np.array([row['X'], row['Y'], row['Z']])  # Hypocenter (center of circular plane)
-        radius = row['rupt_r']  # Rupture radius
+        radius = row['rupt_radius']  # Rupture radius
         normal = np.array([row['nor_x_mean'], row['nor_y_mean'], row['nor_z_mean']])  # Normal vector
         
         # Skip this fault plane if any parameters are NaN or invalid
@@ -368,15 +368,15 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_ri
             # Basic hypocenter attributes (same as hypocenters VTP)
             'ID', 'MAG', 'EX', 'EY', 'EZ',
             # Fault plane orientation and geometry
-            'mean_azi', 'mean_dip', 'rupt_r', 
+            'rupt_plane_azi', 'rupt_plane_dip', 'rupt_radius', 
             # Magnitude and area estimates  
             'Mw', 'rupt_area',
             # Stress parameters
-            'Sn_eff', 'Tau', 'rake', 'I',
+            'Sn_eff', 'Tau', 'rake', 'instab',
             # Tendency parameters
             'sliptend', 'dilatend',
             # Clustering information
-            'final_cluster_id', 'class', 'spatial_cluster',
+            'final_cluster_id', 'orient_cluster', 'spatial_cluster',
             # Legacy magnitude column
             'ML'
         ]
@@ -665,7 +665,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     df = df_hyfi
     
     # Filter out events with no valid fault plane data (NaN normal vectors)
-    required_columns = ['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_r']
+    required_columns = ['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_radius']
     
     # Check if required columns exist
     missing_columns = [col for col in required_columns if col not in df.columns]
@@ -681,8 +681,8 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         df['nor_x_mean'].notna() & 
         df['nor_y_mean'].notna() & 
         df['nor_z_mean'].notna() & 
-        df['rupt_r'].notna() & 
-        (df['rupt_r'] > 0)  # Also check for positive rupture radius
+        df['rupt_radius'].notna() & 
+        (df['rupt_radius'] > 0)  # Also check for positive rupture radius
     )
     
     df = df[valid_mask].reset_index(drop=True)
@@ -703,13 +703,13 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     if 'final_cluster_id' in df.columns and df['final_cluster_id'].notna().any():
         cluster_column = 'final_cluster_id'
         print("Using combined orientation+spatial clustering results")
-    elif 'class' in df.columns:
-        cluster_column = 'class'
+    elif 'orient_cluster' in df.columns:
+        cluster_column = 'orient_cluster'
         print("Using orientation-only clustering results (spatial clustering may be disabled)")
     else:
         print("Warning: No clustering results found - treating all data as single cluster")
-        df['class'] = 0
-        cluster_column = 'class'
+        df['orient_cluster'] = 0
+        cluster_column = 'orient_cluster'
     
     # Get unique final clusters
     unique_clusters = df[cluster_column].dropna().unique()
@@ -744,7 +744,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         except Exception as e:
             print(f"    Warning: Failed to generate fault plane points: {e}")
             # Fallback to hypocenter locations only if we have valid normal vectors
-            valid_rows = df_cluster.dropna(subset=['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_r'])
+            valid_rows = df_cluster.dropna(subset=['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_radius'])
             if len(valid_rows) == 0:
                 print(f"    Skipping cluster {cluster_id}: no valid fault plane data available")
                 continue
@@ -752,7 +752,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             # Use existing normal vectors for fallback
             normals = valid_rows[['nor_x_mean', 'nor_y_mean', 'nor_z_mean']].values.astype(np.float64)
             # Use rupture radii for fallback
-            rupture_radii = valid_rows['rupt_r'].values.astype(np.float64)
+            rupture_radii = valid_rows['rupt_radius'].values.astype(np.float64)
         
         # Create point cloud for this cluster
         pcd = pv.PolyData(points)
@@ -828,7 +828,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                     # Handle cases where cluster_id might just be the orientation cluster
                     ori_cluster = cluster_str
                     spatial_cluster = '0'
-            elif cluster_column == 'class':
+            elif cluster_column == 'orient_cluster':
                 # Only orientation clustering
                 ori_cluster = str(cluster_id)
                 spatial_cluster = '0'
@@ -1044,7 +1044,7 @@ def export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, ou
     # Export slip vectors if available
     if df_hyfi is not None:
         try:
-            required_cols = ['X', 'Y', 'Z', 'nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_r', 'rake']
+            required_cols = ['X', 'Y', 'Z', 'nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_radius', 'rake']
             df_valid = df_hyfi.dropna(subset=required_cols).copy()
             
             if len(df_valid) > 0:
@@ -1058,7 +1058,7 @@ def export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, ou
                     _, row_data = row
                     x, y, z = pt
                     p = [x, y, z]
-                    r = row_data['rupt_r']
+                    r = row_data['rupt_radius']
                     nor = np.array([row_data['nor_x_mean'], row_data['nor_y_mean'], row_data['nor_z_mean']])
                     rake = row_data['rake']
                     
@@ -1267,7 +1267,7 @@ def export_meshes_as_ply(combined_mesh, individual_meshes, fault_disc_meshes, po
     # Export slip vectors if available
     if df_hyfi is not None:
         try:
-            required_cols = ['X', 'Y', 'Z', 'nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_r', 'rake']
+            required_cols = ['X', 'Y', 'Z', 'nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_radius', 'rake']
             df_valid = df_hyfi.dropna(subset=required_cols).copy()
             
             if len(df_valid) > 0:
@@ -1281,7 +1281,7 @@ def export_meshes_as_ply(combined_mesh, individual_meshes, fault_disc_meshes, po
                     _, row_data = row
                     x, y, z = pt
                     p = [x, y, z]
-                    r = row_data['rupt_r']
+                    r = row_data['rupt_radius']
                     nor = np.array([row_data['nor_x_mean'], row_data['nor_y_mean'], row_data['nor_z_mean']])
                     rake = row_data['rake']
                     
@@ -1624,7 +1624,7 @@ def _create_focal_mechanism_disc_meshes(df_focal_events, n_radial_segments=16, n
             continue
             
         # Use rupture radius
-        radius = row['rupt_r']
+        radius = row['rupt_radius']
             
         # Convert strike/dip to normal vector using the same convention as rupture planes
         # Strike to dip azimuth: dip direction is 90° clockwise from strike line
@@ -2019,7 +2019,7 @@ def export_hypo_time_series(df_hyfi, output_dir, time_step_hours=24, include_cum
         pcd['unix_timestamp'] = unix_timestamps.astype(np.float64)
         
         # Add clustering information if available (handle string/NaN values)
-        for col in ['final_cluster_id', 'class', 'spatial_cluster']:
+        for col in ['final_cluster_id', 'orient_cluster', 'spatial_cluster']:
             if col in events_at_time.columns:
                 try:
                     if col == 'final_cluster_id':
@@ -2039,7 +2039,7 @@ def export_hypo_time_series(df_hyfi, output_dir, time_step_hours=24, include_cum
                     print(f"    Warning: Could not add {col} to time step {i}: {e}")
         
         # Add magnitude and fault plane data if available
-        for col in ['mean_azi', 'mean_dip', 'rupt_r', 'sliptend', 'dilatend']:
+        for col in ['rupt_plane_azi', 'rupt_plane_dip', 'rupt_radius', 'sliptend', 'dilatend']:
             if col in events_at_time.columns:
                 try:
                     pcd[col] = events_at_time[col].fillna(0.0).astype(np.float32)
@@ -2110,7 +2110,7 @@ def export_slip_vectors_vtp(df_hyfi, output_dir):
     os.makedirs(vtp_dir, exist_ok=True)
     
     # Filter events with valid slip vector data
-    required_cols = ['X', 'Y', 'Z', 'nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_r', 'rake']
+    required_cols = ['X', 'Y', 'Z', 'nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_radius', 'rake']
     df_valid = df_hyfi.dropna(subset=required_cols).copy()
     
     if len(df_valid) == 0:
@@ -2129,7 +2129,7 @@ def export_slip_vectors_vtp(df_hyfi, output_dir):
     for idx, row in df_valid.iterrows():
         x, y, z = row['X'], row['Y'], row['Z']
         p = [x, y, z]
-        r = row['rupt_r']
+        r = row['rupt_radius']
         nor = np.array([row['nor_x_mean'], row['nor_y_mean'], row['nor_z_mean']])
         rake = row['rake']
         
@@ -2167,7 +2167,7 @@ def export_slip_vectors_vtp(df_hyfi, output_dir):
         
         # Add attributes for both start and end points
         point_rake.extend([row['rake'], row['rake']])
-        point_rupture_radius.extend([row['rupt_r'], row['rupt_r']])
+        point_rupture_radius.extend([row['rupt_radius'], row['rupt_radius']])
         
         if 'MAG' in df_valid.columns:
             mag = row['MAG'] if not pd.isna(row['MAG']) else 0.0
@@ -2281,12 +2281,12 @@ def model_3d_multi_sequence(input_params, enriched_catalog, combined_fault_plane
     ]
     
     # Get unique clusters (excluding unclustered events for now)
-    clustered_data = enriched_catalog[enriched_catalog['cluster_label'] != 'unclustered'].copy()
-    unique_clusters = sorted(clustered_data['cluster_label'].unique()) if len(clustered_data) > 0 else []
+    clustered_data = enriched_catalog[enriched_catalog['sequence_label'] != 'unclustered'].copy()
+    unique_clusters = sorted(clustered_data['sequence_label'].unique()) if len(clustered_data) > 0 else []
     
     # Plot clustered hypocenters by cluster
     for i, cluster_name in enumerate(unique_clusters):
-        cluster_data = clustered_data[clustered_data['cluster_label'] == cluster_name]
+        cluster_data = clustered_data[clustered_data['sequence_label'] == cluster_name]
         
         if len(cluster_data) == 0:
             continue
@@ -2303,7 +2303,7 @@ def model_3d_multi_sequence(input_params, enriched_catalog, combined_fault_plane
         hovertext = []
         for _, row in cluster_data.iterrows():
             text = f"<b>Event ID:</b> {row.get('ID', 'N/A')}<br>"
-            text += f"<b>Cluster:</b> {row.get('cluster_label', 'N/A')}<br>"
+            text += f"<b>Cluster:</b> {row.get('sequence_label', 'N/A')}<br>"
             text += f"<b>Segmentation Level:</b> {row.get('segmentation_level', 'N/A')}<br>"
             text += f"<b>Magnitude:</b> {row.get('MAG', 'N/A')}<br>"
             text += f"<b>Depth:</b> {row.get('DEPTH', 'N/A')} m<br>"
@@ -2328,7 +2328,7 @@ def model_3d_multi_sequence(input_params, enriched_catalog, combined_fault_plane
         fig.add_trace(trace)
     
     # Plot unclustered events (noise) in gray
-    unclustered_data = enriched_catalog[enriched_catalog['cluster_label'] == 'unclustered']
+    unclustered_data = enriched_catalog[enriched_catalog['sequence_label'] == 'unclustered']
     if len(unclustered_data) > 0:
         # Create safer hovertemplate for unclustered events
         hovertext_unclustered = []
@@ -2369,8 +2369,8 @@ def model_3d_multi_sequence(input_params, enriched_catalog, combined_fault_plane
             # Create fault plane traces
             for _, fault in cluster_faults.iterrows():
                 # Get fault plane orientation
-                azi = fault.get('mean_azi', np.nan)
-                dip = fault.get('mean_dip', np.nan)
+                azi = fault.get('rupt_plane_azi', np.nan)
+                dip = fault.get('rupt_plane_dip', np.nan)
                 
                 if pd.isna(azi) or pd.isna(dip):
                     continue
@@ -2789,7 +2789,7 @@ def model_3d(input_params, data_input, data_output):
                 y = df['Y'][i]
                 z = df['Z'][i]
                 p = [x, y, z]
-                r = df['rupt_r'][i]
+                r = df['rupt_radius'][i]
                 X_pref, Y_pref, Z_pref = utilities_plot.circleplane(p, r, nor_pref)
                 X_nonpref, Y_nonpref, Z_nonpref = utilities_plot.circleplane(p, r, nor_nonpref)
         
@@ -2811,7 +2811,7 @@ def model_3d(input_params, data_input, data_output):
                     )
                 
                 # Rake of preferred focal
-                r = df['rupt_r'][i]
+                r = df['rupt_radius'][i]
                 if pd.isnull(df['pref_foc'][i]):
                     # No preferred focal plane data - use default (plane 1)
                     rake = df['Rake1'][i]
@@ -2898,7 +2898,7 @@ def model_3d(input_params, data_input, data_output):
                     y = df['Y'][i]
                     z = df['Z'][i]
                     p = [x, y, z]
-                    r = df['rupt_r'][i]
+                    r = df['rupt_radius'][i]
                     X_known, Y_known, Z_known = utilities_plot.circleplane(p, r, nor_known)
             
                     # Known focal plane
@@ -2920,7 +2920,7 @@ def model_3d(input_params, data_input, data_output):
                     fig.add_traces([focals_known])
 
                     # Rake of known focal
-                    r = df['rupt_r'][i]
+                    r = df['rupt_radius'][i]
                     if df['A'][i] == 1:
                         rake = df['Rake1'][i]
                         rake_color = 'black'
@@ -2962,7 +2962,7 @@ def model_3d(input_params, data_input, data_output):
                     y = df['Y'][i]
                     z = df['Z'][i]
                     p = [x, y, z]
-                    r = df['rupt_r'][i]
+                    r = df['rupt_radius'][i]
                     X_unk1, Y_unk1, Z_unk1 = utilities_plot.circleplane(p, r, nor_unk1)
                     X_unk2, Y_unk2, Z_unk2 = utilities_plot.circleplane(p, r, nor_unk2)
             
@@ -3007,15 +3007,15 @@ def model_3d(input_params, data_input, data_output):
 
     ############################################################################
     # Plot the fault planes    
-    if 'class' in df.columns:
-        if data_output['class'].isna().all():
+    if 'orient_cluster' in df.columns:
+        if data_output['orient_cluster'].isna().all():
             colors = ['black'] * len(df)
         else:
-            column = data_output['class']
+            column = data_output['orient_cluster']
             cmap = 'gnuplot'
-            minval = np.nanmin(data_output['class']) - 1.1
-            maxval = np.nanmax(data_output['class']) + 0.1
-            colorsteps = len(data_output['class'].unique())
+            minval = np.nanmin(data_output['orient_cluster']) - 1.1
+            maxval = np.nanmax(data_output['orient_cluster']) + 0.1
+            colorsteps = len(data_output['orient_cluster'].unique())
             colors = utilities_plot.colorscale(column, cmap, minval, maxval, colorsteps, cmap_reverse=False)
     else:
         colors = ['black'] * len(df)
@@ -3029,7 +3029,7 @@ def model_3d(input_params, data_input, data_output):
     # Workaround to only show one legend entry for fault planes: create an array
     # with only the first value True with the length of the number of events
     legend_show = [False for i in range(len(df))]
-    idx = df['mean_azi'].dropna()
+    idx = df['rupt_plane_azi'].dropna()
     try:
         idx = idx.index[0]   
         legend_show[idx] = True
@@ -3044,7 +3044,7 @@ def model_3d(input_params, data_input, data_output):
               df['Y'][i],
               df['Z'][i]
               ]
-        r = df['rupt_r'][i]
+        r = df['rupt_radius'][i]
         nor = np.array([df['nor_x_mean'][i],
                         df['nor_y_mean'][i],
                         df['nor_z_mean'][i]])
@@ -3067,7 +3067,7 @@ def model_3d(input_params, data_input, data_output):
             )
         fig.add_traces(faults)
 
-    df_k = df[df['mean_dip'].isna()]
+    df_k = df[df['rupt_plane_dip'].isna()]
     df_k = df_k[df_k['clust_labels'] != -1]     # Remove outliers from df_k (-1 in clust_labels)
     df_k = df_k.reset_index(drop=True)
     trace = go.Scatter3d(
@@ -3087,10 +3087,10 @@ def model_3d(input_params, data_input, data_output):
 
     ############################################################################
     # Plot stress states
-    if 'I' in df.columns:
+    if 'instab' in df.columns:
         # Plot the fault planes with fault instability
         colormap = 'plasma'
-        column = np.array(df['I'])
+        column = np.array(df['instab'])
         minval = 0
         # maxval = np.nanmax(column)
         maxval = 1
@@ -3104,7 +3104,7 @@ def model_3d(input_params, data_input, data_output):
                   df['Y'][i],
                   df['Z'][i]
                   ]
-            r = df['rupt_r'][i]
+            r = df['rupt_radius'][i]
             nor = np.array([df['nor_x_mean'][i],
                             df['nor_y_mean'][i],
                             df['nor_z_mean'][i]])
@@ -3126,7 +3126,7 @@ def model_3d(input_params, data_input, data_output):
                 )
             fig.add_traces(faults)
             
-        df_k = df[df['mean_dip'].isna()]
+        df_k = df[df['rupt_plane_dip'].isna()]
         df_k = df_k.reset_index(drop=True)
         trace = go.Scatter3d(
             x=df_k['X'],
@@ -3162,7 +3162,7 @@ def model_3d(input_params, data_input, data_output):
                 y = df['Y'][i]
                 z = df['Z'][i]
                 p = [x, y, z]
-                r = df['rupt_r'][i]
+                r = df['rupt_radius'][i]
                 nor = np.array([df['nor_x_mean'][i],
                                 df['nor_y_mean'][i],
                                 df['nor_z_mean'][i]])
@@ -3187,7 +3187,7 @@ def model_3d(input_params, data_input, data_output):
                                       )
                 fig.add_trace(trace)
         
-        df_k = df[df['mean_dip'].isna()]
+        df_k = df[df['rupt_plane_dip'].isna()]
         df_k = df_k.reset_index(drop=True)
         trace = go.Scatter3d(
             x=df_k['X'],
@@ -3365,19 +3365,19 @@ def faults_stereoplot(input_params, data_output):
         globals()[key] = value
     
     # remove rows with nan values in mean_azi and mean dip
-    df_output = data_output.dropna(subset=['mean_azi', 'mean_dip']).reset_index(drop=True)
+    df_output = data_output.dropna(subset=['rupt_plane_azi', 'rupt_plane_dip']).reset_index(drop=True)
     
     # Check if df_output is empty after dropping NaN values
     if len(df_output) == 0:
         print("Warning: No valid data for stereoplot after removing NaN values")
         return
     
-    if 'class' in df_output.columns:
-        column = df_output['class'].to_numpy()
+    if 'orient_cluster' in df_output.columns:
+        column = df_output['orient_cluster'].to_numpy()
         cmap = 'gnuplot'
         minval = np.nanmin(column) - 0.1
         maxval = np.nanmax(column) + 0.1
-        colorsteps = len(df_output['class'].unique())
+        colorsteps = len(df_output['orient_cluster'].unique())
         colors = utilities_plot.colorscale_mplstereonet(column, cmap, minval, maxval, colorsteps, cmap_reverse=False)
     # if 'clust_labels' in df_output.columns:
     #     column = df_output['clust_labels'].to_numpy()
@@ -3402,8 +3402,8 @@ def faults_stereoplot(input_params, data_output):
     fig, ax = mplstereonet.subplots(figsize=(100*mm, 100*mm))
     
     # Plot poles
-    strikes = df_output['mean_azi'].to_numpy() - 90 % 360
-    dips = df_output['mean_dip'].to_numpy()
+    strikes = df_output['rupt_plane_azi'].to_numpy() - 90 % 360
+    dips = df_output['rupt_plane_dip'].to_numpy()
     for i in range(len(df_output)):
         ax.pole(strikes[i], dips[i],
                 marker='o',
@@ -3424,7 +3424,7 @@ def faults_stereoplot(input_params, data_output):
         
     # # annotate points with right color
     # for i in range(len(df_output)):
-    #     ax.annotate(i, xy=(df_output['mean_azi'][i] - 90 % 360, df_output['mean_dip'][i]), color=colors[i], fontsize=5)
+    #     ax.annotate(i, xy=(df_output['rupt_plane_azi'][i] - 90 % 360, df_output['rupt_plane_dip'][i]), color=colors[i], fontsize=5)
     
     # # add legend of clusters
     # if 'clust_labels' in df_output.columns:
@@ -3433,8 +3433,8 @@ def faults_stereoplot(input_params, data_output):
     #     ax.legend(loc='upper right')
 
     # Plot density countours
-    cax = ax.density_contourf((df_output['mean_azi'] - 90 % 360),
-                        df_output['mean_dip'],
+    cax = ax.density_contourf((df_output['rupt_plane_azi'] - 90 % 360),
+                        df_output['rupt_plane_dip'],
                         cmap='Greys',
                         alpha=0.9,
                         measurement='poles',
@@ -3604,7 +3604,7 @@ def model_3d_single_df(df_hyfi, input_params):
         customdata_row = [
             row.get('ID', 'N/A'),               # 0
             row.get('Date', 'N/A'),             # 1  
-            row.get('rupt_r', 'N/A'),                # 2
+            row.get('rupt_radius', 'N/A'),                # 2
             row.get('clust_labels', 'N/A'),     # 3
             '',                                 # 4
             '',                                 # 5
@@ -3614,15 +3614,15 @@ def model_3d_single_df(df_hyfi, input_params):
             '',                                 # 9
             row.get('kappa', 'N/A'),            # 10
             row.get('beta', 'N/A'),             # 11
-            row.get('mean_azi', 'N/A'),         # 12
-            row.get('mean_dip', 'N/A'),         # 13
+            row.get('rupt_plane_azi', 'N/A'),         # 12
+            row.get('rupt_plane_dip', 'N/A'),         # 13
             '',                                 # 14
             '',                                 # 15
             '',                                 # 16
             row.get('rake', 'N/A'),             # 17
             '',                                 # 18
             '',                                 # 19
-            row.get('class', 'N/A'),            # 20
+            row.get('orient_cluster', 'N/A'),            # 20
         ]
         customdata_list.append(customdata_row)
     
@@ -3827,7 +3827,7 @@ def model_3d_single_df(df_hyfi, input_params):
                 y = df.iloc[i]['Y']
                 z = df.iloc[i]['Z']
                 p = [x, y, z]
-                r = df.iloc[i]['rupt_r']
+                r = df.iloc[i]['rupt_radius']
                 X_pref, Y_pref, Z_pref = utilities_plot.circleplane(p, r, nor_pref)
                 X_nonpref, Y_nonpref, Z_nonpref = utilities_plot.circleplane(p, r, nor_nonpref)
         
@@ -3849,7 +3849,7 @@ def model_3d_single_df(df_hyfi, input_params):
                     )
                 
                 # Rake of preferred focal
-                r = df.iloc[i]['rupt_r']
+                r = df.iloc[i]['rupt_radius']
                 if pd.isnull(df.iloc[i]['pref_foc']):
                     # No preferred focal plane data - use default (plane 1)
                     rake = df.iloc[i]['Rake1']
@@ -3934,7 +3934,7 @@ def model_3d_single_df(df_hyfi, input_params):
                     y = df.iloc[i]['Y']
                     z = df.iloc[i]['Z']
                     p = [x, y, z]
-                    r = df.iloc[i]['rupt_r']
+                    r = df.iloc[i]['rupt_radius']
                     X_known, Y_known, Z_known = utilities_plot.circleplane(p, r, nor_known)
             
                     # Known focal plane
@@ -3956,7 +3956,7 @@ def model_3d_single_df(df_hyfi, input_params):
                     fig.add_traces([focals_known])
 
                     # Rake of known focal
-                    r = df.iloc[i]['rupt_r']
+                    r = df.iloc[i]['rupt_radius']
                     if df.iloc[i]['A'] == 1:
                         rake = df.iloc[i]['Rake1']
                         rake_color = 'black'
@@ -3998,7 +3998,7 @@ def model_3d_single_df(df_hyfi, input_params):
                     y = df.iloc[i]['Y']
                     z = df.iloc[i]['Z']
                     p = [x, y, z]
-                    r = df.iloc[i]['rupt_r']
+                    r = df.iloc[i]['rupt_radius']
                     X_unk1, Y_unk1, Z_unk1 = utilities_plot.circleplane(p, r, nor_unk1)
                     X_unk2, Y_unk2, Z_unk2 = utilities_plot.circleplane(p, r, nor_unk2)
             
@@ -4042,15 +4042,15 @@ def model_3d_single_df(df_hyfi, input_params):
 
     ############################################################################
     # Plot the fault planes    
-    if 'class' in df.columns:
-        if df['class'].isna().all():
+    if 'orient_cluster' in df.columns:
+        if df['orient_cluster'].isna().all():
             colors = ['black'] * len(df)
         else:
-            column = df['class']
+            column = df['orient_cluster']
             cmap = 'gnuplot'
-            minval = np.nanmin(df['class']) - 1.1
-            maxval = np.nanmax(df['class']) + 0.1
-            colorsteps = len(df['class'].unique())
+            minval = np.nanmin(df['orient_cluster']) - 1.1
+            maxval = np.nanmax(df['orient_cluster']) + 0.1
+            colorsteps = len(df['orient_cluster'].unique())
             colors = utilities_plot.colorscale(column, cmap, minval, maxval, colorsteps, cmap_reverse=False)
     else:
         colors = ['black'] * len(df)
@@ -4064,7 +4064,7 @@ def model_3d_single_df(df_hyfi, input_params):
     # Workaround to only show one legend entry for fault planes: create an array
     # with only the first value True with the length of the number of events
     legend_show = [False for i in range(len(df))]
-    idx = df['mean_azi'].dropna()
+    idx = df['rupt_plane_azi'].dropna()
     try:
         idx = idx.index[0]   
         legend_show[idx] = True
@@ -4079,7 +4079,7 @@ def model_3d_single_df(df_hyfi, input_params):
               df.iloc[i]['Y'],
               df.iloc[i]['Z']
               ]
-        r = df.iloc[i]['rupt_r']
+        r = df.iloc[i]['rupt_radius']
         nor = np.array([df.iloc[i]['nor_x_mean'],
                         df.iloc[i]['nor_y_mean'],
                         df.iloc[i]['nor_z_mean']])
@@ -4102,7 +4102,7 @@ def model_3d_single_df(df_hyfi, input_params):
             )
         fig.add_traces(faults)
 
-    df_k = df[df['mean_dip'].isna()]
+    df_k = df[df['rupt_plane_dip'].isna()]
     df_k = df_k[df_k['clust_labels'] != -1]     # Remove outliers from df_k (-1 in clust_labels)
     df_k = df_k.reset_index(drop=True)
     trace = go.Scatter3d(
@@ -4122,10 +4122,10 @@ def model_3d_single_df(df_hyfi, input_params):
 
     ############################################################################
     # Plot stress states
-    if 'I' in df.columns:
+    if 'instab' in df.columns:
         # Plot the fault planes with fault instability
         colormap = 'plasma'
-        column = np.array(df['I'])
+        column = np.array(df['instab'])
         minval = 0
         # maxval = np.nanmax(column)
         maxval = 1
@@ -4139,7 +4139,7 @@ def model_3d_single_df(df_hyfi, input_params):
                   df.iloc[i]['Y'],
                   df.iloc[i]['Z']
                   ]
-            r = df.iloc[i]['rupt_r']
+            r = df.iloc[i]['rupt_radius']
             nor = np.array([df.iloc[i]['nor_x_mean'],
                             df.iloc[i]['nor_y_mean'],
                             df.iloc[i]['nor_z_mean']])
@@ -4161,7 +4161,7 @@ def model_3d_single_df(df_hyfi, input_params):
                 )
             fig.add_traces(faults)
             
-        df_k = df[df['mean_dip'].isna()]
+        df_k = df[df['rupt_plane_dip'].isna()]
         df_k = df_k.reset_index(drop=True)
         trace = go.Scatter3d(
             x=df_k['X'],
@@ -4197,7 +4197,7 @@ def model_3d_single_df(df_hyfi, input_params):
                 y = df.iloc[i]['Y']
                 z = df.iloc[i]['Z']
                 p = [x, y, z]
-                r = df.iloc[i]['rupt_r']
+                r = df.iloc[i]['rupt_radius']
                 nor = np.array([df.iloc[i]['nor_x_mean'],
                                 df.iloc[i]['nor_y_mean'],
                                 df.iloc[i]['nor_z_mean']])
@@ -4222,7 +4222,7 @@ def model_3d_single_df(df_hyfi, input_params):
                                       )
                 fig.add_trace(trace)
         
-        df_k = df[df['mean_dip'].isna()]
+        df_k = df[df['rupt_plane_dip'].isna()]
         df_k = df_k.reset_index(drop=True)
         trace = go.Scatter3d(
             x=df_k['X'],

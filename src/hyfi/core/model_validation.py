@@ -424,7 +424,7 @@ def focal_validation(df_hyfi, input_params):
         for i in range(len(df_hyfi)):
             try:
                 # Skip if no fault plane was calculated
-                if pd.isnull(df_hyfi['mean_azi'][i]):
+                if pd.isnull(df_hyfi['rupt_plane_azi'][i]):
                     continue
                     
                 # Check if focal mechanism data is available
@@ -610,7 +610,7 @@ def export_active_plane_summary(df_hyfi, out_dir):
     
     def get_determination_method(row):
         has_pref_foc = pd.notna(row['pref_foc'])
-        has_rupture_plane = pd.notna(row.get('mean_azi', np.nan))
+        has_rupture_plane = pd.notna(row.get('rupt_plane_azi', np.nan))
         
         if has_pref_foc:
             # pref_foc is determined
@@ -653,10 +653,10 @@ def export_active_plane_summary(df_hyfi, out_dir):
         summary_cols.insert(summary_cols.index('pref_foc'), 'A')
     
     # Add mean_azi and mean_dip to show computed fault plane orientation
-    if 'mean_azi' in focal_events_all.columns:
-        summary_cols.append('mean_azi')
-    if 'mean_dip' in focal_events_all.columns:
-        summary_cols.append('mean_dip')
+    if 'rupt_plane_azi' in focal_events_all.columns:
+        summary_cols.append('rupt_plane_azi')
+    if 'rupt_plane_dip' in focal_events_all.columns:
+        summary_cols.append('rupt_plane_dip')
     
     # Only include columns that exist
     summary_cols = [col for col in summary_cols if col in focal_events_all.columns]
