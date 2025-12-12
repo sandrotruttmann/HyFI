@@ -134,19 +134,25 @@ class MultiSequenceWorkflow:
         # Step 7: Merge and export combined VTP files
         self._merge_and_export_vtp_files()
         
-        # Step 8: Export to SQL database
-        self._export_to_sql_database()
-        
-        # Step 9: Save all results
+        # Step 8: Save all results
         self._save_multi_sequence_results()
         
         self.end_time = time.time()
         runtime = datetime.timedelta(seconds=(self.end_time - self.start_time))
         
         print('')
-        print('Multi-sequence analysis completed!')
+        print('='*70)
+        print('MULTI-SEQUENCE ANALYSIS COMPLETED!')
+        print('='*70)
         print(f'Total runtime: {runtime}')
         print(f'Processed {len(self.sequences)} sequences')
+        print('')
+        print('Database exports (HyFI_Database/):')
+        print('  • HyFI_database_metadata.csv   - Fault system metadata with geometry & stress')
+        print('  • HyFI_database_hypocenters.csv - Enhanced hypocenter catalog')
+        print('  • HyFI_database_focals.csv      - Enhanced focal mechanism catalog')
+        print('='*70)
+        print('')
         
         runtime_seconds = self.end_time - self.start_time
         hours, remainder = divmod(int(runtime_seconds), 3600)
@@ -706,8 +712,26 @@ class MultiSequenceWorkflow:
                     mask = enriched_data['ID'].isin(sequence_ids)
                     enriched_data.loc[mask, 'analysis_status'] = 'processed_with_error'
         
-        # Save enriched CSV
-        enriched_file = output_dir / 'HyFI_results_multi.csv'
+        # Create HyFI_Database directory
+        database_dir = output_dir / 'HyFI_Database'
+        database_dir.mkdir(exist_ok=True)
+        
+        # Reorder columns to place fault_system_id right after segmentation_level
+        # Get current column order
+        cols = enriched_data.columns.tolist()
+        
+        # Find indices
+        if 'segmentation_level' in cols and 'fault_system_id' in cols:
+            # Remove fault_system_id from its current position
+            cols.remove('fault_system_id')
+            # Insert it right after segmentation_level
+            seg_idx = cols.index('segmentation_level')
+            cols.insert(seg_idx + 1, 'fault_system_id')
+            # Reorder dataframe
+            enriched_data = enriched_data[cols]
+        
+        # Save enriched hypocenter CSV
+        enriched_file = database_dir / 'HyFI_database_hypocenters.csv'
         enriched_data.to_csv(enriched_file, index=False)
         
         # Store in aggregated results
@@ -720,7 +744,7 @@ class MultiSequenceWorkflow:
         processed_no_results = len(enriched_data[enriched_data['analysis_status'] == 'processed_no_results'])
         outlier_events = len(enriched_data[enriched_data['sequence_outlier'] == True])
         
-        print(f"HyFI results CSV of multi-sequence analysis created: {enriched_file}")
+        print(f"Enhanced hypocenter catalog exported: {enriched_file}")
         print(f"  Total events: {total_events}")
         print(f"  Clustered events: {clustered_events} ({clustered_events/total_events:.1%})")
         print(f"  Successfully analyzed: {processed_events} ({processed_events/total_events:.1%})")
@@ -747,7 +771,12 @@ class MultiSequenceWorkflow:
             return
         
         output_dir = Path(self.config.output_directory)
-        metadata_file = output_dir / 'active_faults_database.csv'
+        
+        # Create HyFI_Database directory
+        database_dir = output_dir / 'HyFI_Database'
+        database_dir.mkdir(exist_ok=True)
+        
+        metadata_file = database_dir / 'HyFI_database_metadata.csv'
         
         # Convert to DataFrame
         df_metadata = pd.DataFrame(self.fault_system_metadata)
@@ -829,13 +858,154 @@ class MultiSequenceWorkflow:
         
         # Store in aggregated results
         self.aggregated_results['fault_system_metadata'] = df_metadata
+        
+        # Update fault_system_id in enriched hypocenter catalog using the same renumbering
+        if 'enriched_catalog' in self.aggregated_results and old_to_new_id_map:
+            enriched_catalog = self.aggregated_results['enriched_catalog']
+            if 'fault_system_id' in enriched_catalog.columns:
+                # Apply the same ID mapping to hypocenter catalog
+                enriched_catalog['fault_system_id'] = enriched_catalog['fault_system_id'].map(
+                    lambda x: old_to_new_id_map.get(x, x) if pd.notna(x) else x
+                )
+                
+                # Re-save the hypocenter catalog with updated fault_system_id
+                database_dir = output_dir / 'HyFI_Database'
+                enriched_file = database_dir / 'HyFI_database_hypocenters.csv'
+                enriched_catalog.to_csv(enriched_file, index=False)
+                print(f"  Updated fault_system_id links in hypocenter catalog")
+        
+        # Store the mapping for use in focal mechanism export
+        self._fs_id_mapping = old_to_new_id_map
+        
+        # Export enhanced focal mechanism catalog if available
+        self._export_focal_mechanism_catalog()
+    
+    def _export_focal_mechanism_catalog(self):
+        """Export enhanced focal mechanism catalog to CSV.
+        
+        Creates a comprehensive focal mechanism catalog that includes:
+        - Original focal mechanism data (strike, dip, rake, A, B, C tensors, etc.)
+        - Sequence assignment from multi-sequence clustering
+        - Fault system assignment if available
+        - Stress analysis results if calculated
+        """
+        print("Exporting enhanced focal mechanism catalog...")
+        
+        output_dir = Path(self.config.output_directory)
+        database_dir = output_dir / 'HyFI_Database'
+        database_dir.mkdir(exist_ok=True)
+        
+        # Try multiple ways to find focal mechanism file
+        focal_file = None
+        focal_sep = ','
+        
+        # Method 1: Check sequence_workflow_template (new DAG format)
+        if hasattr(self.config, 'sequence_workflow_template'):
+            template = self.config.sequence_workflow_template
+            if isinstance(template, dict) and 'workflow_dag' in template:
+                dag_template = template['workflow_dag']
+                input_node_name = 'step_1_load_data' if 'step_1_load_data' in dag_template else 'input_data'
+                template_input = dag_template.get(input_node_name, {})
+                focal_file = template_input.get('focal_mechanism_file', '')
+                focal_sep = template_input.get('focal_mechanism_separator', ',')
+        
+        # Method 2: Check cluster_workflow_template (alternative name)
+        if not focal_file and hasattr(self.config, 'cluster_workflow_template'):
+            template = self.config.cluster_workflow_template
+            if isinstance(template, dict) and 'workflow_dag' in template:
+                dag_template = template['workflow_dag']
+                input_node_name = 'step_1_load_data' if 'step_1_load_data' in dag_template else 'input_data'
+                template_input = dag_template.get(input_node_name, {})
+                focal_file = template_input.get('focal_mechanism_file', '')
+                focal_sep = template_input.get('focal_mechanism_separator', ',')
+        
+        # Method 3: Check template_config (old format)
+        if not focal_file and hasattr(self.config, 'template_config'):
+            if (hasattr(self.config.template_config, 'model_validation') and 
+                hasattr(self.config.template_config.model_validation, 'foc_file')):
+                focal_file = self.config.template_config.model_validation.foc_file
+                focal_sep = getattr(self.config.template_config.model_validation, 'foc_sep', ',')
+        
+        # Check if file exists
+        if not focal_file:
+            print("  No focal mechanism file specified in configuration")
+            return
+        
+        focal_file_path = Path(focal_file)
+        if not focal_file_path.exists():
+            print(f"  Focal mechanism file not found: {focal_file_path}")
+            return
+        
+        try:
+            # Load focal mechanism data (first 28 columns = standard format)
+            df_focals = pd.read_csv(focal_file_path, sep=focal_sep, usecols=range(28))
+            print(f"  Loaded {len(df_focals)} focal mechanisms from {focal_file_path.name}")
+            
+            # Add sequence assignment from full catalog if available
+            if hasattr(self, 'full_catalog') and self.full_catalog is not None:
+                # Create ID-to-sequence mapping
+                id_to_sequence = {}
+                id_to_segmentation = {}
+                id_to_fault_system = {}
+                
+                for seq_name, seq_data in self.sequences.items():
+                    for event_id in seq_data['ID'].values:
+                        id_to_sequence[event_id] = seq_name
+                        # Get segmentation level from sequence name (e.g., 'A0' -> 'Class A')
+                        if '_' in seq_name:
+                            seg_level = seq_name.split('_')[0]
+                            # Map A, B, C to Class A, Class B, Class C
+                            if seg_level in ['A', 'B', 'C']:
+                                id_to_segmentation[event_id] = f'Class {seg_level}'
+                
+                # Add fault system assignment from enriched catalog if available
+                if 'enriched_catalog' in self.aggregated_results:
+                    enriched = self.aggregated_results['enriched_catalog']
+                    if 'fault_system_id' in enriched.columns:
+                        for _, row in enriched.iterrows():
+                            if pd.notna(row.get('fault_system_id')):
+                                id_to_fault_system[row['ID']] = row['fault_system_id']
+                
+                # Map to focal mechanism data (match by ID)
+                df_focals['sequence_label'] = df_focals['ID'].map(id_to_sequence).fillna('unclustered')
+                df_focals['segmentation_level'] = df_focals['ID'].map(id_to_segmentation)
+                df_focals['fault_system_id'] = df_focals['ID'].map(id_to_fault_system)
+                
+                # Add summary columns
+                df_focals['is_clustered'] = df_focals['sequence_label'] != 'unclustered'
+                df_focals['has_fault_system'] = df_focals['fault_system_id'].notna()
+            
+            # Save enhanced focal mechanism catalog
+            focal_file_out = database_dir / 'HyFI_database_focals.csv'
+            df_focals.to_csv(focal_file_out, index=False)
+            
+            print(f"  Enhanced focal mechanism catalog exported: {focal_file_out}")
+            
+            # Print summary
+            if 'is_clustered' in df_focals.columns:
+                n_clustered = df_focals['is_clustered'].sum()
+                n_with_fs = df_focals['has_fault_system'].sum() if 'has_fault_system' in df_focals.columns else 0
+                print(f"    Total focal mechanisms: {len(df_focals)}")
+                print(f"    Assigned to sequences: {n_clustered} ({n_clustered/len(df_focals):.1%})")
+                if n_with_fs > 0:
+                    print(f"    Assigned to fault systems: {n_with_fs} ({n_with_fs/len(df_focals):.1%})")
+            
+            # Store in aggregated results
+            self.aggregated_results['focal_mechanism_catalog'] = df_focals
+            
+        except Exception as e:
+            print(f"  Warning: Could not export focal mechanism catalog: {e}")
     
     def _merge_and_export_vtp_files(self):
         """Merge VTP files from all clusters and export combined versions."""
         print("Merging and exporting combined VTP files...")
         
         output_dir = Path(self.config.output_directory)
-        combined_vtp_dir = output_dir / 'vtp_export_multi'
+        
+        # Create HyFI_Database directory and VTP subdirectory
+        database_dir = output_dir / 'HyFI_Database'
+        database_dir.mkdir(exist_ok=True)
+        combined_vtp_dir = database_dir / 'HyFI_Database_vtp'
         combined_vtp_dir.mkdir(exist_ok=True)
         
         # Define the VTP files to merge
@@ -877,14 +1047,6 @@ class MultiSequenceWorkflow:
                     combined_file = combined_vtp_dir / combined_filename
                     self._merge_vtp_files(vtp_files, combined_file, cluster_sources)
                     print(f"  Created {combined_filename} from {len(vtp_files)} clusters")
-                    
-                    # Create KML version if export_kml is enabled in visualization settings
-                    export_kml = self._should_export_kml()
-                    if export_kml:
-                        kml_filename = combined_filename.replace('.vtp', '.kml')
-                        combined_kml_file = combined_vtp_dir / kml_filename
-                        self._export_vtp_to_kml(combined_file, combined_kml_file, cluster_sources)
-                        print(f"  Created {kml_filename} from {combined_filename}")
                 else:
                     print(f"  No {source_filename} files found to merge")
                     
@@ -892,23 +1054,6 @@ class MultiSequenceWorkflow:
                 print(f"  Warning: Could not merge {source_filename}: {e}")
         
         print(f"Combined VTP files saved to: {combined_vtp_dir}")
-    
-    def _should_export_kml(self) -> bool:
-        """Check if KML export is enabled in visualization settings."""
-        try:
-            # Check if we have sequence_workflow_template with visualization settings
-            if hasattr(self.config, 'sequence_workflow_template') and self.config.sequence_workflow_template:
-                viz_config = self.config.sequence_workflow_template.get('workflow_dag', {}).get('visualization', {})
-                return viz_config.get('parameters', {}).get('export_kml', True)
-            # Fallback to checking individual cluster results for visualization settings
-            for sequence_result in self.sequence_results.values():
-                if 'config' in sequence_result:
-                    dag_config = sequence_result['config']
-                    if hasattr(dag_config, 'nodes') and 'visualization' in dag_config.nodes:
-                        return dag_config.nodes['visualization'].parameters.get('export_kml', True)
-            return True  # Default to True if not specified
-        except Exception:
-            return True  # Default to True if there's any error
     
     def _merge_vtp_files(self, vtp_files: List[Path], output_file: Path, cluster_sources: List[str]):
         """
@@ -1091,453 +1236,6 @@ class MultiSequenceWorkflow:
                 print(f"    Error writing merged VTK file: {e}")
         else:
             print(f"    No points found to merge for {output_file.name}")
-    
-    def _export_vtp_to_kml(self, vtp_file: Path, kml_file: Path, cluster_sources: List[str]):
-        """
-        Export a VTK file to KML format for Google Earth visualization.
-        
-        Parameters
-        ----------
-        vtp_file : Path
-            Input VTK file path
-        kml_file : Path
-            Output KML file path
-        cluster_sources : List[str]
-            List of cluster names for styling
-        """
-        try:
-            # Parse the VTK file to extract coordinates
-            points = []
-            cluster_info = []
-            
-            with open(vtp_file, 'r') as f:
-                lines = f.readlines()
-            
-            in_points = False
-            point_count = 0
-            expected_points = 0
-            
-            for line in lines:
-                line = line.strip()
-                
-                if line.startswith('POINTS'):
-                    in_points = True
-                    expected_points = int(line.split()[1])
-                    continue
-                elif line.startswith('POLYGONS') or line.startswith('LINES') or line.startswith('VERTICES'):
-                    in_points = False
-                    break
-                
-                if in_points and line and not line.startswith('#'):
-                    coords = line.split()
-                    # Group coordinates by 3 (x, y, z)
-                    for i in range(0, len(coords), 3):
-                        if i + 2 < len(coords):
-                            x, y, z = float(coords[i]), float(coords[i+1]), float(coords[i+2])
-                            points.append((x, y, z))
-                            # Assign cluster based on point index (simplified)
-                            cluster_idx = point_count % len(cluster_sources) if cluster_sources else 0
-                            cluster_info.append(cluster_sources[cluster_idx] if cluster_sources else 'unknown')
-                            point_count += 1
-                            
-                            if point_count >= expected_points:
-                                break
-                    
-                    if point_count >= expected_points:
-                        break
-            
-            # Create KML content
-            kml_content = self._generate_kml_content(points, cluster_info, vtp_file.stem)
-            
-            # Write KML file
-            with open(kml_file, 'w', encoding='utf-8') as f:
-                f.write(kml_content)
-            
-            print(f"    Exported {len(points)} points to KML: {kml_file.name}")
-            
-        except Exception as e:
-            print(f"    Warning: Could not export {vtp_file.name} to KML: {e}")
-    
-    def _generate_kml_content(self, points: List[Tuple[float, float, float]], 
-                            cluster_info: List[str], title: str) -> str:
-        """
-        Generate KML content from points and cluster information.
-        
-        Parameters
-        ----------
-        points : List[Tuple[float, float, float]]
-            List of (x, y, z) coordinates
-        cluster_info : List[str]
-            List of cluster names for each point
-        title : str
-            Title for the KML document
-            
-        Returns
-        -------
-        str
-            KML content as string
-        """
-        # Get unique clusters for styling
-        unique_clusters = list(set(cluster_info)) if cluster_info else ['default']
-        
-        # Define colors for different clusters (cycling through a palette)
-        colors = [
-            'ff0000ff',  # Red
-            'ff00ff00',  # Green
-            'ffff0000',  # Blue
-            'ff00ffff',  # Yellow
-            'ffff00ff',  # Magenta
-            'ffffff00',  # Cyan
-            'ff800080',  # Purple
-            'ff008000',  # Dark Green
-            'ff000080',  # Dark Red
-            'ff808000',  # Olive
-        ]
-        
-        cluster_colors = {cluster: colors[i % len(colors)] for i, cluster in enumerate(unique_clusters)}
-        
-        kml_lines = [
-            '<?xml version="1.0" encoding="UTF-8"?>',
-            '<kml xmlns="http://www.opengis.net/kml/2.2">',
-            '<Document>',
-            f'<name>{title} - HyFI Multi-Sequence Results</name>',
-            '<description>Multi-sequence earthquake fault imaging results from HyFI</description>',
-            ''
-        ]
-        
-        # Add styles for each cluster
-        for cluster, color in cluster_colors.items():
-            kml_lines.extend([
-                f'<Style id="cluster_{cluster}">',
-                '<IconStyle>',
-                f'<color>{color}</color>',
-                '<scale>0.8</scale>',
-                '<Icon>',
-                '<href>http://maps.google.com/mapfiles/kml/shapes/shaded_dot.png</href>',
-                '</Icon>',
-                '</IconStyle>',
-                '</Style>',
-                ''
-            ])
-        
-        # Add folder for each cluster
-        cluster_folders = {cluster: [] for cluster in unique_clusters}
-        
-        for i, ((x, y, z), cluster) in enumerate(zip(points, cluster_info)):
-            # Convert from local coordinates to lat/lon using configured coordinate system
-            input_crs = getattr(self.config, 'coordinate_system', 'EPSG:21781')  # Default to Swiss coordinates
-            output_crs = 'EPSG:4326'  # WGS84
-            transformer = pyproj.Transformer.from_crs(input_crs, output_crs, always_xy=True)
-            lon, lat = transformer.transform(x, y)
-            depth = -z  # Convert back to positive depth
-            
-            placemark = [
-                '<Placemark>',
-                f'<name>Event {i+1}</name>',
-                f'<description>Cluster: {cluster}<br/>Depth: {depth:.1f} m<br/>Coordinates: {x:.1f}, {y:.1f}, {z:.1f}</description>',
-                f'<styleUrl>#cluster_{cluster}</styleUrl>',
-                '<Point>',
-                f'<coordinates>{lon:.6f},{lat:.6f},{depth:.1f}</coordinates>',
-                '</Point>',
-                '</Placemark>',
-                ''
-            ]
-            
-            cluster_folders[cluster].extend(placemark)
-        
-        # Add folders to KML
-        for cluster in unique_clusters:
-            if cluster_folders[cluster]:
-                kml_lines.extend([
-                    '<Folder>',
-                    f'<name>Cluster {cluster}</name>',
-                    f'<description>Events from cluster {cluster}</description>',
-                    ''
-                ])
-                kml_lines.extend(cluster_folders[cluster])
-                kml_lines.extend([
-                    '</Folder>',
-                    ''
-                ])
-        
-        kml_lines.extend([
-            '</Document>',
-            '</kml>'
-        ])
-        
-        return '\n'.join(kml_lines)
-    
-    def _export_to_sql_database(self):
-        """Export sequence attributes, fault parameters, and stress analysis to SQL database."""
-        print("Exporting results to SQL database...")
-        
-        # Check if SQL database export is enabled in config
-        if not hasattr(self.config, 'sequence_workflow_template') or not self.config.sequence_workflow_template:
-            print("  SQL database export not configured, skipping...")
-            return
-        
-        workflow_dag = self.config.sequence_workflow_template.get('workflow_dag', {})
-        merge_export_config = workflow_dag.get('step_4_merge_and_export', {})
-        sql_config = merge_export_config.get('sql_database', {})
-        
-        if not sql_config.get('enabled', False):
-            print("  SQL database export disabled in configuration, skipping...")
-            return
-        
-        try:
-            import sqlite3
-        except ImportError:
-            print("  Warning: sqlite3 not available, skipping SQL export")
-            return
-        
-        # Get database configuration
-        db_type = sql_config.get('database_type', 'sqlite')
-        db_path = Path(sql_config.get('database_path', './output_SECOS_VS/hyfi_results.db'))
-        
-        # Ensure the database directory exists
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Create absolute path if relative
-        if not db_path.is_absolute():
-            db_path = Path(self.config.output_directory) / db_path
-        
-        print(f"  Database: {db_path}")
-        
-        # Connect to database
-        conn = sqlite3.connect(str(db_path))
-        cursor = conn.cursor()
-        
-        # Create tables
-        self._create_sql_tables(cursor, sql_config)
-        
-        # Export enriched catalog (all events with clustering and analysis results)
-        if 'enriched_catalog' in self.aggregated_results:
-            self._export_enriched_catalog_to_sql(cursor, self.aggregated_results['enriched_catalog'])
-        
-        # Export cluster statistics
-        if 'sequence_statistics' in self.aggregated_results:
-            self._export_sequence_statistics_to_sql(cursor, self.aggregated_results['sequence_statistics'])
-        
-        # Export fault planes
-        if 'combined_fault_planes' in self.aggregated_results:
-            self._export_fault_planes_to_sql(cursor, self.aggregated_results['combined_fault_planes'])
-        
-        # Export clustering details
-        if 'clustering_details' in self.aggregated_results:
-            self._export_clustering_details_to_sql(cursor, self.aggregated_results['clustering_details'])
-        
-        # Commit and close
-        conn.commit()
-        conn.close()
-        
-        print(f"  SQL database export completed: {db_path}")
-    
-    def _create_sql_tables(self, cursor, sql_config):
-        """Create SQL tables for storing results."""
-        
-        # Table for enriched event catalog
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS events (
-                id INTEGER PRIMARY KEY,
-                event_id INTEGER,
-                lat REAL,
-                lon REAL,
-                depth REAL,
-                x REAL,
-                y REAL,
-                z REAL,
-                ex REAL,
-                ey REAL,
-                ez REAL,
-                year INTEGER,
-                month INTEGER,
-                day INTEGER,
-                hour INTEGER,
-                minute INTEGER,
-                second REAL,
-                magnitude REAL,
-                cluster_label TEXT,
-                segmentation_level TEXT,
-                fault_plane_azimuth REAL,
-                fault_plane_dip REAL,
-                fault_plane_strike REAL,
-                normal_vector_x REAL,
-                normal_vector_y REAL,
-                normal_vector_z REAL,
-                clustering_quality_r REAL,
-                clustering_quality_n REAL,
-                clustering_quality_ratio REAL,
-                kent_kappa REAL,
-                kent_beta REAL,
-                nr_fault_fits INTEGER,
-                effective_normal_stress REAL,
-                shear_stress REAL,
-                rake_angle REAL,
-                instability_index REAL,
-                slip_tendency REAL,
-                dilation_tendency REAL,
-                analysis_status TEXT,
-                fault_network_outlier INTEGER
-            )
-        ''')
-        
-        # Table for cluster statistics
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS sequence_statistics (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sequence_name TEXT UNIQUE,
-                n_events INTEGER,
-                n_fault_planes INTEGER,
-                execution_status TEXT,
-                runtime_seconds REAL,
-                nodes_executed TEXT
-            )
-        ''')
-        
-        # Table for fault planes
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS fault_planes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sequence_name TEXT,
-                event_id INTEGER,
-                azimuth REAL,
-                dip REAL,
-                strike REAL,
-                normal_x REAL,
-                normal_y REAL,
-                normal_z REAL,
-                r_value REAL,
-                n_value REAL,
-                kappa REAL,
-                beta REAL
-            )
-        ''')
-        
-        # Table for clustering details
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS clustering_summary (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                total_sequences INTEGER,
-                total_events_clustered INTEGER,
-                final_outliers INTEGER,
-                outlier_ratio REAL,
-                segmentation_steps TEXT
-            )
-        ''')
-        
-        print("  Created SQL tables: events, sequence_statistics, fault_planes, clustering_summary")
-    
-    def _export_enriched_catalog_to_sql(self, cursor, enriched_catalog):
-        """Export enriched catalog to SQL database."""
-        print("  Exporting enriched catalog to SQL...")
-        
-        # Select relevant columns
-        columns_to_export = [
-            'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'EX', 'EY', 'EZ',
-            'YR', 'MO', 'DY', 'HR', 'MI', 'SC', 'MAG',
-            'sequence_label', 'segmentation_level',
-            'rupture_plane_azimuth', 'rupture_plane_dip', 'rupture_plane_strike',
-            'normal_vector_x', 'normal_vector_y', 'normal_vector_z',
-            'nvector_quality_R', 'nvector_quality_N', 'nvector_quality_ratio',
-            'kent_kappa', 'kent_beta', 'nr_rupt_fits',
-            'effective_normal_stress', 'shear_stress', 'rake_angle',
-            'instability_index', 'slip_tendency', 'dilation_tendency',
-            'analysis_status', 'sequence_outlier'
-        ]
-        
-        # Filter to only columns that exist
-        available_columns = [col for col in columns_to_export if col in enriched_catalog.columns]
-        
-        # Prepare data for insertion
-        for _, row in enriched_catalog.iterrows():
-            values = []
-            for col in available_columns:
-                val = row[col]
-                # Handle NaN values
-                if pd.isna(val):
-                    values.append(None)
-                else:
-                    values.append(val)
-            
-            # Build SQL insert statement
-            placeholders = ','.join(['?' for _ in available_columns])
-            sql_columns = ','.join([col.lower().replace('/', '_') for col in available_columns])
-            
-            cursor.execute(f'''
-                INSERT OR REPLACE INTO events ({sql_columns})
-                VALUES ({placeholders})
-            ''', values)
-        
-        print(f"    Exported {len(enriched_catalog)} events to SQL database")
-    
-    def _export_sequence_statistics_to_sql(self, cursor, sequence_statistics):
-        """Export cluster statistics to SQL database."""
-        print("  Exporting cluster statistics to SQL...")
-        
-        for sequence_name, stats in sequence_statistics.items():
-            cursor.execute('''
-                INSERT OR REPLACE INTO sequence_statistics 
-                (sequence_name, n_events, n_fault_planes, execution_status, runtime_seconds, nodes_executed)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-                sequence_name,
-                stats.get('input_events', 0),
-                stats.get('n_fault_planes', 0),
-                stats.get('status', 'unknown'),
-                stats.get('runtime_seconds', 0),
-                ','.join(stats.get('nodes_executed', []))
-            ))
-        
-        print(f"    Exported statistics for {len(sequence_statistics)} clusters")
-    
-    def _export_fault_planes_to_sql(self, cursor, fault_planes):
-        """Export fault planes to SQL database."""
-        print("  Exporting fault planes to SQL...")
-        
-        for _, row in fault_planes.iterrows():
-            cursor.execute('''
-                INSERT INTO fault_planes 
-                (sequence_name, event_id, azimuth, dip, strike, normal_x, normal_y, normal_z, 
-                 r_value, n_value, kappa, beta)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                row.get('source_cluster', 'unknown'),
-                row.get('ID', None),
-                row.get('rupt_plane_azi', None),
-                row.get('rupt_plane_dip', None),
-                row.get('rupt_plane_azi', None) - 90 if pd.notna(row.get('rupt_plane_azi')) else None,  # Strike
-                row.get('nor_x_mean', None),
-                row.get('nor_y_mean', None),
-                row.get('nor_z_mean', None),
-                row.get('R', None),
-                row.get('N', None),
-                row.get('kappa', None),
-                row.get('beta', None)
-            ))
-        
-        print(f"    Exported {len(fault_planes)} fault planes")
-    
-    def _export_clustering_details_to_sql(self, cursor, clustering_details):
-        """Export clustering details to SQL database."""
-        print("  Exporting clustering details to SQL...")
-        
-        # Format step results as JSON string
-        import json
-        step_results_str = json.dumps(clustering_details.get('step_results', {}))
-        
-        cursor.execute('''
-            INSERT INTO clustering_summary 
-            (total_sequences, total_events_clustered, final_outliers, outlier_ratio, segmentation_steps)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (
-            clustering_details.get('total_sequences', 0),
-            clustering_details.get('total_events_clustered', 0),
-            clustering_details.get('final_outliers', 0),
-            clustering_details.get('outlier_ratio', 0.0),
-            step_results_str
-        ))
-        
-        print("    Exported clustering summary")
     
     def _create_multi_sequence_visualizations(self):
         """Create visualizations combining results from all sequences."""

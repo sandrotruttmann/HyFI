@@ -351,6 +351,101 @@ def plane_normal_to_azidip(nor_x, nor_y, nor_z):
     return(azi, dip)
 
 
+def circular_mean_azimuth(azimuths):
+    """
+    Calculate circular mean of azimuth angles (0-360°).
+    
+    Uses vector averaging to properly handle circular nature of angles.
+    For example, the mean of 5° and 355° is 0°, not 180°.
+    
+    Parameters
+    ----------
+    azimuths : array-like
+        Array of azimuth values in degrees (0-360)
+        
+    Returns
+    -------
+    float or None
+        Circular mean azimuth in degrees (0-360), or None if input is empty/all NaN
+    """
+    azimuths = np.array(azimuths)
+    # Remove NaN values
+    azimuths = azimuths[~np.isnan(azimuths)]
+    
+    if len(azimuths) == 0:
+        return None
+    
+    # Convert to radians
+    angles_rad = np.radians(azimuths)
+    
+    # Calculate mean of unit vectors
+    mean_x = np.mean(np.sin(angles_rad))
+    mean_y = np.mean(np.cos(angles_rad))
+    
+    # Convert back to angle
+    mean_angle = np.degrees(np.arctan2(mean_x, mean_y))
+    
+    # Ensure result is in [0, 360) range
+    return float(mean_angle % 360)
+
+
+def circular_mean_orientation_from_azimuth_dip(azimuths, dips):
+    """
+    Calculate mean orientation by averaging normal vectors, then converting back.
+    
+    This is the proper way to average fault plane orientations, as it accounts
+    for the 3D geometry and avoids circular statistics issues.
+    
+    Parameters
+    ----------
+    azimuths : array-like
+        Array of azimuth values in degrees (0-360)
+    dips : array-like
+        Array of dip values in degrees (0-90)
+        
+    Returns
+    -------
+    tuple of (float, float) or (None, None)
+        Mean azimuth and dip in degrees, or (None, None) if input is empty/all NaN
+    """
+    azimuths = np.array(azimuths)
+    dips = np.array(dips)
+    
+    # Remove NaN values
+    valid_mask = ~(np.isnan(azimuths) | np.isnan(dips))
+    azimuths = azimuths[valid_mask]
+    dips = dips[valid_mask]
+    
+    if len(azimuths) == 0:
+        return None, None
+    
+    # Convert azimuth/dip to normal vectors
+    normals = []
+    for azi, dip in zip(azimuths, dips):
+        # Convert to radians
+        azi_rad = np.radians(azi)
+        dip_rad = np.radians(dip)
+        
+        # Calculate normal vector (pointing upward)
+        # Dip direction is the azimuth, dip angle is measured from horizontal
+        nx = np.sin(dip_rad) * np.sin(azi_rad)
+        ny = np.sin(dip_rad) * np.cos(azi_rad)
+        nz = np.cos(dip_rad)
+        
+        normals.append([nx, ny, nz])
+    
+    # Average the normal vectors
+    mean_normal = np.mean(normals, axis=0)
+    
+    # Normalize
+    mean_normal = mean_normal / np.linalg.norm(mean_normal)
+    
+    # Convert back to azimuth/dip
+    mean_azi, mean_dip = plane_normal_to_azidip(mean_normal[0], mean_normal[1], mean_normal[2])
+    
+    return float(mean_azi), float(mean_dip)
+
+
 def angle_between(v1, v2):
     """
     Return the angle in degrees between two vectors.

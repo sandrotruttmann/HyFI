@@ -1012,8 +1012,9 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                     azimuth = np.degrees(np.arctan2(nx, ny)) % 360
                     azimuths.append(azimuth)
                 
-                mesh_mean_dip = float(np.nanmean(dips)) if dips else None
-                mesh_mean_azimuth = float(np.nanmean(azimuths)) if azimuths else None
+                # Use proper circular statistics for orientation
+                from hyfi.utils.utilities import circular_mean_orientation_from_azimuth_dip
+                mesh_mean_azimuth, mesh_mean_dip = circular_mean_orientation_from_azimuth_dip(azimuths, dips)
             
             # Determine VTP filename (matches export logic)
             cluster_id_str = str(mesh_info['cluster_id'])
@@ -1021,6 +1022,15 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 vtp_filename = f"fault_{cluster_id_str}.vtp"
             else:
                 vtp_filename = f"fault_{mesh_info['fault_idx'] + 1}.vtp"  # Add 1 to start from 1 instead of 0
+            
+            # Calculate rupture plane mean orientation using circular statistics
+            from hyfi.utils.utilities import circular_mean_orientation_from_azimuth_dip
+            rupture_mean_azimuth, rupture_mean_dip = None, None
+            if 'rupt_plane_azi' in cluster_data.columns and 'rupt_plane_dip' in cluster_data.columns:
+                rupture_mean_azimuth, rupture_mean_dip = circular_mean_orientation_from_azimuth_dip(
+                    cluster_data['rupt_plane_azi'].values,
+                    cluster_data['rupt_plane_dip'].values
+                )
             
             metadata = {
                 'fault_system_id': str(fs_id) if not pd.isna(fs_id) else None,
@@ -1035,8 +1045,9 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 'centroid_x': float(cluster_data['X'].mean()) if 'X' in cluster_data.columns else None,
                 'centroid_y': float(cluster_data['Y'].mean()) if 'Y' in cluster_data.columns else None,
                 'centroid_z': float(cluster_data['Z'].mean()) if 'Z' in cluster_data.columns else None,
-                'rupture_mean_dip': float(cluster_data['rupt_plane_dip'].mean()) if 'rupt_plane_dip' in cluster_data.columns else None,
-                'rupture_mean_azimuth': float(cluster_data['rupt_plane_azi'].mean()) if 'rupt_plane_azi' in cluster_data.columns else None,
+                # Geometric properties from rupture planes: mean orientation using circular statistics
+                'rupture_mean_azimuth': rupture_mean_azimuth,
+                'rupture_mean_dip': rupture_mean_dip,
                 # Geometric properties from interpolated mesh: mean values from face normals
                 'mesh_mean_dip': mesh_mean_dip,
                 'mesh_mean_azimuth': mesh_mean_azimuth,
