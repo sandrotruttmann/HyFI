@@ -961,24 +961,98 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         
         if len(cluster_data) > 0:
             # Only create metadata for successfully interpolated fault systems
+            
+            # Extract stress analysis results from original rupture planes (mean of rupture plane values)
+            rupture_mean_instability = None
+            rupture_mean_sliptend = None
+            rupture_mean_dilatend = None
+            if 'instab' in cluster_data.columns:
+                rupture_mean_instability = float(cluster_data['instab'].mean()) if not cluster_data['instab'].isna().all() else None
+            if 'sliptend' in cluster_data.columns:
+                rupture_mean_sliptend = float(cluster_data['sliptend'].mean()) if not cluster_data['sliptend'].isna().all() else None
+            if 'dilatend' in cluster_data.columns:
+                rupture_mean_dilatend = float(cluster_data['dilatend'].mean()) if not cluster_data['dilatend'].isna().all() else None
+            
+            # Extract stress analysis results from interpolated mesh faces (mean of cell data)
+            mesh_mean_instability = None
+            mesh_mean_sliptend = None
+            mesh_mean_dilatend = None
+            if 'instab' in mesh_info['mesh'].cell_data:
+                mesh_mean_instability = float(np.nanmean(mesh_info['mesh'].cell_data['instab']))
+            if 'sliptend' in mesh_info['mesh'].cell_data:
+                mesh_mean_sliptend = float(np.nanmean(mesh_info['mesh'].cell_data['sliptend']))
+            if 'dilatend' in mesh_info['mesh'].cell_data:
+                mesh_mean_dilatend = float(np.nanmean(mesh_info['mesh'].cell_data['dilatend']))
+            
+            # Extract orientation from interpolated mesh faces (mean of normals converted to dip/azimuth)
+            mesh_mean_dip = None
+            mesh_mean_azimuth = None
+            if mesh_info['mesh'].n_cells > 0:
+                # Compute normals if not present
+                temp_mesh = mesh_info['mesh'].copy()
+                if 'Normals' not in temp_mesh.cell_data:
+                    temp_mesh = temp_mesh.compute_normals(cell_normals=True, point_normals=False)
+                
+                face_normals = temp_mesh.cell_data['Normals']
+                dips = []
+                azimuths = []
+                
+                for normal in face_normals:
+                    nx, ny, nz = normal[0], normal[1], normal[2]
+                    
+                    # Ensure normal points upward
+                    if nz < 0:
+                        nx, ny, nz = -nx, -ny, -nz
+                    
+                    # Calculate dip (angle from horizontal)
+                    dip = np.degrees(np.arccos(np.clip(nz, -1, 1)))
+                    dips.append(dip)
+                    
+                    # Calculate dip direction (azimuth)
+                    azimuth = np.degrees(np.arctan2(nx, ny)) % 360
+                    azimuths.append(azimuth)
+                
+                mesh_mean_dip = float(np.nanmean(dips)) if dips else None
+                mesh_mean_azimuth = float(np.nanmean(azimuths)) if azimuths else None
+            
+            # Determine VTP filename (matches export logic)
+            cluster_id_str = str(mesh_info['cluster_id'])
+            if cluster_id_str.startswith('F') and cluster_id_str != 'F_noise':
+                vtp_filename = f"fault_{cluster_id_str}.vtp"
+            else:
+                vtp_filename = f"fault_{mesh_info['fault_idx'] + 1}.vtp"  # Add 1 to start from 1 instead of 0
+            
             metadata = {
                 'fault_system_id': str(fs_id) if not pd.isna(fs_id) else None,
-                'sequence_label': sequence_label,
                 'segmentation_level': segmentation_level,
+                'sequence_label': sequence_label,
+                'vtp_file': f"{sequence_label}/vtp_export/{vtp_filename}" if sequence_label else f"vtp_export/{vtp_filename}",  # Relative path from output directory
                 'orientation_cluster': int(cluster_data['orient_cluster'].iloc[0]) if 'orient_cluster' in cluster_data.columns and not pd.isna(cluster_data['orient_cluster'].iloc[0]) else None,
                 'spatial_cluster': int(cluster_data['spatial_cluster'].iloc[0]) if 'spatial_cluster' in cluster_data.columns and not pd.isna(cluster_data['spatial_cluster'].iloc[0]) else None,
                 'n_rupture_planes': len(cluster_data),
                 'n_events': int(cluster_data['N'].sum()) if 'N' in cluster_data.columns else len(cluster_data),
+                # Geometric properties from original rupture planes: mean values
                 'centroid_x': float(cluster_data['X'].mean()) if 'X' in cluster_data.columns else None,
                 'centroid_y': float(cluster_data['Y'].mean()) if 'Y' in cluster_data.columns else None,
                 'centroid_z': float(cluster_data['Z'].mean()) if 'Z' in cluster_data.columns else None,
-                'mean_strike': float(cluster_data['rupt_plane_strike'].mean()) if 'rupt_plane_strike' in cluster_data.columns else None,
-                'mean_dip': float(cluster_data['rupt_plane_dip'].mean()) if 'rupt_plane_dip' in cluster_data.columns else None,
-                'mean_azimuth': float(cluster_data['rupt_plane_azi'].mean()) if 'rupt_plane_azi' in cluster_data.columns else None,
+                'rupture_mean_dip': float(cluster_data['rupt_plane_dip'].mean()) if 'rupt_plane_dip' in cluster_data.columns else None,
+                'rupture_mean_azimuth': float(cluster_data['rupt_plane_azi'].mean()) if 'rupt_plane_azi' in cluster_data.columns else None,
+                # Geometric properties from interpolated mesh: mean values from face normals
+                'mesh_mean_dip': mesh_mean_dip,
+                'mesh_mean_azimuth': mesh_mean_azimuth,
+                # Mesh properties: from interpolated surface
                 'interpolated_mesh_area_m2': mesh_info.get('area_m2'),
                 'max_magnitude_leonard2014': mesh_info.get('max_Mw'),
                 'mesh_vertices': mesh_info['mesh'].n_points,
                 'mesh_faces': mesh_info['mesh'].n_cells,
+                # Stress properties from rupture planes: mean values from original rupture planes
+                'rupture_mean_instability': rupture_mean_instability,
+                'rupture_mean_sliptend': rupture_mean_sliptend,
+                'rupture_mean_dilatend': rupture_mean_dilatend,
+                # Stress properties from mesh: mean values from interpolated mesh faces
+                'mesh_mean_instability': mesh_mean_instability,
+                'mesh_mean_sliptend': mesh_mean_sliptend,
+                'mesh_mean_dilatend': mesh_mean_dilatend,
             }
             fault_system_metadata.append(metadata)
     
@@ -1604,8 +1678,8 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
         if cluster_id.startswith('F') and cluster_id != 'F_noise':
             filename = f"fault_{cluster_id}.vtp"
         else:
-            # Fallback to original naming for legacy formats
-            filename = f"fault_{fault_idx}.vtp"
+            # Use fault_idx + 1 to start numbering from 1
+            filename = f"fault_{fault_idx + 1}.vtp"
         
         filepath = os.path.join(vtp_dir, filename)
         mesh.save(filepath)

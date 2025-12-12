@@ -614,8 +614,6 @@ def calculate_mesh_stress(mesh, stress_params):
     face_normals = mesh.cell_data['Normals']
     n_faces = len(face_normals)
     
-    print(f"Calculating stress for {n_faces} mesh faces...")
-    
     # Define relative stress magnitudes
     S1_mag = 1
     S2_mag = 1 - (2*stress_R)

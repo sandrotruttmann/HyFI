@@ -246,7 +246,7 @@ class MultiSequenceWorkflow:
                 )
                 sequence_results = executor.execute()
                 
-                # Update global counter and collect metadata
+                # Collect metadata (will be renumbered later for continuous IDs)
                 if 'fault_system_metadata' in sequence_results:
                     self.fault_system_metadata.extend(sequence_results['fault_system_metadata'])
                 if 'next_fault_counter' in sequence_results:
@@ -384,8 +384,10 @@ class MultiSequenceWorkflow:
                                 copied_config = copy.deepcopy(sub_node_config)
                                 
                                 # Flatten nested parameter structures for backward compatibility
+                                # BUT: Don't flatten stress_analysis or visualization parameters - they need nested structure
                                 if isinstance(copied_config, dict) and 'parameters' in copied_config:
-                                    copied_config['parameters'] = self._flatten_nested_params(copied_config['parameters'])
+                                    if sub_node_name not in ['stress_analysis', 'visualization']:
+                                        copied_config['parameters'] = self._flatten_nested_params(copied_config['parameters'])
                                 
                                 dag_dict['workflow_dag'][sub_node_name] = copied_config
                     else:
@@ -727,7 +729,17 @@ class MultiSequenceWorkflow:
         print(f"  Fault network outliers: {outlier_events} ({outlier_events/total_events:.1%})")
     
     def _export_fault_system_metadata(self):
-        """Export comprehensive fault system metadata to CSV."""
+        """Export comprehensive fault system metadata to CSV with continuous numbering.
+        
+        The exported database contains:
+        - Geometric properties: Both from original rupture planes AND interpolated mesh faces
+          * rupture_mean_* : Mean of orientation values from original rupture planes
+          * mesh_mean_* : Mean of orientation values calculated from interpolated mesh face normals
+        - Stress properties: Both from original rupture planes AND interpolated mesh faces
+          * rupture_mean_* : Mean of stress values calculated on original rupture planes
+          * mesh_mean_* : Mean of stress values calculated on interpolated mesh faces
+        - Mesh properties: From the interpolated fault surface mesh
+        """
         print("Exporting fault system metadata...")
         
         if not self.fault_system_metadata:
@@ -740,22 +752,73 @@ class MultiSequenceWorkflow:
         # Convert to DataFrame
         df_metadata = pd.DataFrame(self.fault_system_metadata)
         
-        # Sort by fault_system_id
+        # Sort by original fault_system_id to maintain sequence order
         df_metadata = df_metadata.sort_values('fault_system_id')
         
-        # Add additional computed fields if possible
-        if 'mean_strike' in df_metadata.columns and 'mean_dip' in df_metadata.columns:
-            df_metadata['fault_orientation'] = df_metadata.apply(
-                lambda row: f"Strike: {row['mean_strike']:.1f}°, Dip: {row['mean_dip']:.1f}°" 
-                if not pd.isna(row['mean_strike']) and not pd.isna(row['mean_dip']) else None,
-                axis=1
-            )
+        # Renumber fault systems continuously (FS0001, FS0002, FS0003...)
+        print("  Renumbering fault systems continuously...")
+        old_to_new_id_map = {}
+        for i, old_id in enumerate(df_metadata['fault_system_id'].values, start=1):
+            new_id = f"FS{i:04d}"
+            old_to_new_id_map[old_id] = new_id
+        
+        df_metadata['fault_system_id'] = df_metadata['fault_system_id'].map(old_to_new_id_map)
+        
+        # Add orientation and stress analysis results if not available (for backward compatibility)
+        orientation_stress_columns = [
+            'vtp_file',
+            'rupture_mean_dip', 'rupture_mean_azimuth',
+            'mesh_mean_dip', 'mesh_mean_azimuth',
+            'rupture_mean_instability', 'rupture_mean_sliptend', 'rupture_mean_dilatend',
+            'mesh_mean_instability', 'mesh_mean_sliptend', 'mesh_mean_dilatend'
+        ]
+        for col in orientation_stress_columns:
+            if col not in df_metadata.columns:
+                df_metadata[col] = None
+        
+        # Rename columns to match requested naming
+        column_mapping = {
+            'interpolated_mesh_area_m2': 'mesh_area_m2',
+            'max_magnitude_leonard2014': 'max_mag',
+            'mesh_vertices': 'mesh_vertices',
+            'mesh_faces': 'mesh_faces'
+        }
+        df_metadata = df_metadata.rename(columns=column_mapping)
+        
+        # Select only requested columns in specified order
+        requested_columns = [
+            'fault_system_id', 'segmentation_level', 'sequence_label', 'vtp_file',
+            'n_events',
+            'centroid_x', 'centroid_y', 'centroid_z',
+            'rupture_mean_azimuth', 'rupture_mean_dip',
+            'mesh_mean_azimuth', 'mesh_mean_dip',
+            'mesh_area_m2', 'max_mag', 
+            'mesh_vertices', 'mesh_faces',
+            'rupture_mean_instability', 'rupture_mean_sliptend', 'rupture_mean_dilatend',
+            'mesh_mean_instability', 'mesh_mean_sliptend', 'mesh_mean_dilatend'
+        ]
+        
+        # Only keep columns that exist in the dataframe
+        available_columns = [col for col in requested_columns if col in df_metadata.columns]
+        df_metadata = df_metadata[available_columns]
+        
+        # Round numeric columns to 2 decimal places (except centroids and integer columns)
+        columns_to_round = [
+            'rupture_mean_azimuth', 'rupture_mean_dip',
+            'mesh_mean_azimuth', 'mesh_mean_dip',
+            'mesh_area_m2', 'max_mag',
+            'rupture_mean_instability', 'rupture_mean_sliptend', 'rupture_mean_dilatend',
+            'mesh_mean_instability', 'mesh_mean_sliptend', 'mesh_mean_dilatend'
+        ]
+        for col in columns_to_round:
+            if col in df_metadata.columns:
+                df_metadata[col] = df_metadata[col].round(2)
         
         # Export to CSV
         df_metadata.to_csv(metadata_file, index=False)
         
         print(f"  Active faults database exported: {metadata_file}")
-        print(f"  Total active fault systems: {len(df_metadata)}")
+        print(f"  Total active fault systems: {len(df_metadata)} (continuously numbered FS0001-FS{len(df_metadata):04d})")
         
         # Print summary by sequence
         if 'sequence_label' in df_metadata.columns:

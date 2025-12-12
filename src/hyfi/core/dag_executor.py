@@ -623,10 +623,6 @@ class DAGExecutor:
                         df_hyfi, viz_params
                     )
                     
-                    # Store interpolation metadata (only for successfully interpolated fault systems)
-                    if interpolation_metadata:
-                        self.fault_system_metadata.extend(interpolation_metadata)
-                    
                     # Calculate stress on mesh faces if enabled and stress data available
                     if viz_params.get('enable_mesh_stress', False) and combined_mesh is not None:
                         # Get stress parameters from stress_analysis results
@@ -666,10 +662,30 @@ class DAGExecutor:
                                     for mesh_info in individual_meshes:
                                         if mesh_info['mesh'].n_cells > 0:
                                             mesh_info['mesh'] = calculate_mesh_stress(mesh_info['mesh'], stress_params)
+                                    
+                                    # Update metadata with mesh stress values (after stress calculation)
+                                    if interpolation_metadata and individual_meshes:
+                                        for metadata_entry in interpolation_metadata:
+                                            # Find corresponding mesh by vtp_file path
+                                            vtp_file = metadata_entry.get('vtp_file', '')
+                                            for mesh_info in individual_meshes:
+                                                if vtp_file.endswith(f"fault_{mesh_info['cluster_id']}.vtp"):
+                                                    # Extract stress values from mesh cell data
+                                                    if 'instab' in mesh_info['mesh'].cell_data:
+                                                        metadata_entry['mesh_mean_instability'] = float(np.nanmean(mesh_info['mesh'].cell_data['instab']))
+                                                    if 'sliptend' in mesh_info['mesh'].cell_data:
+                                                        metadata_entry['mesh_mean_sliptend'] = float(np.nanmean(mesh_info['mesh'].cell_data['sliptend']))
+                                                    if 'dilatend' in mesh_info['mesh'].cell_data:
+                                                        metadata_entry['mesh_mean_dilatend'] = float(np.nanmean(mesh_info['mesh'].cell_data['dilatend']))
+                                                    break
                                 else:
                                     logger.info("Stress parameters incomplete - skipping mesh stress calculation")
                             else:
                                 logger.info("Stress analysis not enabled - skipping mesh stress calculation")
+                    
+                    # Store interpolation metadata (after stress calculation)
+                    if interpolation_metadata:
+                        self.fault_system_metadata.extend(interpolation_metadata)
                     
                     # Export to VTK if requested
                     if viz_params.get('export_vtp', False) and combined_mesh is not None:
