@@ -169,8 +169,6 @@ class VisualizationNode:
                 "n_spatial_clusters": 2,
                 "min_events_per_cluster": 10,
                 "export_interpolated_vtp": True,
-                "export_time_series": False,
-                "time_step_hours": 24,
                 # Mesh stress calculation
                 "enable_mesh_stress": True,
                 "mesh_subdivisions": 2

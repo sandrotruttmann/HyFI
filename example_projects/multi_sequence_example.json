@@ -161,15 +161,9 @@
             "spatial_clustering_method": "adaptive",
             "min_events_per_cluster": 10
           },
-          "paraview_vtk_export": {
-            "export_vtp": true
-          },
-          "time_series_animation": {
-            "export_time_series": false,
-            "time_step_hours": 24
-          },
-          "geographic_export": {
-            "export_kml": false
+          "3d_export": {
+            "export_vtp": true,
+            "export_obj": false
           }
         }
       }

@@ -89,9 +89,7 @@
         "density_threshold": 0.01,
         "max_distance_factor": 2.5,
         "export_vtp": true,
-        "export_time_series": false,
-        "time_step_hours": 24,
-        "export_kml": false
+        "export_obj": false
       }
     }
   }

@@ -204,23 +204,10 @@ def dag_params_to_legacy_params(dag, node_id):
                 'min_events_per_cluster': interpolation.get('min_events_per_cluster', vis_params.get('min_events_per_cluster', 10)),
             })
             
-            # ParaView/VTK export parameters
-            vtk_export = vis_params.get('paraview_vtk_export', {})
+            # 3D export parameters
+            vtk_export = vis_params.get('3d_export', {})
             input_params.update({
                 'export_vtp': vtk_export.get('export_vtp', vis_params.get('export_vtp', True)),
-            })
-            
-            # Time series animation parameters
-            time_series = vis_params.get('time_series_animation', {})
-            input_params.update({
-                'export_time_series': time_series.get('export_time_series', vis_params.get('export_time_series', False)),
-                'time_step_hours': time_series.get('time_step_hours', vis_params.get('time_step_hours', 24)),
-            })
-            
-            # Geographic export parameters
-            geo_export = vis_params.get('geographic_export', {})
-            input_params.update({
-                'export_kml': geo_export.get('export_kml', vis_params.get('export_kml', False)),
             })
     
     return input_params

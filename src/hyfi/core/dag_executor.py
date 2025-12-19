@@ -94,7 +94,7 @@ class DAGExecutor:
         
         # Check if parameters are nested (new structure)
         nested_groups = ['basic_visualization', 'fault_surface_interpolation', 
-                        'paraview_vtk_export', 'time_series_animation', 'geographic_export']
+                        '3d_export']
         
         is_nested = any(group in params for group in nested_groups)
         
@@ -693,17 +693,14 @@ class DAGExecutor:
                         visualisation.export_interpolated_planes_vtp(
                             combined_mesh, individual_meshes, point_cloud, output_dir, fault_disc_meshes, df_hyfi,
                             use_focal_constraints=input_params.get('use_focal_constraints', False),
-                            export_time_series=viz_params.get('export_time_series', False),
-                            time_step_hours=viz_params.get('time_step_hours', 24)
+                            export_obj=viz_params.get('export_obj', False)
                         )
                     elif viz_params.get('export_vtp', False):
                         # Export basic VTP even without interpolated meshes
                         output_dir = input_params.get('out_dir', str(self.output_dir))
                         visualisation.export_basic_vtp(
                             df_hyfi, output_dir, fault_disc_meshes,
-                            use_focal_constraints=input_params.get('use_focal_constraints', False),
-                            export_time_series=viz_params.get('export_time_series', False),
-                            time_step_hours=viz_params.get('time_step_hours', 24)
+                            use_focal_constraints=input_params.get('use_focal_constraints', False)
                         )
                                         
                 except Exception as e:

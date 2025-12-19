@@ -1128,7 +1128,7 @@ def export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, ou
             except Exception as e:
                 print(f"  Warning: Could not remove {old_file}: {e}")
     
-    # Export combined fault mesh
+    # Export combined fault mesh only (not individual faults)
     if combined_mesh is not None and combined_mesh.n_points > 0:
         try:
             # PyVista can save directly as .obj using the file extension
@@ -1137,28 +1137,7 @@ def export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, ou
             print(f"  ✓ Saved combined fault mesh: faults_compiled.obj ({combined_mesh.n_points} vertices, {combined_mesh.n_cells} faces)")
         except Exception as e:
             print(f"  Warning: Could not export combined fault mesh as OBJ: {e}")
-    
-    # Export individual fault meshes
-    if individual_meshes:
-        print(f"  Exporting {len(individual_meshes)} individual fault meshes...")
-        for mesh_info in individual_meshes:
-            try:
-                mesh = mesh_info['mesh']
-                cluster_id = mesh_info['cluster_id']
-                
-                # Use F-based cluster naming for consistency
-                if cluster_id.startswith('F') and cluster_id != 'F_noise':
-                    filename = f"fault_{cluster_id}.obj"
-                else:
-                    fault_idx = mesh_info['fault_idx']
-                    filename = f"fault_{fault_idx}.obj"
-                
-                filepath = os.path.join(obj_dir, filename)
-                mesh.save(filepath)
-                
-            except Exception as e:
-                print(f"    Warning: Could not export individual fault mesh {cluster_id}: {e}")
-    
+        
     # Export rupture plane meshes (circular discs)
     if fault_disc_meshes is not None and len(fault_disc_meshes) > 0:
         print(f"  Exporting rupture plane meshes...")
@@ -1512,7 +1491,7 @@ def export_meshes_as_ply(combined_mesh, individual_meshes, fault_disc_meshes, po
     print(f"PLY export complete. Files saved to: {ply_dir}")
 
 
-def export_basic_vtp(df_hyfi, output_dir, fault_disc_meshes=None, use_focal_constraints=False, export_time_series=False, time_step_hours=24):
+def export_basic_vtp(df_hyfi, output_dir, fault_disc_meshes=None, use_focal_constraints=False):
     """
     Export basic VTP files (hypocenters, rupture planes, focals, slip vectors) without interpolated meshes.
     
@@ -1529,10 +1508,6 @@ def export_basic_vtp(df_hyfi, output_dir, fault_disc_meshes=None, use_focal_cons
         List of circular disc mesh dictionaries for rupture planes
     use_focal_constraints : bool, default=False
         Whether to also export enhanced focal fault planes
-    export_time_series : bool, default=False
-        Whether to export time series VTP files for ParaView animation
-    time_step_hours : float, default=24
-        Time step in hours for time series export
     """
     print("Exporting basic VTP files (without interpolated meshes)...")
     
@@ -1615,14 +1590,10 @@ def export_basic_vtp(df_hyfi, output_dir, fault_disc_meshes=None, use_focal_cons
     if df_hyfi is not None:
         export_slip_vectors_vtp(df_hyfi, output_dir)
     
-    # Export time series if requested
-    if export_time_series and df_hyfi is not None:
-        export_hypo_time_series(df_hyfi, output_dir, time_step_hours)
-    
     print(f"Basic VTP export complete. Files saved to: {vtp_dir}")
 
 
-def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud, output_dir, fault_disc_meshes=None, df_hyfi=None, use_focal_constraints=False, export_time_series=False, time_step_hours=24):
+def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud, output_dir, fault_disc_meshes=None, df_hyfi=None, use_focal_constraints=False, export_obj=False):
     """
     Export interpolated planes, original hypocenters, and circular disc meshes as VTP files.
     
@@ -1642,10 +1613,8 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
         Original hypocenter dataframe for creating hypocenter point cloud
     use_focal_constraints : bool, default=False
         Whether to also export enhanced focal fault planes
-    export_time_series : bool, default=False
-        Whether to export time series VTP files for ParaView animation
-    time_step_hours : float, default=24
-        Time step in hours for time series export (24 = daily, 168 = weekly)
+    export_obj : bool, default=False
+        Whether to export meshes as OBJ files
     """
     if combined_mesh is None:
         return
@@ -1870,15 +1839,9 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
     if df_hyfi is not None:
         export_slip_vectors_vtp(df_hyfi, output_dir)
     
-    # Export time series VTP files if requested and available
-    if export_time_series and df_hyfi is not None:
-        export_hypo_time_series(df_hyfi, output_dir, time_step_hours)
-    
-    # Export as OBJ files
-    export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, output_dir, df_hyfi)
-    
-    # Export as PLY files
-    export_meshes_as_ply(combined_mesh, individual_meshes, fault_disc_meshes, point_cloud, output_dir, df_hyfi)
+    # Export as OBJ files if requested
+    if export_obj:
+        export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, output_dir, df_hyfi)
     
     print(f"VTP export complete. Files saved to: {vtp_dir}")
 
@@ -2195,203 +2158,6 @@ def export_enhanced_focal_planes_vtp(df_hyfi, output_dir, use_focal_constraints=
     print(f"Enhanced focal planes VTP export complete. Files saved to: {focal_dir}")
 
 
-def export_hypo_time_series(df_hyfi, output_dir, time_step_hours=24, include_cumulative=True):
-    """
-    Export time series VTP files for interactive temporal visualization in ParaView.
-    
-    Creates a sequence of VTP files that ParaView can animate through, showing
-    earthquake evolution over time. Each file contains earthquakes up to that time step.
-    
-    Parameters
-    ----------
-    df_hyfi : DataFrame
-        Hypocenter dataframe with Date column
-    output_dir : str
-        Output directory path
-    time_step_hours : float, default=24
-        Time step in hours between VTP files (24 = daily, 168 = weekly, etc.)
-    include_cumulative : bool, default=True
-        If True, each file shows all earthquakes up to that time (cumulative)
-        If False, each file shows only earthquakes in that time window
-        
-    Returns
-    -------
-    None
-        Creates numbered VTP files and a .pvd collection file for ParaView
-    """
-    if 'Date' not in df_hyfi.columns or len(df_hyfi) == 0:
-        print("Time series export skipped: No Date column or empty dataframe")
-        return
-        
-    print(f"Exporting time series VTP files (time step: {time_step_hours} hours)...")
-    
-    # Create time series output directory
-    time_series_dir = os.path.join(output_dir, 'vtp_export', 'time_series')
-    os.makedirs(time_series_dir, exist_ok=True)
-    
-    # Prepare data
-    df_sorted = df_hyfi.copy()
-    df_sorted['Date'] = pd.to_datetime(df_sorted['Date'])
-    df_sorted = df_sorted.sort_values('Date').reset_index(drop=True)
-    
-    # Define time range and steps
-    start_time = df_sorted['Date'].min()
-    end_time = df_sorted['Date'].max()
-    time_delta = pd.Timedelta(hours=time_step_hours)
-    
-    # Calculate time steps
-    time_steps = []
-    current_time = start_time
-    while current_time <= end_time:
-        time_steps.append(current_time)
-        current_time += time_delta
-    
-    # Add final time step if needed
-    if time_steps[-1] < end_time:
-        time_steps.append(end_time)
-    
-    print(f"  Creating {len(time_steps)} time steps from {start_time} to {end_time}")
-    
-    # Create ParaView collection file (.pvd)
-    pvd_content = []
-    pvd_content.append('<?xml version="1.0"?>')
-    pvd_content.append('<VTPFile type="Collection" version="0.1" byte_order="LittleEndian" compressor="VTPLZMADataCompressor">')
-    pvd_content.append('  <Collection>')
-    
-    # Track valid files for PVD
-    valid_files = []
-    
-    # Export VTP file for each time step
-    for i, time_step in enumerate(time_steps):
-        if include_cumulative:
-            # Cumulative: all events up to this time
-            mask = df_sorted['Date'] <= time_step
-        else:
-            # Window: only events in this time window
-            if i == 0:
-                mask = df_sorted['Date'] <= time_step
-            else:
-                mask = (df_sorted['Date'] > time_steps[i-1]) & (df_sorted['Date'] <= time_step)
-        
-        events_at_time = df_sorted[mask]
-        
-        if len(events_at_time) == 0:
-            print(f"    Step {i:3d}: No events - skipping")
-            continue
-            
-        # Create point cloud
-        points = events_at_time[['X', 'Y', 'Z']].values.astype(np.float64)
-        pcd = pv.PolyData(points)
-        
-        # Add basic hypocenter data with consistent data types
-        # Convert all arrays to specific data types to avoid ParaView issues
-        for col in ['ID', 'X', 'Y', 'Z']:
-            if col in events_at_time.columns:
-                if col == 'ID':
-                    # IDs as strings (since they can contain letters like 'KP200403251901')
-                    pcd[col] = events_at_time[col].fillna('unknown').astype(str)
-                    # Also create a numeric version for ParaView coloring if needed
-                    unique_ids = events_at_time[col].dropna().unique()
-                    id_map = {event_id: idx for idx, event_id in enumerate(unique_ids)}
-                    numeric_ids = np.array([id_map.get(event_id, -1) for event_id in events_at_time[col].fillna('unknown')], dtype=np.int32)
-                    pcd['ID_numeric'] = numeric_ids
-                else:
-                    # Coordinates as float64
-                    pcd[col] = events_at_time[col].fillna(0.0).astype(np.float64)
-        
-        # Error data (if available)
-        for col in ['EX', 'EY', 'EZ']:
-            if col in events_at_time.columns:
-                pcd[col] = events_at_time[col].fillna(0.0).astype(np.float32)
-        
-        # Magnitude as float32
-        if 'MAG' in events_at_time.columns:
-            pcd['MAG'] = events_at_time['MAG'].fillna(0.0).astype(np.float32)
-        
-        # Add temporal information with consistent data types
-        dates = pd.to_datetime(events_at_time['Date'])
-        min_date = df_sorted['Date'].min()
-        
-        # Days since first event (float32)
-        days_since_first = (dates - min_date).dt.days.values.astype(np.float32)
-        pcd['days_since_first'] = days_since_first
-        
-        # Time step index (int32)
-        pcd['time_step'] = np.full(len(events_at_time), i, dtype=np.int32)
-        
-        # Unix timestamp (float64)
-        unix_timestamps = dates.astype('int64') // 10**9
-        pcd['unix_timestamp'] = unix_timestamps.astype(np.float64)
-        
-        # Add clustering information if available (handle string/NaN values)
-        for col in ['final_cluster_id', 'orient_cluster', 'spatial_cluster']:
-            if col in events_at_time.columns:
-                try:
-                    if col == 'final_cluster_id':
-                        # Convert cluster IDs to strings, handle NaN and None as 'none'
-                        cluster_values = events_at_time[col].replace('None', np.nan).replace([None], np.nan).fillna('none').astype(str)
-                        # Convert to numeric codes for ParaView
-                        unique_clusters = np.unique(cluster_values)
-                        cluster_map = {cluster: idx for idx, cluster in enumerate(unique_clusters)}
-                        numeric_clusters = np.array([cluster_map[c] for c in cluster_values], dtype=np.int32)
-                        pcd[f'{col}_numeric'] = numeric_clusters
-                        # Also keep string version for reference
-                        pcd[f'{col}_string'] = cluster_values
-                    else:
-                        # Numeric cluster columns
-                        pcd[col] = events_at_time[col].fillna(-1).astype(np.int32)
-                except Exception as e:
-                    print(f"    Warning: Could not add {col} to time step {i}: {e}")
-        
-        # Add magnitude and fault plane data if available
-        for col in ['rupt_plane_azi', 'rupt_plane_dip', 'rupt_radius', 'sliptend', 'dilatend']:
-            if col in events_at_time.columns:
-                try:
-                    pcd[col] = events_at_time[col].fillna(0.0).astype(np.float32)
-                except Exception as e:
-                    print(f"    Warning: Could not add {col} to time step {i}: {e}")
-        
-        # Save VTP file
-        filename = f'hypo_step_{i:04d}.vtp'  # Use .vtp (XML PolyData) for ParaView compatibility
-        filepath = os.path.join(time_series_dir, filename)
-        
-        try:
-            # Save as VTP file (XML format) which ParaView handles better
-            pcd.save(filepath)
-            
-            # Add to valid files list
-            time_value = (time_step - start_time).total_seconds() / (24 * 3600)  # Convert to days
-            valid_files.append((time_value, filename, len(events_at_time)))
-            
-            print(f"    Step {i:3d}: {len(events_at_time):4d} events at {time_step.strftime('%Y-%m-%d %H:%M')} (day {time_value:.1f})")
-            
-        except Exception as e:
-            print(f"    Warning: Failed to save time step {i}: {e}")
-            continue
-    
-    # Write PVD collection file only with valid files
-    if valid_files:
-        for time_value, filename, n_events in valid_files:
-            pvd_content.append(f'    <DataSet timestep="{time_value:.6f}" group="" part="0" file="{filename}"/>')
-        
-        # Close PVD file
-        pvd_content.append('  </Collection>')
-        pvd_content.append('</VTPFile>')
-        
-        # Write PVD collection file
-        pvd_file = os.path.join(time_series_dir, 'hypocenters_timeseries.pvd')
-        with open(pvd_file, 'w') as f:
-            f.write('\n'.join(pvd_content))
-        
-        print(f"  Time series export complete!")
-        print(f"  Created {len(valid_files)} valid time steps")
-        print(f"  Files saved to: {time_series_dir}")
-        print(f"  Open '{pvd_file}' in ParaView for interactive time series visualization")
-        print(f"  In ParaView: Use the time controls (play button) to animate through the sequence")
-        print(f"  Recommended coloring: 'days_since_first', 'MAG', or 'final_cluster_id_numeric'")
-    else:
-        print(f"  Warning: No valid time steps created - time series export failed")
-        print(f"  Check your data for Date column and valid coordinates")
 
 
 def export_slip_vectors_vtp(df_hyfi, output_dir):

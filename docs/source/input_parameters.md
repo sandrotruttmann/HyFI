@@ -264,11 +264,12 @@ Visualization and export settings for analysis results.
 | `spatial_clustering_method` | string | `"adaptive"` | Clustering method for interpolation. Options: `"kmeans"`, `"dbscan"`, `"adaptive"` (automatically chooses based on data), `"none"` (no clustering) |
 | `min_events_per_cluster` | integer | `10` | Minimum events required per cluster for interpolation |
 
-### ParaView/VTK Export Parameters
+### 3D Export Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `export_vtp` | boolean | `true` | Export all results to VTP (VTK PolyData) format for visualization in ParaView/Blender |
+| `export_obj` | boolean | `false` | Export meshes as Wavefront OBJ files for 3D modeling software (MOVE, Blender, MeshLab, etc.) |
 
 **Exported VTP Files**:
 - `hypocenters.vtp` - All hypocenter points with attributes
@@ -276,21 +277,6 @@ Visualization and export settings for analysis results.
 - `rupture_planes_combined.vtp` - All rupture plane meshes
 - `focal_planes_combined.vtp` - All focal mechanism planes (if focal constraints enabled)
 - `interpolated_surfaces_*.vtp` - Interpolated fault surfaces (if interpolation enabled)
-
-### Time Series Animation Parameters (!!! NOT WORKING CURRENTLY!)
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `export_time_series` | boolean | `false` | Export time-resolved sequence of hypocenter clouds for temporal animation in ParaView |
-| `time_step_hours` | integer | `24` | Time step for temporal binning in hours. Range: 1-720. Typical values: `24` (daily), `168` (weekly), `720` (monthly) |
-
-**Output**: Creates `vtp_export/time_series/` directory with individual VTP files for each time step and a PVD collection file for animation.
-
-### Geographic Export Parameters (!!! NOT WORKING CURRENTLY!)
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `export_kml` | boolean | `false` | Export results to KML format for Google Earth visualization. **Experimental feature** |
 
 ---
 

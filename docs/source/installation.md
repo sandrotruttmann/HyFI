@@ -127,7 +127,7 @@ Or use Python directly:
 python -m hyfi.cli.main config_TEMPLATE.json
 ```
 
-Check the output directory for results (VTP, OBJ, PLY files, visualizations, etc.).
+Check the output directory for results (VTP, OBJ files, visualizations, etc.).
 
 ---
 
@@ -155,7 +155,7 @@ Check the output directory for results (VTP, OBJ, PLY files, visualizations, etc
    - Color by different attributes (cluster_id, magnitude, depth, etc.)
    - Export images or animations
 
-**Note:** While ParaView is optional, it's highly recommended for interactive 3D exploration of your HyFI results. The OBJ and PLY exports can also be opened in other 3D software like Blender, MeshLab, or CloudCompare.
+**Note:** While ParaView is optional, it's highly recommended for interactive 3D exploration of your HyFI results. The OBJ exports (if enabled) can also be opened in other 3D software like Blender, MeshLab, or CloudCompare.
 
 ---
 

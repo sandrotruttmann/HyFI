@@ -220,8 +220,7 @@ class FaultImagingWorkflow:
                         combined_mesh, individual_meshes, point_cloud, 
                         input_params.get('out_dir', './output'), fault_disc_meshes, df_combined,
                         use_focal_constraints=input_params.get('use_focal_constraints', False),
-                        export_time_series=viz_params.get('export_time_series', False),
-                        time_step_hours=viz_params.get('time_step_hours', 24)
+                        export_obj=viz_params.get('export_obj', False)
                     )
                 
                 print("✓ Fault plane interpolation completed successfully")

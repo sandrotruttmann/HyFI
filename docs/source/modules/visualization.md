@@ -42,13 +42,7 @@ Directory: `obj_export/`
 Standard OBJ format for 3D modeling software:
 - `fault_planes.obj`: Triangulated fault surfaces
 - Can be imported into Blender, MeshLab, CloudCompare
-
-### PLY Export (Point Clouds)
-Directory: `ply_export/`
-
-PLY format optimized for point cloud processing:
-- Includes vertex colors based on attributes
-- Compatible with CloudCompare, MeshLab
+- Enabled via `export_obj: true` in configuration
 
 ### CSV Export
 Directory: `csv_export/`
@@ -71,7 +65,6 @@ Key configuration options:
 - `stereonet_bool`: Generate stereonets
 - `export_vtp`: Export VTP files
 - `export_obj`: Export OBJ files
-- `export_ply`: Export PLY files
 - `export_csv`: Export CSV files
 - `color_by`: Attribute for coloring fault planes
 

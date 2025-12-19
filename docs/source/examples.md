@@ -43,6 +43,6 @@ Each run generates several output files:
 - `active_plane_statistics.txt` - Statistical analysis
 - `execution_summary.json` - Execution metadata
 - `parameter_optimization_report.json` - Optimization results
-- Various export formats in subdirectories (VTP, OBJ, PLY, etc.)
+- Various export formats in subdirectories (VTP, OBJ, etc.)
 
 For more information on configuration options, see [Configuration](configuration.md) and [Input Parameters](input_parameters.md).

@@ -27,7 +27,6 @@ output_directory/
 │   ├── fault_F1.vtp
 │   └── faults_compiled_*.vtp
 ├── obj_export/                                   # OBJ 3D model files (if enabled)
-├── ply_export/                                   # PLY 3D model files (if enabled)
 └── move_export/                                  # MOVE format files (if enabled)
 ```
 
@@ -248,13 +247,11 @@ Each VTP file contains point/cell data arrays:
 2. Apply "Glyph" filter to visualize orientations
 3. Use "Calculator" for custom expressions
 4. Color by any attribute (magnitude, stress, cluster, etc.)
-5. Create animations through time-series data (if enabled)
 
-### obj_export/, ply_export/, move_export/
+### obj_export/, move_export/
 
 3D model files in various formats (if enabled in configuration):
-- **OBJ** - Wavefront OBJ format (widely compatible)
-- **PLY** - Stanford PLY format (color/texture support)
+- **OBJ** - Wavefront OBJ format (widely compatible, enabled via `export_obj: true`)
 - **MOVE** - Petex MOVE format (structural geology software)
 
 ## Visualization Files
