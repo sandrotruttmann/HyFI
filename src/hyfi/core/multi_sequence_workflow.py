@@ -1315,23 +1315,48 @@ class MultiSequenceWorkflow:
             combined_file = output_dir / 'combined_fault_planes.csv'
             self.aggregated_results['combined_fault_planes'].to_csv(combined_file, index=False)
         
-        # Save cluster summary
-        summary_file = output_dir / 'segmentation_summary.txt'
-        with open(summary_file, 'w') as f:
-            f.write(f"Multi-Sequence Analysis Summary\n")
-            f.write(f"{'='*50}\n")
-            f.write(f"Total sequences processed: {len(self.sequence_results)}\n")
-            f.write(f"Successful analyses: {len(self.aggregated_results.get('successful_sequences', []))}\n")
-            f.write(f"Total input events: {len(self.full_catalog)}\n")
+        # Save cluster summary as CSV
+        summary_data = []
+        for sequence_name, sequence_data in self.sequences.items():
+            # Determine level (A, B, C, or Z)
+            if sequence_name == 'Z_outliers':
+                level = 'Z'
+                sequence_number = 0
+            else:
+                level = sequence_name[0]
+                sequence_number = int(sequence_name[1:]) if len(sequence_name) > 1 else 0
             
-            if 'combined_fault_planes' in self.aggregated_results:
-                f.write(f"Total fault planes identified: {len(self.aggregated_results['combined_fault_planes'])}\n")
+            # Get sequence result if available
+            sequence_result = self.sequence_results.get(sequence_name, {})
             
-            f.write(f"\nSequence Details:\n")
-            for sequence_name, sequence_data in self.sequences.items():
-                f.write(f"{sequence_name}: {len(sequence_data)} events\n")
+            # Calculate center coordinates (centroid)
+            center_lon = sequence_data['X'].mean()
+            center_lat = sequence_data['Y'].mean()
+            center_depth = sequence_data['Z'].mean()
+            centercoordinates = f"{center_lon:.6f}, {center_lat:.6f}, {center_depth:.2f}"
+            
+            summary_data.append({
+                'sequence_label': sequence_name,
+                'level': level,
+                'sequence_number': sequence_number,
+                'n_events': len(sequence_data),
+                'analysis_status': 'success' if 'workflow_results' in sequence_result else 
+                                 ('error' if 'error' in sequence_result else 'not_processed'),
+                'centercoordinates': centercoordinates
+            })
+        
+        # Create DataFrame and save to CSV
+        summary_df = pd.DataFrame(summary_data)
+        summary_df = summary_df.sort_values(['level', 'sequence_number'])
+        
+        # Save to HyFI_Database folder
+        database_dir = output_dir / 'HyFI_Database'
+        database_dir.mkdir(parents=True, exist_ok=True)
+        summary_csv = database_dir / 'HyFI_database_segmentation.csv'
+        summary_df.to_csv(summary_csv, index=False)
         
         print(f"Multi-sequence results saved to: {output_dir}")
+        print(f"Segmentation summary CSV saved to: {summary_csv}")
     
     def get_multi_sequence_summary(self) -> Dict[str, Any]:
         """Get a summary of the multi-sequence analysis."""

@@ -29,3 +29,5 @@ data_examples/SECOS_20250305_HyFI_VS_filtered_2.csv
 data_examples/SECOS_20250305_HyFI_VS_filtered_2.qmd
 /output_SECOS_VS_small
 /output_SECOS_VS_smallest
+/output_SECOS_segmentation_only
+/output_SECOS_VS_filtered

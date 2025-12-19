@@ -35,6 +35,7 @@ class FaultNetworkNode:
     """Fault network reconstruction configuration node."""
     node_type: str = "fault_network"
     depends_on: List[str] = None
+    enabled: bool = True
     parameters: Dict[str, Any] = None
     description: str = "3D fault network reconstruction using Monte Carlo simulation"
     

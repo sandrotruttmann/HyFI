@@ -5,7 +5,7 @@
     "created_date": "2025-10-03T00:00:00"
   },
   "global_settings": {
-    "output_directory": "../output_SECOS_VS_small",
+    "output_directory": "../output_SECOS_VS_filtered",
     "parallel_processing": true,
     "max_workers": 4,
     "save_individual_results": true,
@@ -13,7 +13,7 @@
   },
   "workflow_dag": {
     "step_1_load_data": {
-      "hypocenter_file": "../data_examples/SECOS_20250305_HyFI_VS_filtered_2.csv",
+      "hypocenter_file": "../data_examples/SECOS_20250305_HyFI_VS_filtered.csv",
       "hypocenter_separator": ",",
       "focal_mechanism_file": "../data_examples/SECOS_20250305_FM_HyFI.csv",
       "focal_mechanism_separator": ","
@@ -47,10 +47,9 @@
           "step_name": "Class C",
           "method": "hdbscan",
           "features": ["spatial"],
-          "dbscan_eps": 300.0,
-          "dbscan_min_samples": 10,
+          "hdbscan_min_cluster_size": 15,
+          "hdbscan_min_samples": 5,
           "dbscan_metric": "euclidean",
-          "min_cluster_size": 10,
           "process_outliers": false,
           "outlier_handling": "next_step"
         }
