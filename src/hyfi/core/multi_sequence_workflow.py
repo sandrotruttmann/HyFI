@@ -1035,23 +1035,24 @@ class MultiSequenceWorkflow:
                 cluster_sources = []
                 
                 for sequence_name in self.sequence_results.keys():
+                    # Skip 'noise' but process Z_outliers
                     if sequence_name == 'noise':
                         continue
                     
                     cluster_vtp_dir = output_dir / sequence_name / 'vtp_export'
-                    source_vtp_file = cluster_vtp_dir / source_filename
+                    
+                    # For Z_outliers, the hypocenter file has a special name
+                    if sequence_name == 'Z_outliers' and source_filename == 'hypocenters.vtp':
+                        source_vtp_file = cluster_vtp_dir / 'Z_outliers_hypocenters.vtp'
+                    else:
+                        source_vtp_file = cluster_vtp_dir / source_filename
                     
                     if source_vtp_file.exists():
                         vtp_files.append(source_vtp_file)
                         cluster_sources.append(sequence_name)
-                
-                # Handle special case for Z_outliers hypocenters
-                if source_filename == 'hypocenters.vtp' and 'Z_outliers' in self.sequence_results:
-                    z_outliers_vtp_dir = output_dir / 'Z_outliers' / 'vtp_export'
-                    z_outliers_file = z_outliers_vtp_dir / 'Z_outliers_hypocenters.vtp'
-                    if z_outliers_file.exists():
-                        vtp_files.append(z_outliers_file)
-                        cluster_sources.append('Z_outliers')
+                    elif sequence_name == 'Z_outliers':
+                        # Debug: Z_outliers file not found
+                        print(f"    Note: Z_outliers VTP not found at {source_vtp_file}")
                 
                 if vtp_files:
                     combined_file = combined_vtp_dir / combined_filename

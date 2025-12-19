@@ -765,13 +765,14 @@ class DAGExecutor:
         hypocenter_data = input_data_results['hypocenter_data']
         
         try:
-            # Create VTK export of hypocenter points
+            # Create VTK export of hypocenter points (always export for outliers)
             viz_params = node.parameters or {}
-            if viz_params.get('export_vtp', False):
-                output_dir = str(self.output_dir)
-                self._export_outlier_hypocenters_vtk(hypocenter_data, output_dir)
+            output_dir = str(self.output_dir)
             
-            # Create simple 3D visualization of outlier points
+            # Always export VTP files for outliers (overrides config)
+            self._export_outlier_hypocenters_vtk(hypocenter_data, output_dir)
+            
+            # Create simple 3D visualization of outlier points if requested
             if viz_params.get('generate_3d_model', True):
                 self._create_outlier_3d_plot(hypocenter_data, str(self.output_dir))
             
@@ -779,7 +780,7 @@ class DAGExecutor:
                 'outlier_visualization_completed': True,
                 'cluster_name': self.cluster_name,
                 'n_outliers': len(hypocenter_data),
-                'vtp_exported': viz_params.get('export_vtp', False),
+                'vtp_exported': True,  # Always True now
                 'parameters': node.parameters
             }
             
