@@ -483,8 +483,6 @@ class DAGExecutor:
             segmentation_level=self.segmentation_level
         )
         
-        # Store fault system metadata and update counter
-        self.fault_system_metadata.extend(fault_metadata)
         self.global_fault_counter = next_counter
                 
         return {
@@ -619,9 +617,17 @@ class DAGExecutor:
                 
                 try:
                     # Create interpolated fault planes using single dataframe
-                    combined_mesh, individual_meshes, point_cloud, fault_disc_meshes, interpolation_metadata = visualisation.create_interpolated_fault_planes(
-                        df_hyfi, viz_params
+                    # Pass global fault counter to ensure continuous numbering
+                    combined_mesh, individual_meshes, point_cloud, fault_disc_meshes, interpolation_metadata, next_fault_counter = visualisation.create_interpolated_fault_planes(
+                        df_hyfi, viz_params, starting_fault_counter=self.global_fault_counter
                     )
+                    
+                    # Update global fault counter with next available value
+                    self.global_fault_counter = next_fault_counter
+                    
+                    # Store interpolation metadata
+                    if interpolation_metadata:
+                        self.fault_system_metadata.extend(interpolation_metadata)
                     
                     # Calculate stress on mesh faces if enabled and stress data available
                     if viz_params.get('enable_mesh_stress', False) and combined_mesh is not None:
@@ -683,9 +689,6 @@ class DAGExecutor:
                             else:
                                 logger.info("Stress analysis not enabled - skipping mesh stress calculation")
                     
-                    # Store interpolation metadata (after stress calculation)
-                    if interpolation_metadata:
-                        self.fault_system_metadata.extend(interpolation_metadata)
                     
                     # Export to VTK if requested
                     if viz_params.get('export_vtp', False) and combined_mesh is not None:

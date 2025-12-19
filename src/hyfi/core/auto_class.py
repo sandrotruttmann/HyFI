@@ -213,23 +213,25 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
             # Aggregate point labels back to fault labels
             fault_clusters = aggregate_cluster_labels_to_faults(point_labels, fault_mapping)
             
-            # Create mapping from spatial labels to global FS names
+            # Create mapping from spatial labels to TEMPORARY IDs
+            # These will be converted to permanent FS IDs after successful interpolation
             unique_spatial_labels = set(fault_clusters.values())
-            spatial_to_fs_map = {}
+            spatial_to_temp_map = {}
+            temp_counter = 0
             for spatial_id in sorted(unique_spatial_labels):
                 if spatial_id != -1:  # Skip noise points
-                    fs_id = f"FS{fault_counter:04d}"
-                    spatial_to_fs_map[spatial_id] = fs_id
-                    fault_counter += 1
+                    temp_id = f"TEMP{temp_counter:04d}"
+                    spatial_to_temp_map[spatial_id] = temp_id
+                    temp_counter += 1
                 else:
-                    spatial_to_fs_map[spatial_id] = np.nan  # Use NaN for noise points
+                    spatial_to_temp_map[spatial_id] = np.nan  # Use NaN for noise points
             
-            # Update the main dataframe
+            # Update the main dataframe with temporary IDs
             for fault_idx, spatial_label in fault_clusters.items():
                 if fault_idx in df_clustered.index:
                     df_clustered.loc[fault_idx, 'spatial_cluster'] = spatial_label
-                    final_id = spatial_to_fs_map[spatial_label]
-                    df_clustered.loc[fault_idx, 'final_cluster_id'] = final_id
+                    temp_id = spatial_to_temp_map[spatial_label]
+                    df_clustered.loc[fault_idx, 'final_cluster_id'] = temp_id
             
             # Print results
             spatial_counts = {}
@@ -335,25 +337,27 @@ def _spatial_clustering_by_orientation(df_clustered, input_params, starting_faul
             spatial_counts = {label: np.sum(spatial_labels == label) for label in unique_spatial}
             print(f"    Spatial clusters found: {spatial_counts}")
             
-            # Create final cluster IDs using global FS counter convention
+            # Create final cluster IDs using TEMPORARY IDs
+            # These will be converted to permanent FS IDs after successful interpolation
             # Use proper indexing to avoid alignment issues
             cluster_indices = df_clustered[cluster_mask].index
             unique_spatial_labels = np.unique(spatial_labels)
             
-            # Create mapping from spatial labels to global FS names
-            spatial_to_fs_map = {}
+            # Create mapping from spatial labels to TEMPORARY IDs
+            spatial_to_temp_map = {}
+            temp_counter = 0
             for spatial_id in sorted(unique_spatial_labels):
                 if spatial_id != -1:  # Skip noise points
-                    fs_id = f"FS{fault_counter:04d}"
-                    spatial_to_fs_map[spatial_id] = fs_id
-                    fault_counter += 1
+                    temp_id = f"TEMP{temp_counter:04d}"
+                    spatial_to_temp_map[spatial_id] = temp_id
+                    temp_counter += 1
                 else:
-                    spatial_to_fs_map[spatial_id] = np.nan  # Use NaN for noise points
+                    spatial_to_temp_map[spatial_id] = np.nan  # Use NaN for noise points
             
-            # Assign final cluster IDs
+            # Assign temporary cluster IDs
             for i, (idx, spatial_id) in enumerate(zip(cluster_indices, spatial_labels)):
-                final_id = spatial_to_fs_map[spatial_id]
-                df_clustered.loc[idx, 'final_cluster_id'] = final_id
+                temp_id = spatial_to_temp_map[spatial_id]
+                df_clustered.loc[idx, 'final_cluster_id'] = temp_id
                 
         except Exception as e:
             print(f"    Warning: Spatial clustering failed for cluster {class_id}: {e}")

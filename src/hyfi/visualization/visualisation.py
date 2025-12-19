@@ -618,7 +618,7 @@ def _poisson_reconstruction(points, normals, depth=3, density_threshold=0.4, max
         return None
 
 
-def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_multiple_scaling_laws=False):
+def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_multiple_scaling_laws=False, starting_fault_counter=1):
     """
     Create interpolated fault plane surfaces using Poisson reconstruction with single dataframe.
     
@@ -628,6 +628,11 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         Single dataframe containing all hypocenter and fault plane data
     interpolation_params : dict
         Parameters for interpolation including min_points, radius settings, etc.
+    include_multiple_scaling_laws : bool, optional
+        If True, calculate and include multiple magnitude scaling laws
+    starting_fault_counter : int, optional
+        Starting value for global fault system counter (default: 1)
+        Used to convert temporary cluster IDs to permanent FS IDs
         
     Returns
     -------
@@ -639,6 +644,10 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         Combined point cloud of fault plane points
     fault_disc_meshes : list
         List of circular disc meshes
+    fault_system_metadata : list
+        Metadata for each successfully interpolated fault system
+    next_fault_counter : int
+        Next available counter value (for continuous numbering across sequences)
     """
     
     print('\n')
@@ -671,7 +680,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
         print(f"Missing required columns for interpolation: {missing_columns}")
-        return None, [], None, []
+        return None, [], None, [], [], starting_fault_counter
     
     # Count total events before filtering
     total_events = len(df)
@@ -691,7 +700,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         print(f"No valid fault plane data available after filtering ({total_events} events had NaN or invalid fault plane parameters)")
         print("This typically occurs when no fault planes could be calculated during the fault plane determination step.")
         print("Skipping interpolation step.")
-        return None, [], None, []
+        return None, [], None, [], [], starting_fault_counter
     
     events_filtered = total_events - len(df)
     if events_filtered > 0:
@@ -871,13 +880,19 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             individual_meshes.append({
                 'mesh': mesh,
                 'cluster_id': str(cluster_id),
+                'original_cluster_id': str(cluster_id),  # Store original ID for dataframe lookup
                 'orientation_cluster': ori_cluster,
                 'spatial_cluster': spatial_cluster,
                 'fault_idx': i,
                 'n_fault_planes': len(df_cluster),
                 'n_input_points': len(points),
                 'area_m2': mesh_area,  # Store mesh area
-                'max_Mw': max_Mw  # Store maximum magnitude (Leonard 2014)
+                'max_Mw': max_Mw,  # Store maximum magnitude (Leonard 2014)
+                # Store cluster statistics for metadata (computed from df_cluster for this specific cluster)
+                'cluster_centroid_x': float(df_cluster['X'].mean()) if 'X' in df_cluster.columns else None,
+                'cluster_centroid_y': float(df_cluster['Y'].mean()) if 'Y' in df_cluster.columns else None,
+                'cluster_centroid_z': float(df_cluster['Z'].mean()) if 'Z' in df_cluster.columns else None,
+                'cluster_data': df_cluster.copy()  # Store actual cluster data for metadata generation
             })
             
             print(f"    ✓ Successfully created mesh with {mesh.n_points} vertices, {mesh.n_cells} faces, area {mesh_area:.1f} m², and max Mw {max_Mw:.2f}")
@@ -895,17 +910,28 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         if combined_mesh.n_cells == 0:
             print(f"  Warning: Combined mesh is empty ({combined_mesh.n_cells} faces), skipping subdivision")
         else:
-            # Ensure combined mesh is fully triangulated before subdivision
-            # Always triangulate after combining meshes, as the + operator can introduce non-triangular faces
-            print(f"  Triangulating combined mesh before subdivision...")
+            # Clean and prepare combined mesh for subdivision
+            print(f"  Preparing combined mesh for subdivision...")
+            
+            # 1. Clean the mesh (remove duplicate points, degenerate cells)
+            combined_mesh = combined_mesh.clean(tolerance=1e-6)
+            
+            # 2. Triangulate to ensure all faces are triangles
             combined_mesh = combined_mesh.triangulate()
-            print(f"  Triangulated combined mesh: {combined_mesh.n_cells} faces, all_triangles={combined_mesh.is_all_triangles}")
+            
+            # 3. Extract the surface to ensure manifold topology
+            combined_mesh = combined_mesh.extract_surface()
+            
+            # 4. Final cleaning after surface extraction
+            combined_mesh = combined_mesh.clean(tolerance=1e-6)
+            
+            print(f"  Cleaned mesh: {combined_mesh.n_cells} faces, {combined_mesh.n_points} vertices, all_triangles={combined_mesh.is_all_triangles}")
             
             # Subdivide combined mesh using Loop subdivision (maintains smoothness)
             try:
                 for i in range(n_subdivisions):
                     combined_mesh = combined_mesh.subdivide(nsub=1, subfilter='loop')
-                print(f"  Combined mesh: {combined_mesh_original_faces} → {combined_mesh.n_cells} faces ({combined_mesh.n_cells/combined_mesh_original_faces:.1f}x)")
+                print(f"  ✓ Combined mesh subdivision: {combined_mesh_original_faces} → {combined_mesh.n_cells} faces ({combined_mesh.n_cells/combined_mesh_original_faces:.1f}x)")
             except Exception as e:
                 print(f"  Warning: Combined mesh subdivision failed: {e}")
                 print(f"  Continuing with original combined mesh ({combined_mesh_original_faces} faces)")
@@ -917,47 +943,78 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 print(f"  Warning: Cluster {mesh_info['cluster_id']} mesh is empty, skipping subdivision")
                 continue
             
-            # Ensure mesh is triangulated before subdivision
-            if not mesh_info['mesh'].is_all_triangles:
-                print(f"  Note: Cluster {mesh_info['cluster_id']} contains non-triangular faces, triangulating...")
-                mesh_info['mesh'] = mesh_info['mesh'].triangulate()
+            # Clean and prepare mesh for subdivision
+            mesh = mesh_info['mesh']
+            
+            # 1. Clean the mesh
+            mesh = mesh.clean(tolerance=1e-6)
+            
+            # 2. Triangulate
+            mesh = mesh.triangulate()
+            
+            # 3. Extract surface for manifold topology
+            mesh = mesh.extract_surface()
+            
+            # 4. Final cleaning
+            mesh = mesh.clean(tolerance=1e-6)
+            
+            mesh_info['mesh'] = mesh
             
             try:
                 for i in range(n_subdivisions):
                     mesh_info['mesh'] = mesh_info['mesh'].subdivide(nsub=1, subfilter='loop')
-                print(f"  Cluster {mesh_info['cluster_id']}: {original_faces} → {mesh_info['mesh'].n_cells} faces")
+                print(f"  ✓ Cluster {mesh_info['cluster_id']}: {original_faces} → {mesh_info['mesh'].n_cells} faces")
             except Exception as e:
                 print(f"  Warning: Cluster {mesh_info['cluster_id']} subdivision failed: {e}")
                 print(f"  Continuing with original mesh ({original_faces} faces)")
     
     print(f"✓ Interpolation complete. Created {len(individual_meshes)} fault plane meshes and {len(fault_disc_meshes)} circular disc meshes.")
     
+    # ============================================================================
+    # ASSIGN PERMANENT FS IDs TO SUCCESSFULLY INTERPOLATED MESHES
+    # ============================================================================
+    # Only successfully interpolated clusters get permanent FS IDs
+    # This ensures continuous numbering without gaps from failed interpolations
+    
+    fault_counter = starting_fault_counter
+    
+    print(f"\nAssigning permanent FS IDs (starting from FS{fault_counter:04d})...")
+    
+    for mesh_info in individual_meshes:
+        # Assign a new unique permanent FS ID for each successfully interpolated mesh
+        permanent_id = f"FS{fault_counter:04d}"
+        mesh_info['cluster_id'] = permanent_id
+        mesh_info['permanent_fs_id'] = permanent_id
+        
+        # Update the mesh point data with permanent ID
+        mesh_info['mesh']['cluster_id'] = np.full(mesh_info['mesh'].n_points, permanent_id)
+        
+        fault_counter += 1
+    
+    next_fault_counter = fault_counter
+    print(f"✓ Assigned {len(individual_meshes)} permanent fault system IDs (FS{starting_fault_counter:04d} to FS{next_fault_counter-1:04d})")
+    
+    # ============================================================================
+    # GENERATE METADATA FOR SUCCESSFULLY INTERPOLATED FAULT SYSTEMS
+    # ============================================================================
+    
     # Generate fault system metadata for successfully interpolated meshes
     fault_system_metadata = []
     for mesh_info in individual_meshes:
-        # Get fault system ID from cluster_id (could be local numeric or global FS ID)
-        cluster_id_str = str(mesh_info['cluster_id'])
+        # Use the PERMANENT FS ID that was just assigned
+        fs_id = mesh_info['cluster_id']
         
-        # Find the corresponding data in df to get global FS ID and sequence info
-        if cluster_column == 'final_cluster_id_local':
-            # Map local ID back to global FS ID
-            cluster_mask = df[cluster_column] == mesh_info['cluster_id']
-            cluster_data = df[cluster_mask]
-            
-            if len(cluster_data) > 0:
-                # Get global FS ID from first row (all should be same)
-                fs_id = cluster_data['final_cluster_id'].iloc[0]
-                sequence_label = cluster_data.get('sequence_label', pd.Series([None])).iloc[0]
-                segmentation_level = cluster_data.get('segmentation_level', pd.Series([None])).iloc[0]
+        # Use the cluster data that was stored during mesh creation
+        # This ensures we have the correct data for THIS specific cluster
+        cluster_data = mesh_info['cluster_data']
+        
+        # Get sequence info from cluster data
+        if len(cluster_data) > 0:
+            sequence_label = cluster_data.get('sequence_label', pd.Series([None])).iloc[0]
+            segmentation_level = cluster_data.get('segmentation_level', pd.Series([None])).iloc[0]
         else:
-            # Already using global IDs
-            cluster_mask = df[cluster_column] == mesh_info['cluster_id']
-            cluster_data = df[cluster_mask]
-            
-            if len(cluster_data) > 0:
-                fs_id = mesh_info['cluster_id']
-                sequence_label = cluster_data.get('sequence_label', pd.Series([None])).iloc[0]
-                segmentation_level = cluster_data.get('segmentation_level', pd.Series([None])).iloc[0]
+            sequence_label = None
+            segmentation_level = None
         
         if len(cluster_data) > 0:
             # Only create metadata for successfully interpolated fault systems
@@ -1016,12 +1073,8 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 from hyfi.utils.utilities import circular_mean_orientation_from_azimuth_dip
                 mesh_mean_azimuth, mesh_mean_dip = circular_mean_orientation_from_azimuth_dip(azimuths, dips)
             
-            # Determine VTP filename (matches export logic)
-            cluster_id_str = str(mesh_info['cluster_id'])
-            if cluster_id_str.startswith('F') and cluster_id_str != 'F_noise':
-                vtp_filename = f"fault_{cluster_id_str}.vtp"
-            else:
-                vtp_filename = f"fault_{mesh_info['fault_idx'] + 1}.vtp"  # Add 1 to start from 1 instead of 0
+            # Determine VTP filename using permanent FS ID
+            vtp_filename = f"fault_{fs_id}.vtp"
             
             # Calculate rupture plane mean orientation using circular statistics
             from hyfi.utils.utilities import circular_mean_orientation_from_azimuth_dip
@@ -1086,9 +1139,10 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         print("Warning: No fault plane meshes were successfully created.")
         print("This may be due to insufficient valid fault plane data or reconstruction failures.")
         # Still return the point cloud and disc meshes if they exist
-        return None, [], combined_pcd if combined_pcd.n_points > 0 else None, fault_disc_meshes, []
+        # Return starting counter since no permanent IDs were assigned
+        return None, [], combined_pcd if combined_pcd.n_points > 0 else None, fault_disc_meshes, [], starting_fault_counter
     
-    return combined_mesh, individual_meshes, combined_pcd, fault_disc_meshes, fault_system_metadata
+    return combined_mesh, individual_meshes, combined_pcd, fault_disc_meshes, fault_system_metadata, next_fault_counter
 
 
 def export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, output_dir, df_hyfi=None):
@@ -1653,13 +1707,9 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
         area_m2 = mesh_info.get('area_m2', 'unknown')
         max_Mw = mesh_info.get('max_Mw', 'unknown')
         
-        # Use the F-based cluster naming for VTP files
+        # Use permanent FS ID for VTP filename
         cluster_id = mesh_info['cluster_id']
-        if cluster_id.startswith('F') and cluster_id != 'F_noise':
-            filename = f"fault_{cluster_id}.vtp"
-        else:
-            # Use fault_idx + 1 to start numbering from 1
-            filename = f"fault_{fault_idx + 1}.vtp"
+        filename = f"fault_{cluster_id}.vtp"
         
         filepath = os.path.join(vtp_dir, filename)
         mesh.save(filepath)

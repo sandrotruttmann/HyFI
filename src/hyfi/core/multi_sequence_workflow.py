@@ -781,6 +781,16 @@ class MultiSequenceWorkflow:
         # Convert to DataFrame
         df_metadata = pd.DataFrame(self.fault_system_metadata)
         
+        print(f"  Collected {len(df_metadata)} fault system metadata entries")
+        
+        # Remove duplicates based on fault_system_id (keep first occurrence)
+        # This can happen if metadata is collected from multiple sources
+        before_dedup = len(df_metadata)
+        df_metadata = df_metadata.drop_duplicates(subset=['fault_system_id'], keep='first')
+        after_dedup = len(df_metadata)
+        if before_dedup > after_dedup:
+            print(f"  Removed {before_dedup - after_dedup} duplicate entries")
+        
         # Sort by original fault_system_id to maintain sequence order
         df_metadata = df_metadata.sort_values('fault_system_id')
         
