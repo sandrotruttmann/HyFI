@@ -1333,7 +1333,6 @@ class MultiSequenceWorkflow:
             center_lon = sequence_data['X'].mean()
             center_lat = sequence_data['Y'].mean()
             center_depth = sequence_data['Z'].mean()
-            centercoordinates = f"{center_lon:.6f}, {center_lat:.6f}, {center_depth:.2f}"
             
             summary_data.append({
                 'sequence_label': sequence_name,
@@ -1342,7 +1341,9 @@ class MultiSequenceWorkflow:
                 'n_events': len(sequence_data),
                 'analysis_status': 'success' if 'workflow_results' in sequence_result else 
                                  ('error' if 'error' in sequence_result else 'not_processed'),
-                'centercoordinates': centercoordinates
+                'centroid_x': center_lon,
+                'centroid_y': center_lat,
+                'centroid_z': center_depth
             })
         
         # Create DataFrame and save to CSV
