@@ -661,7 +661,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     max_distance_factor = interpolation_params.get('max_distance_factor', 1.5)
     radius_interval = interpolation_params.get('radius_interval_meters', 10.0)
     point_density_meters = interpolation_params.get('circle_point_density_meters', 10.0)
-    min_points = interpolation_params.get('min_points_per_subcluster', 10)
+    min_points = interpolation_params.get('min_fault_planes_for_interpolation', 10)
     
     print(f"Interpolation parameters:")
     print(f"  Poisson depth: {depth}")

@@ -153,11 +153,11 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
     # Get spatial clustering parameters
     spatial_method = input_params.get('spatial_clustering_method', 'dbscan')
     min_points_spatial = input_params.get('min_points_per_subcluster', 10)
-    eps_factor = input_params.get('fault_plane_clustering_eps_factor', 0.3)
-    min_samples_factor = input_params.get('fault_plane_clustering_min_samples_factor', 0.3)
+    eps_meters = input_params.get('fault_plane_clustering_eps_meters', 200.0)
+    min_samples = input_params.get('fault_plane_clustering_min_samples', 5)
     
     print(f"  Using enhanced point cloud with {len(df_enhanced):,} points")
-    print(f"  Parameters: spatial_method={spatial_method}, eps_factor={eps_factor}, min_samples_factor={min_samples_factor}")
+    print(f"  Parameters: spatial_method={spatial_method}, eps={eps_meters}m, min_samples={min_samples}")
     
     # Initialize spatial cluster columns
     df_clustered['spatial_cluster'] = 0
@@ -192,15 +192,9 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
         
         # Apply DBSCAN clustering
         if spatial_method == 'dbscan':
-            # Calculate eps based on original hypocenter spread
-            original_coords = df_clustered.loc[cluster_fault_indices, ['X', 'Y', 'Z']].values
-            hypocenter_range = np.ptp(original_coords, axis=0).mean()
-            eps = hypocenter_range * eps_factor
-            print(f"        Calculated eps from range: {hypocenter_range:.1f}m × {eps_factor} = {eps:.1f}m")
-            
-            # Calculate min_samples based on average points per fault
+            # Use absolute eps value in meters
+            eps = eps_meters
             avg_points_per_fault = len(points) / len(cluster_fault_indices)
-            min_samples = max(3, int(avg_points_per_fault * min_samples_factor))
             
             print(f"        DBSCAN: eps={eps:.1f}m, min_samples={min_samples} ({avg_points_per_fault:.1f} avg points/fault)")
             
@@ -282,13 +276,13 @@ def _spatial_clustering_by_orientation(df_clustered, input_params, starting_faul
     use_fault_plane_points = input_params.get('use_fault_plane_points_for_clustering', False)
     fault_plane_point_density = input_params.get('fault_plane_point_density_meters', 10.0)
     fault_plane_radius_interval = input_params.get('fault_plane_radius_interval_meters', 10.0)
-    fault_plane_eps_factor = input_params.get('fault_plane_clustering_eps_factor', 0.3)
-    fault_plane_min_samples_factor = input_params.get('fault_plane_clustering_min_samples_factor', 0.3)
+    eps_meters = input_params.get('fault_plane_clustering_eps_meters', 200.0)
+    min_samples = input_params.get('fault_plane_clustering_min_samples', 5)
     
     if use_fault_plane_points:
         print(f"  Using fault plane points for enhanced spatial clustering")
         print(f"    Point density: {fault_plane_point_density}m, radius interval: {fault_plane_radius_interval}m")
-        print(f"    Sensitivity: eps_factor={fault_plane_eps_factor}, min_samples_factor={fault_plane_min_samples_factor}")
+        print(f"    Clustering: eps={eps_meters}m, min_samples={min_samples}")
     
     # Initialize spatial cluster columns
     df_clustered['spatial_cluster'] = 0

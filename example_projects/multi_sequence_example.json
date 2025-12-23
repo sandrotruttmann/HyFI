@@ -13,7 +13,7 @@
   },
   "workflow_dag": {
     "step_1_load_data": {
-      "hypocenter_file": "../data_examples/SECOS_20250305_HyFI_VS_filtered.csv",
+      "hypocenter_file": "../data_examples/SECOS_20250305_HyFI_VS_filtered_3.csv",
       "hypocenter_separator": ",",
       "focal_mechanism_file": "../data_examples/SECOS_20250305_FM_HyFI.csv",
       "focal_mechanism_separator": ","
@@ -25,10 +25,11 @@
           "step_name": "Class A",
           "method": "dbscan",
           "features": ["spatial"],
-          "dbscan_eps": 300.0,
+          "cluster_dimension": "3d",
+          "dbscan_eps": 350.0,
           "dbscan_min_samples": 10,
           "dbscan_metric": "euclidean",
-          "min_cluster_size": 50,
+          "min_cluster_size": 20,
           "process_outliers": true,
           "outlier_handling": "next_step"
         },
@@ -36,21 +37,12 @@
           "step_name": "Class B",
           "method": "dbscan",
           "features": ["spatial"],
-          "dbscan_eps": 300.0,
+          "cluster_dimension": "3d",
+          "dbscan_eps": 500.0,
           "dbscan_min_samples": 10,
           "dbscan_metric": "euclidean",
           "min_cluster_size": 10,
           "process_outliers": true,
-          "outlier_handling": "next_step"
-        },
-        {
-          "step_name": "Class C",
-          "method": "hdbscan",
-          "features": ["spatial"],
-          "hdbscan_min_cluster_size": 15,
-          "hdbscan_min_samples": 5,
-          "dbscan_metric": "euclidean",
-          "process_outliers": false,
           "outlier_handling": "next_step"
         }
       ],
@@ -118,12 +110,10 @@
           "spatial_sub_clustering": {
             "enable_spatial_clustering": true,
             "spatial_clustering_method": "dbscan",
-            "min_events_per_cluster": 10
-          },
-          "enhanced_point_cloud_clustering": {
+            "min_events_per_cluster": 5,
             "use_fault_plane_points_for_clustering": true,
-            "fault_plane_clustering_eps_factor": 0.1,
-            "fault_plane_clustering_min_samples_factor": 0.15
+            "fault_plane_clustering_eps_meters": 90,
+            "fault_plane_clustering_min_samples": 10
           }
         }
       },
@@ -153,15 +143,14 @@
           "fault_surface_interpolation": {
             "enable_plane_interpolation": true,
             "enable_mesh_stress": true,
-            "mesh_subdivisions": 2,
+            "mesh_subdivisions": 1,
             "poisson_depth": 2,
-            "density_threshold": 0.3,
+            "density_threshold": 0.01,
             "max_distance_factor": 2.5,
-            "spatial_clustering_method": "adaptive",
-            "min_events_per_cluster": 10
+            "min_fault_planes_for_interpolation": 1
           },
           "3d_export": {
-            "export_vtp": true,
+            "export_vtp": false,
             "export_obj": false
           }
         }

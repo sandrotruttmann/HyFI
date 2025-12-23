@@ -612,6 +612,9 @@ class DAGExecutor:
             viz_params_raw = node.parameters or {}
             viz_params = self._flatten_visualization_params(viz_params_raw)
             
+            # Track whether VTP files were exported (for cleanup later)
+            vtp_exported = False
+            
             # Check if interpolation is enabled
             if viz_params.get('enable_plane_interpolation', False):
                 
@@ -690,21 +693,24 @@ class DAGExecutor:
                                 logger.info("Stress analysis not enabled - skipping mesh stress calculation")
                     
                     
-                    # Export to VTK if requested
-                    if viz_params.get('export_vtp', False) and combined_mesh is not None:
+                    # Always export VTP files for 3D visualization (regardless of export_vtp setting)
+                    # The export_vtp setting only controls whether to export for external use (ParaView)
+                    if combined_mesh is not None:
                         output_dir = input_params.get('out_dir', str(self.output_dir))
                         visualisation.export_interpolated_planes_vtp(
                             combined_mesh, individual_meshes, point_cloud, output_dir, fault_disc_meshes, df_hyfi,
                             use_focal_constraints=input_params.get('use_focal_constraints', False),
                             export_obj=viz_params.get('export_obj', False)
                         )
+                        vtp_exported = True
                     elif viz_params.get('export_vtp', False):
-                        # Export basic VTP even without interpolated meshes
+                        # Export basic VTP even without interpolated meshes (only if explicitly requested)
                         output_dir = input_params.get('out_dir', str(self.output_dir))
                         visualisation.export_basic_vtp(
                             df_hyfi, output_dir, fault_disc_meshes,
                             use_focal_constraints=input_params.get('use_focal_constraints', False)
                         )
+                        vtp_exported = True
                                         
                 except Exception as e:
                     logger.warning(f"Fault plane interpolation failed: {e}")
@@ -727,6 +733,18 @@ class DAGExecutor:
                                      ['LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date']]
                         data_output = events_with_planes[output_cols].copy()
                         visualisation.faults_stereoplot(input_params, data_output)
+                vtp_exported
+                # Clean up VTP files if export_vtp is False (they were only needed for 3D HTML generation)
+                if not viz_params.get('export_vtp', False) and combined_mesh is not None:
+                    import shutil
+                    output_dir = input_params.get('out_dir', str(self.output_dir))
+                    vtp_dir = os.path.join(output_dir, 'vtp_export')
+                    if os.path.exists(vtp_dir):
+                        try:
+                            shutil.rmtree(vtp_dir)
+                            logger.info("VTP files cleaned up (export_vtp=False)")
+                        except Exception as e:
+                            logger.warning(f"Could not remove temporary VTP files: {e}")
                                 
             except Exception as e:
                 logger.warning(f"Standard visualization failed: {e}")

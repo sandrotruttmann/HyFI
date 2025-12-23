@@ -47,6 +47,12 @@ class SegmentationStep:
     hdbscan_min_cluster_size: int = 15
     hdbscan_min_samples: Optional[int] = None
     
+    # OPTICS parameters (for variable density and linear features)
+    optics_min_samples: int = 10  # Minimum samples in neighborhood
+    optics_max_eps: float = float('inf')  # Maximum epsilon (np.inf = no limit)
+    optics_cluster_method: str = 'xi'  # 'xi' (automatic) or 'dbscan' (with threshold)
+    optics_xi: float = 0.05  # Steepness threshold for xi method (0-1, smaller = more clusters)
+    
     # Temporal clustering parameters
     temporal_window_days: int = 30  # Time window for temporal clustering
     
@@ -55,6 +61,7 @@ class SegmentationStep:
     
     # Coordinate system options
     use_raw_coordinates: bool = False  # Use raw coordinates without normalization (old implementation style)
+    cluster_dimension: str = '3d'  # '2d' (XY only) or '3d' (XYZ) for spatial clustering
     
     # Minimum cluster size to process
     min_cluster_size: int = 20
@@ -65,7 +72,7 @@ class SegmentationStep:
     
     def validate(self):
         """Validate segmentation step parameters."""
-        validate_choice(self.method, ['dbscan', 'hdbscan', 'temporal', 'spatial_temporal'], f"{self.step_name} clustering method")
+        validate_choice(self.method, ['dbscan', 'hdbscan', 'optics', 'temporal', 'spatial_temporal'], f"{self.step_name} clustering method")
         
         valid_features = ['spatial', 'temporal', 'magnitude']
         for feature in self.features:
@@ -78,9 +85,14 @@ class SegmentationStep:
         validate_positive_number(self.dbscan_eps, f"{self.step_name}_dbscan_eps")
         validate_positive_number(self.dbscan_min_samples, f"{self.step_name}_dbscan_min_samples")
         validate_positive_number(self.hdbscan_min_cluster_size, f"{self.step_name}_hdbscan_min_cluster_size")
+        validate_positive_number(self.optics_min_samples, f"{self.step_name}_optics_min_samples")
+        validate_positive_number(self.optics_max_eps, f"{self.step_name}_optics_max_eps")
+        validate_choice(self.optics_cluster_method, ['xi', 'dbscan'], f"{self.step_name}_optics_cluster_method")
+        validate_range(self.optics_xi, 0, 1, f"{self.step_name}_optics_xi")
         validate_positive_number(self.temporal_window_days, f"{self.step_name}_temporal_window_days")
         validate_range(self.spatial_weight, 0, 1, f"{self.step_name}_spatial_weight")
         validate_positive_number(self.min_cluster_size, f"{self.step_name}_min_cluster_size")
+        validate_choice(self.cluster_dimension, ['2d', '3d'], f"{self.step_name}_cluster_dimension")
         
         validate_choice(self.outlier_handling, ['next_step', 'merge_smallest', 'discard'], f"{self.step_name}_outlier_handling")
 

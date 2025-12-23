@@ -2,7 +2,7 @@
 
 import pandas as pd
 import numpy as np
-from sklearn.cluster import DBSCAN, HDBSCAN
+from sklearn.cluster import DBSCAN, HDBSCAN, OPTICS
 from typing import Tuple, List, Dict, Any, Optional
 import logging
 
@@ -174,9 +174,14 @@ def _step_to_clustering_params(step) -> Dict[str, Any]:
         'dbscan_metric': step.dbscan_metric,
         'hdbscan_min_cluster_size': step.hdbscan_min_cluster_size,
         'hdbscan_min_samples': step.hdbscan_min_samples,
+        'optics_min_samples': step.optics_min_samples,
+        'optics_max_eps': step.optics_max_eps,
+        'optics_cluster_method': step.optics_cluster_method,
+        'optics_xi': step.optics_xi,
         'temporal_window_days': step.temporal_window_days,
         'spatial_weight': step.spatial_weight,
-        'min_cluster_size': step.min_cluster_size
+        'min_cluster_size': step.min_cluster_size,
+        'cluster_dimension': step.cluster_dimension
     }
 
 
@@ -238,6 +243,8 @@ def advanced_catalog_segmentation(catalog: pd.DataFrame,
         cluster_labels = _apply_dbscan_clustering(feature_matrix, clustering_params)
     elif method == 'hdbscan':
         cluster_labels = _apply_hdbscan_clustering(feature_matrix, clustering_params)
+    elif method == 'optics':
+        cluster_labels = _apply_optics_clustering(feature_matrix, clustering_params)
     elif method == 'temporal':
         cluster_labels = _apply_temporal_clustering(catalog, clustering_params)
     elif method == 'spatial_temporal':
@@ -261,14 +268,21 @@ def _prepare_clustering_features(catalog: pd.DataFrame,
     """Prepare feature matrix for segmentation."""
     
     feature_arrays = []
+    cluster_dimension = params.get('cluster_dimension', '3d')
     
     if 'spatial' in features:
         # Spatial coordinates (already transformed)
-        spatial_coords = catalog[['X', 'Y', 'Z']].values
+        if cluster_dimension == '2d':
+            # Use only X, Y (ignore depth Z)
+            spatial_coords = catalog[['X', 'Y']].values
+            logger.info(f"Added 2D spatial features (X,Y only): shape {spatial_coords.shape}")
+        else:
+            # Use full 3D coordinates
+            spatial_coords = catalog[['X', 'Y', 'Z']].values
+            logger.info(f"Added 3D spatial features (X,Y,Z): shape {spatial_coords.shape}")
         
         # Use raw coordinates without normalization (old implementation style)
         feature_arrays.append(spatial_coords)
-        logger.info(f"Added raw spatial features: shape {spatial_coords.shape}")
     
     if 'temporal' in features:
         # Convert time to numerical representation
@@ -359,6 +373,41 @@ def _apply_hdbscan_clustering(features: np.ndarray, params: Dict[str, Any]) -> n
     n_noise = list(cluster_labels).count(-1)
     
     logger.info(f"HDBSCAN results: {n_clusters} clusters, {n_noise} noise points")
+    
+    return cluster_labels
+
+
+def _apply_optics_clustering(features: np.ndarray, params: Dict[str, Any]) -> np.ndarray:
+    """Apply OPTICS clustering algorithm.
+    
+    OPTICS (Ordering Points To Identify the Clustering Structure) is particularly
+    good for variable density data and elongated/linear structures. It's similar to
+    HDBSCAN but uses reachability distance for better handling of linear features.
+    """
+    
+    min_samples = params.get('optics_min_samples', 10)
+    max_eps = params.get('optics_max_eps', np.inf)  # Maximum eps for neighborhood
+    metric = params.get('dbscan_metric', 'euclidean')
+    cluster_method = params.get('optics_cluster_method', 'xi')  # 'xi' or 'dbscan'
+    xi = params.get('optics_xi', 0.05)  # Steepness threshold for xi method
+    
+    logger.info(f"OPTICS parameters: min_samples={min_samples}, max_eps={max_eps}, "
+                f"metric={metric}, cluster_method={cluster_method}, xi={xi}")
+    
+    optics = OPTICS(
+        min_samples=min_samples,
+        max_eps=max_eps,
+        metric=metric,
+        cluster_method=cluster_method,
+        xi=xi
+    )
+    
+    cluster_labels = optics.fit_predict(features)
+    
+    n_clusters = len(set(cluster_labels)) - (1 if -1 in cluster_labels else 0)
+    n_noise = list(cluster_labels).count(-1)
+    
+    logger.info(f"OPTICS results: {n_clusters} clusters, {n_noise} noise points")
     
     return cluster_labels
 

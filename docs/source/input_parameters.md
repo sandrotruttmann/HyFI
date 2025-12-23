@@ -179,19 +179,16 @@ Automatic classification of fault structures based on orientation and spatial cl
 
 ### Spatial Sub-Clustering Parameters
 
+All spatial sub-clustering parameters are organized under the `spatial_sub_clustering` object:
+
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enable_spatial_clustering` | boolean | `true` | Enable spatial sub-clustering within orientation clusters to identify separate fault structures |
 | `spatial_clustering_method` | string | `"dbscan"` | Spatial clustering method. Options: `"dbscan"` (density-based, **recommended**), `"kmeans"` (k-means), `"hierarchical"` (agglomerative) |
 | `min_events_per_cluster` | integer | `10` | Minimum number of events required to form a valid spatial cluster |
-
-### Enhanced Point Cloud Clustering Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
 | `use_fault_plane_points_for_clustering` | boolean | `true` | Use enhanced point cloud (fault plane surface points) instead of hypocenters for spatial clustering. Improves spatial resolution when enabled |
-| `fault_plane_clustering_eps_factor` | float | `0.3` | DBSCAN `eps` parameter factor relative to median nearest neighbor distance. Range: 0.05-0.5. Lower = tighter clusters |
-| `fault_plane_clustering_min_samples_factor` | float | `0.3` | DBSCAN `min_samples` as fraction of mean points per fault plane. Range: 0.05-0.3. Higher = more conservative clustering |
+| `fault_plane_clustering_eps_meters` | float | `200.0` | DBSCAN `eps` parameter in meters - maximum distance between points in a cluster. Range: 100-500m. Lower = tighter clusters |
+| `fault_plane_clustering_min_samples` | integer | `5` | DBSCAN `min_samples` parameter - minimum number of points required to form a dense region. Range: 3-10. Higher = more conservative clustering |
 
 ---
 
@@ -261,8 +258,7 @@ Visualization and export settings for analysis results.
 | `poisson_depth` | integer | `2` | Poisson reconstruction octree depth. Range: 4-12. Higher = more detail but can introduce noise. **Recommended: 2-3 for smooth base, then use mesh_subdivisions for density** |
 | `density_threshold` | float | `0.01` | Minimum density threshold for surface reconstruction. Range: 0.01-0.9. Lower = includes sparse regions, higher = only dense regions |
 | `max_distance_factor` | float | `2.5` | Maximum distance factor for point-to-surface association. Range: 1.0-5.0. Higher = more permissive association |
-| `spatial_clustering_method` | string | `"adaptive"` | Clustering method for interpolation. Options: `"kmeans"`, `"dbscan"`, `"adaptive"` (automatically chooses based on data), `"none"` (no clustering) |
-| `min_events_per_cluster` | integer | `10` | Minimum events required per cluster for interpolation |
+| `min_fault_planes_for_interpolation` | integer | `10` | Minimum number of fault planes required in a cluster to attempt Poisson surface reconstruction. Clusters with fewer fault planes are skipped |
 
 ### 3D Export Parameters
 
@@ -341,10 +337,14 @@ Visualization and export settings for analysis results.
     "auto_classification": {
       "enabled": true,
       "parameters": {
-        "enable_spatial_clustering": true,
-        "use_fault_plane_points_for_clustering": true,
-        "spatial_clustering_method": "dbscan",
-        "fault_plane_clustering_eps_factor": 0.1
+        "spatial_sub_clustering": {
+          "enable_spatial_clustering": true,
+          "spatial_clustering_method": "dbscan",
+          "min_events_per_cluster": 10,
+          "fault_plane_clustering_eps_meters": 200,
+          "fault_plane_clustering_min_samples": 5,
+          "use_fault_plane_points_for_clustering": true
+        }
       }
     }
   }

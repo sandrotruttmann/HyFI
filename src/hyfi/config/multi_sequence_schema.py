@@ -28,6 +28,7 @@ class CatalogClusteringNode:
             self.parameters = {
                 "clustering_method": "dbscan",
                 "clustering_features": ["spatial"],
+                "cluster_dimension": "3d",
                 "dbscan_eps": 1000.0,
                 "dbscan_min_samples": 10,
                 "dbscan_metric": "euclidean",

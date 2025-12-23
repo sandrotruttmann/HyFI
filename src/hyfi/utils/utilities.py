@@ -148,22 +148,18 @@ def dag_params_to_legacy_params(dag, node_id):
                 'maximum_iterations': orientation_clustering.get('maximum_iterations', ac_params.get('maximum_iterations', 300)),
             })
             
-            # Spatial sub-clustering parameters
+            # Spatial sub-clustering parameters (consolidated structure)
             spatial_subclustering = ac_params.get('spatial_sub_clustering', {})
             input_params.update({
                 'enable_spatial_clustering': spatial_subclustering.get('enable_spatial_clustering', ac_params.get('enable_spatial_clustering', True)),
                 'spatial_clustering_method': spatial_subclustering.get('spatial_clustering_method', ac_params.get('spatial_clustering_method', 'dbscan')),
                 'min_points_per_subcluster': spatial_subclustering.get('min_events_per_cluster', ac_params.get('min_events_per_cluster', 10)),
-            })
-            
-            # Enhanced point cloud clustering parameters
-            enhanced_clustering = ac_params.get('enhanced_point_cloud_clustering', {})
-            input_params.update({
-                'use_fault_plane_points_for_clustering': enhanced_clustering.get('use_fault_plane_points_for_clustering', ac_params.get('use_fault_plane_points_for_clustering', False)),
-                'fault_plane_point_density_meters': enhanced_clustering.get('fault_plane_point_density_meters', ac_params.get('fault_plane_point_density_meters', 10.0)),
-                'fault_plane_radius_interval_meters': enhanced_clustering.get('fault_plane_radius_interval_meters', ac_params.get('fault_plane_radius_interval_meters', 10.0)),
-                'fault_plane_clustering_eps_factor': enhanced_clustering.get('fault_plane_clustering_eps_factor', ac_params.get('fault_plane_clustering_eps_factor', 0.3)),
-                'fault_plane_clustering_min_samples_factor': enhanced_clustering.get('fault_plane_clustering_min_samples_factor', ac_params.get('fault_plane_clustering_min_samples_factor', 0.3)),
+                'min_events_per_cluster': spatial_subclustering.get('min_events_per_cluster', ac_params.get('min_events_per_cluster', 10)),
+                'use_fault_plane_points_for_clustering': spatial_subclustering.get('use_fault_plane_points_for_clustering', ac_params.get('use_fault_plane_points_for_clustering', False)),
+                'fault_plane_point_density_meters': spatial_subclustering.get('fault_plane_point_density_meters', ac_params.get('fault_plane_point_density_meters', 10.0)),
+                'fault_plane_radius_interval_meters': spatial_subclustering.get('fault_plane_radius_interval_meters', ac_params.get('fault_plane_radius_interval_meters', 10.0)),
+                'fault_plane_clustering_eps_meters': spatial_subclustering.get('fault_plane_clustering_eps_meters', ac_params.get('fault_plane_clustering_eps_meters', 200.0)),
+                'fault_plane_clustering_min_samples': spatial_subclustering.get('fault_plane_clustering_min_samples', ac_params.get('fault_plane_clustering_min_samples', 5)),
             })
             
         # Add stress analysis parameters  
@@ -201,7 +197,7 @@ def dag_params_to_legacy_params(dag, node_id):
                 'poisson_depth': interpolation.get('poisson_depth', vis_params.get('poisson_depth', 3)),
                 'density_threshold': interpolation.get('density_threshold', vis_params.get('density_threshold', 0.4)),
                 'max_distance_factor': interpolation.get('max_distance_factor', vis_params.get('max_distance_factor', 1.5)),
-                'min_events_per_cluster': interpolation.get('min_events_per_cluster', vis_params.get('min_events_per_cluster', 10)),
+                'min_fault_planes_for_interpolation': interpolation.get('min_fault_planes_for_interpolation', vis_params.get('min_fault_planes_for_interpolation', 10)),
             })
             
             # 3D export parameters

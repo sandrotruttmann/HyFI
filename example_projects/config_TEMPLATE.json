@@ -74,12 +74,10 @@
         "spatial_sub_clustering": {
           "enable_spatial_clustering": true,
           "spatial_clustering_method": "dbscan",
-          "min_events_per_cluster": 10
-        },
-        "enhanced_point_cloud_clustering": {
-          "use_fault_plane_points_for_clustering": true,
-          "fault_plane_clustering_eps_factor": 0.1,
-          "fault_plane_clustering_min_samples_factor": 0.15
+          "min_events_per_cluster": 10,
+          "fault_plane_clustering_eps_meters": 100,
+          "fault_plane_clustering_min_samples": 5,
+          "use_fault_plane_points_for_clustering": true
         }
       }
     },

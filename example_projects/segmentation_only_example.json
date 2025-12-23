@@ -13,7 +13,7 @@
   },
   "workflow_dag": {
     "step_1_load_data": {
-      "hypocenter_file": "../data_examples/SECOS_20250305_HyFI_VS_filtered.csv",
+      "hypocenter_file": "../data_examples/SECOS_20250305_HyFI.csv",
       "hypocenter_separator": ",",
       "focal_mechanism_file": "../data_examples/SECOS_20250305_FM_HyFI.csv",
       "focal_mechanism_separator": ","
@@ -25,10 +25,11 @@
           "step_name": "Class A",
           "method": "dbscan",
           "features": ["spatial"],
-          "dbscan_eps": 300.0,
+          "cluster_dimension": "3d",
+          "dbscan_eps": 350.0,
           "dbscan_min_samples": 10,
           "dbscan_metric": "euclidean",
-          "min_cluster_size": 50,
+          "min_cluster_size": 20,
           "process_outliers": true,
           "outlier_handling": "next_step"
         },
@@ -36,21 +37,12 @@
           "step_name": "Class B",
           "method": "dbscan",
           "features": ["spatial"],
-          "dbscan_eps": 300.0,
+          "cluster_dimension": "3d",
+          "dbscan_eps": 500.0,
           "dbscan_min_samples": 10,
           "dbscan_metric": "euclidean",
           "min_cluster_size": 10,
           "process_outliers": true,
-          "outlier_handling": "next_step"
-        },
-        {
-          "step_name": "Class C",
-          "method": "hdbscan",
-          "features": ["spatial"],
-          "hdbscan_min_cluster_size": 15,
-          "hdbscan_min_samples": 5,
-          "dbscan_metric": "euclidean",
-          "process_outliers": false,
           "outlier_handling": "next_step"
         }
       ],
