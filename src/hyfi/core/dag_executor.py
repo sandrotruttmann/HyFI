@@ -733,18 +733,6 @@ class DAGExecutor:
                                      ['LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date']]
                         data_output = events_with_planes[output_cols].copy()
                         visualisation.faults_stereoplot(input_params, data_output)
-                vtp_exported
-                # Clean up VTP files if export_vtp is False (they were only needed for 3D HTML generation)
-                if not viz_params.get('export_vtp', False) and combined_mesh is not None:
-                    import shutil
-                    output_dir = input_params.get('out_dir', str(self.output_dir))
-                    vtp_dir = os.path.join(output_dir, 'vtp_export')
-                    if os.path.exists(vtp_dir):
-                        try:
-                            shutil.rmtree(vtp_dir)
-                            logger.info("VTP files cleaned up (export_vtp=False)")
-                        except Exception as e:
-                            logger.warning(f"Could not remove temporary VTP files: {e}")
                                 
             except Exception as e:
                 logger.warning(f"Standard visualization failed: {e}")

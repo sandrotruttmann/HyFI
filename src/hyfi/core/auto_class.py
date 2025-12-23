@@ -153,11 +153,20 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
     # Get spatial clustering parameters
     spatial_method = input_params.get('spatial_clustering_method', 'dbscan')
     min_points_spatial = input_params.get('min_points_per_subcluster', 10)
-    eps_meters = input_params.get('fault_plane_clustering_eps_meters', 200.0)
-    min_samples = input_params.get('fault_plane_clustering_min_samples', 5)
+    
+    # Get anisotropic clustering parameters
+    anisotropic_eps = input_params.get('use_anisotropic_eps', False)
+    in_plane_eps_meters = input_params.get('in_plane_eps_meters', 500.0)
+    out_of_plane_eps_meters = input_params.get('out_of_plane_eps_meters', 50.0)
+    anisotropic_min_samples = input_params.get('anisotropic_min_samples', 5)
     
     print(f"  Using enhanced point cloud with {len(df_enhanced):,} points")
-    print(f"  Parameters: spatial_method={spatial_method}, eps={eps_meters}m, min_samples={min_samples}")
+    if anisotropic_eps:
+        print(f"  Parameters: spatial_method={spatial_method}, anisotropic (in-plane={in_plane_eps_meters}m, out-of-plane={out_of_plane_eps_meters}m, min_samples={anisotropic_min_samples})")
+    else:
+        eps_meters = input_params.get('fault_plane_clustering_eps_meters', 200.0)
+        min_samples = input_params.get('fault_plane_clustering_min_samples', 5)
+        print(f"  Parameters: spatial_method={spatial_method}, eps={eps_meters}m, min_samples={min_samples}")
     
     # Initialize spatial cluster columns
     df_clustered['spatial_cluster'] = 0
@@ -192,14 +201,57 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
         
         # Apply DBSCAN clustering
         if spatial_method == 'dbscan':
-            # Use absolute eps value in meters
-            eps = eps_meters
-            avg_points_per_fault = len(points) / len(cluster_fault_indices)
+            # Check if anisotropic distance should be used
+            if anisotropic_eps:
+                # Get normal vectors from original faults
+                cluster_faults = df_clustered.loc[cluster_fault_indices]
+                if all(col in cluster_faults.columns for col in ['nor_x_mean', 'nor_y_mean', 'nor_z_mean']):
+                    # Create mapping from fault index to normal vector
+                    fault_idx_to_normal = {}
+                    
+                    # Ensure consistent normal vector orientation for the cluster
+                    # to prevent cancellation during averaging
+                    ref_idx = cluster_fault_indices[0]
+                    v_ref = df_clustered.loc[ref_idx, ['nor_x_mean', 'nor_y_mean', 'nor_z_mean']].values
+                    v_ref = v_ref / np.linalg.norm(v_ref) if np.linalg.norm(v_ref) > 0 else v_ref
+                    
+                    for idx in cluster_fault_indices:
+                        normal = df_clustered.loc[idx, ['nor_x_mean', 'nor_y_mean', 'nor_z_mean']].values
+                        # Normalize normal
+                        n_norm = np.linalg.norm(normal)
+                        if n_norm > 0:
+                            normal = normal / n_norm
+                            # Flip if in opposite hemisphere to reference
+                            if np.dot(normal, v_ref) < 0:
+                                normal = -normal
+                        fault_idx_to_normal[idx] = normal
+                    
+                    # Map normals to all enhanced points using fault_mapping
+                    # Enforce float dtype to prevent object-array ufunc errors
+                    point_normals = np.array([fault_idx_to_normal[fault_mapping[i]] for i in range(len(points))], dtype=float)
+                    
+                    # Compute anisotropic distance matrix
+                    print(f"        Using anisotropic DBSCAN: in-plane eps={in_plane_eps_meters}m, out-of-plane eps={out_of_plane_eps_meters}m")
+                    # Ensure points is also a float array
+                    points_f = np.asarray(points, dtype=float)
+                    dist_matrix = _anisotropic_distance_matrix(points_f, point_normals, in_plane_eps_meters, out_of_plane_eps_meters)
+                    
+                    print(f"        min_samples={anisotropic_min_samples}")
+                    dbscan = DBSCAN(eps=1.0, min_samples=anisotropic_min_samples, metric='precomputed')
+                    point_labels = dbscan.fit_predict(dist_matrix)
+                else:
+                    print(f"        Warning: Normal vectors not available, falling back to isotropic")
+                    anisotropic_eps = False
             
-            print(f"        DBSCAN: eps={eps:.1f}m, min_samples={min_samples} ({avg_points_per_fault:.1f} avg points/fault)")
-            
-            dbscan = DBSCAN(eps=eps, min_samples=min_samples)
-            point_labels = dbscan.fit_predict(points)
+            if not anisotropic_eps:
+                # Isotropic fallback
+                eps = eps_meters
+                avg_points_per_fault = len(points) / len(cluster_fault_indices)
+                
+                print(f"        DBSCAN (isotropic): eps={eps:.1f}m, min_samples={min_samples} ({avg_points_per_fault:.1f} avg points/fault)")
+                
+                dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+                point_labels = dbscan.fit_predict(points)
             
             n_found_clusters = len(set(point_labels)) - (1 if -1 in point_labels else 0)
             print(f"        Found {n_found_clusters} spatial clusters")
@@ -276,13 +328,20 @@ def _spatial_clustering_by_orientation(df_clustered, input_params, starting_faul
     use_fault_plane_points = input_params.get('use_fault_plane_points_for_clustering', False)
     fault_plane_point_density = input_params.get('fault_plane_point_density_meters', 10.0)
     fault_plane_radius_interval = input_params.get('fault_plane_radius_interval_meters', 10.0)
-    eps_meters = input_params.get('fault_plane_clustering_eps_meters', 200.0)
-    min_samples = input_params.get('fault_plane_clustering_min_samples', 5)
+    
+    # Get anisotropic clustering parameters
+    anisotropic_eps = input_params.get('use_anisotropic_eps', False)
+    in_plane_eps_meters = input_params.get('in_plane_eps_meters', 500.0)
+    out_of_plane_eps_meters = input_params.get('out_of_plane_eps_meters', 50.0)
+    anisotropic_min_samples = input_params.get('anisotropic_min_samples', 5)
     
     if use_fault_plane_points:
         print(f"  Using fault plane points for enhanced spatial clustering")
         print(f"    Point density: {fault_plane_point_density}m, radius interval: {fault_plane_radius_interval}m")
-        print(f"    Clustering: eps={eps_meters}m, min_samples={min_samples}")
+        if anisotropic_eps:
+            print(f"    Clustering: anisotropic (in-plane={in_plane_eps_meters}m, out-of-plane={out_of_plane_eps_meters}m, min_samples={anisotropic_min_samples})")
+        else:
+            print(f"    Clustering: isotropic fallback mode")
     
     # Initialize spatial cluster columns
     df_clustered['spatial_cluster'] = 0
@@ -318,8 +377,10 @@ def _spatial_clustering_by_orientation(df_clustered, input_params, starting_faul
                 use_fault_plane_points=use_fault_plane_points,
                 point_density_meters=fault_plane_point_density,
                 radius_interval_meters=fault_plane_radius_interval,
-                eps_factor=fault_plane_eps_factor,
-                min_samples_factor=fault_plane_min_samples_factor
+                anisotropic_eps=anisotropic_eps,
+                in_plane_eps_meters=in_plane_eps_meters,
+                out_of_plane_eps_meters=out_of_plane_eps_meters,
+                anisotropic_min_samples=anisotropic_min_samples
             )
             
             # Update the main dataframe with spatial cluster results
@@ -404,8 +465,81 @@ def _filter_small_clusters(df_clustered, min_events_per_cluster):
     return df_clustered
 
 
+def _anisotropic_distance_matrix(points, normals, in_plane_eps, out_of_plane_eps):
+    """
+    Compute anisotropic distance matrix where distances are weighted differently
+    along the fault plane (in-plane) vs perpendicular to it (out-of-plane).
+    
+    Vectorized implementation for performance.
+    
+    Parameters
+    ----------
+    points : ndarray
+        Point coordinates (n_points, 3)
+    normals : ndarray
+        Normal vectors for each point (n_points, 3)
+    in_plane_eps : float
+        Distance threshold for in-plane separation (meters)
+    out_of_plane_eps : float
+        Distance threshold for out-of-plane separation (meters)
+    
+    Returns
+    -------
+    ndarray
+        Distance matrix (n_points, n_points) with anisotropic distances
+    """
+    from scipy.spatial.distance import pdist, squareform
+    
+    # Ensure inputs are float arrays for ufunc stability
+    points = np.asarray(points, dtype=float)
+    normals = np.asarray(normals, dtype=float)
+    
+    n = len(points)
+    
+    if n <= 1:
+        return np.zeros((n, n))
+    
+    # 1. Calculate squared total distances: |p_j - p_i|^2
+    dist_sq = squareform(pdist(points, 'sqeuclidean'))
+    
+    # 2. Decompose distance into out-of-plane (parallel to normal) and in-plane (orthogonal to normal)
+    # The out-of-plane component for a pair (i,j) uses the average normal orientation n_avg = (n_i + n_j)/2
+    # out_of_plane_dist = |dot(p_j - p_i, n_avg)| / |n_avg|
+    
+    # Pre-calculate dot products of points and normals for vectorized logic:
+    # dot(p_j - p_i, n_i + n_j) = dot(p_j, n_i) + dot(p_j, n_j) - dot(p_i, n_i) - dot(p_i, n_j)
+    dots_pn = np.dot(points, normals.T)  # (n, n), points[i] . normals[j]
+    diag_pn = np.diag(dots_pn)
+    
+    # out_of_plane_dot[i, j] is dot(p_j - p_i, n_i + n_j)
+    # Note: dots_pn.T[i, j] is dots_pn[j, i] = points[j] . normals[i]
+    out_of_plane_dot = 0.5 * (dots_pn.T + diag_pn[np.newaxis, :] - diag_pn[:, np.newaxis] - dots_pn)
+    
+    # Average normal length squared: |(n_i + n_j)/2|^2 = (n_i^2 + n_j^2 + 2*n_i.n_j) / 4 = (1 + 1 + 2*n_i.n_j) / 4 = (0.5 + 0.5*n_i.n_j)
+    # Assumes normals are already normalized to unit length.
+    dots_nn = np.dot(normals, normals.T)
+    avg_norm_len_sq = 0.5 + 0.5 * dots_nn
+    
+    # Memory safety/numerical stability
+    avg_norm_len = np.sqrt(np.maximum(1e-9, avg_norm_len_sq))
+    
+    out_of_plane_dist = np.abs(out_of_plane_dot) / avg_norm_len
+    
+    # 3. In-plane distance: in_plane^2 = total^2 - out_of_plane^2
+    in_plane_dist_sq = np.maximum(0, dist_sq - out_of_plane_dist**2)
+    in_plane_dist = np.sqrt(in_plane_dist_sq)
+    
+    # 4. Compute weighted anisotropic distance (normalized by thresholds)
+    # We take the maximum of both components as the effective distance for DBSCAN
+    dist_matrix = np.maximum(in_plane_dist / in_plane_eps, out_of_plane_dist / out_of_plane_eps)
+    
+    return dist_matrix
+
+
 def _spatial_clustering(df_cluster, method='dbscan', n_clusters=2, min_points=10, use_fault_plane_points=False, 
-                        point_density_meters=12.0, radius_interval_meters=20.0, eps_factor=0.3, min_samples_factor=0.3):
+                        point_density_meters=12.0, radius_interval_meters=20.0,
+                        anisotropic_eps=False, in_plane_eps_meters=500.0, out_of_plane_eps_meters=50.0,
+                        anisotropic_min_samples=5):
     """
     Perform spatial clustering to split orientation clusters into spatial sub-clusters.
     
@@ -425,10 +559,14 @@ def _spatial_clustering(df_cluster, method='dbscan', n_clusters=2, min_points=10
         Target distance between points on fault plane circumference
     radius_interval_meters : float
         Fixed interval between concentric circles on fault planes
-    eps_factor : float
-        Factor to scale eps parameter for DBSCAN when using fault plane points (smaller = more sensitive)
-    min_samples_factor : float
-        Factor to scale min_samples for DBSCAN when using fault plane points (smaller = more sensitive)
+    anisotropic_eps : bool
+        If True, use anisotropic distance metric (different thresholds in-plane vs out-of-plane)
+    in_plane_eps_meters : float
+        Distance threshold along the fault plane (meters) for anisotropic clustering
+    out_of_plane_eps_meters : float
+        Distance threshold perpendicular to fault plane (meters) for anisotropic clustering
+    anisotropic_min_samples : int
+        Minimum samples for DBSCAN in anisotropic mode
         
     Returns
     -------
@@ -599,45 +737,85 @@ def _spatial_clustering(df_cluster, method='dbscan', n_clusters=2, min_points=10
             cluster_labels = np.array(final_labels)
     
     elif method == 'dbscan':
-        # Use adaptive eps based on data spread, with different strategies for fault plane points
-        if use_fault_plane_points:
-            # For fault plane points, use hypocenter spread as basis, not full point cloud spread
-            # This keeps eps sensitive to the original fault separation
-            hypocenter_range = np.ptp(original_coords, axis=0).mean()
+        # Check if anisotropic distance should be used
+        if anisotropic_eps and 'nor_x_mean' in df_cluster.columns and 'nor_y_mean' in df_cluster.columns and 'nor_z_mean' in df_cluster.columns:
+            # Use anisotropic distance metric
+            print(f"    Using anisotropic DBSCAN: in-plane eps={in_plane_eps_meters}m, out-of-plane eps={out_of_plane_eps_meters}m")
             
-            # Make eps smaller for fault plane points to maintain sensitivity
-            eps = hypocenter_range * eps_factor  # Configurable sensitivity
+            # Get normal vectors for each hypocenter/fault
+            normals = df_cluster[['nor_x_mean', 'nor_y_mean', 'nor_z_mean']].values
             
-            # Also consider typical fault plane size for context
-            avg_fault_radius = df_cluster['rupt_radius'].mean() if 'rupt_radius' in df_cluster.columns else 50.0
+            # Normalize normals
+            norms = np.linalg.norm(normals, axis=1, keepdims=True)
+            normals = normals / np.where(norms > 0, norms, 1)
             
-            # Use the smaller of hypocenter-based or fault-size-based eps
-            fault_size_eps = avg_fault_radius * 0.8  # Allow some overlap between nearby faults
-            eps = min(eps, fault_size_eps)
+            # Ensure consistent normal vector orientation for the cluster
+            if len(normals) > 0:
+                v_ref = normals[0]
+                dots = np.dot(normals, v_ref)
+                normals[dots < 0] *= -1
             
-            print(f"    DBSCAN fault-plane clustering: eps={eps:.1f}m (factor={eps_factor}, hypocenter-based)")
+            if use_fault_plane_points:
+                # Map normals to all fault plane points
+                point_normals = np.array([normals[fault_idx] for fault_idx in point_to_fault_map], dtype=float)
+            else:
+                point_normals = normals.astype(float)
             
-        else:
-            # Original logic for single hypocenter points
-            data_range = np.ptp(points, axis=0).mean()
-            eps = data_range * 0.5  # 50% of data range
-            print(f"    DBSCAN spatial clustering: eps={eps:.1f}m")
-        
-        min_samples = max(4, min_points // 3)
-        
-        # For fault plane points, can use lower min_samples since we have more points
-        if use_fault_plane_points:
-            # Scale min_samples based on average points per fault
-            avg_points_per_fault = len(points) / len(df_cluster) if len(df_cluster) > 0 else 10
-            min_samples = max(3, int(avg_points_per_fault * min_samples_factor))  # Configurable factor
-            print(f"    min_samples={min_samples} (factor={min_samples_factor}, {avg_points_per_fault:.1f} avg points/fault)")
-        else:
+            # Compute anisotropic distance matrix
+            # Ensure points is also float
+            points_f = np.asarray(points, dtype=float)
+            dist_matrix = _anisotropic_distance_matrix(points_f, point_normals, in_plane_eps_meters, out_of_plane_eps_meters)
+            
+            # Use DBSCAN with precomputed metric (eps=1 since we normalized by thresholds)
+            # Use absolute min_samples value for anisotropic clustering
+            min_samples = anisotropic_min_samples
             print(f"    min_samples={min_samples}")
-        
-        dbscan = DBSCAN(eps=eps, min_samples=min_samples)
-        cluster_labels = dbscan.fit_predict(points)
-        n_found_clusters = len(set(cluster_labels)) - (1 if -1 in cluster_labels else 0)
-        print(f"    Found {n_found_clusters} spatial clusters")
+            
+            dbscan = DBSCAN(eps=1.0, min_samples=min_samples, metric='precomputed')
+            cluster_labels = dbscan.fit_predict(dist_matrix)
+            n_found_clusters = len(set(cluster_labels)) - (1 if -1 in cluster_labels else 0)
+            print(f"    Found {n_found_clusters} spatial clusters (anisotropic)")
+            
+        else:
+            # Use adaptive eps based on data spread, with different strategies for fault plane points
+            if use_fault_plane_points:
+                # For fault plane points, use hypocenter spread as basis, not full point cloud spread
+                # This keeps eps sensitive to the original fault separation
+                hypocenter_range = np.ptp(original_coords, axis=0).mean()
+                
+                # Use 30% of hypocenter range as default
+                eps = hypocenter_range * 0.3
+                
+                # Also consider typical fault plane size for context
+                avg_fault_radius = df_cluster['rupt_radius'].mean() if 'rupt_radius' in df_cluster.columns else 50.0
+                
+                # Use the smaller of hypocenter-based or fault-size-based eps
+                fault_size_eps = avg_fault_radius * 0.8  # Allow some overlap between nearby faults
+                eps = min(eps, fault_size_eps)
+                
+                print(f"    DBSCAN fault-plane clustering (isotropic fallback): eps={eps:.1f}m")
+                
+            else:
+                # Original logic for single hypocenter points
+                data_range = np.ptp(points, axis=0).mean()
+                eps = data_range * 0.5  # 50% of data range
+                print(f"    DBSCAN spatial clustering (isotropic): eps={eps:.1f}m")
+            
+            min_samples = max(4, min_points // 3)
+            
+            # For fault plane points, can use lower min_samples since we have more points
+            if use_fault_plane_points:
+                # Scale min_samples based on average points per fault
+                avg_points_per_fault = len(points) / len(df_cluster) if len(df_cluster) > 0 else 10
+                min_samples = max(3, int(avg_points_per_fault * 0.3))  # 30% of avg points per fault
+                print(f"    min_samples={min_samples} ({avg_points_per_fault:.1f} avg points/fault)")
+            else:
+                print(f"    min_samples={min_samples}")
+            
+            dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+            cluster_labels = dbscan.fit_predict(points)
+            n_found_clusters = len(set(cluster_labels)) - (1 if -1 in cluster_labels else 0)
+            print(f"    Found {n_found_clusters} spatial clusters")
 
         # Handle noise points (label -1) by excluding them from fitting
         if -1 in cluster_labels:

@@ -3127,17 +3127,40 @@ def model_3d(input_params, data_input, data_output):
 
 
     ############################################################################
-    # Plot the fault planes    
-    if 'orient_cluster' in df.columns:
-        if data_output['orient_cluster'].isna().all():
-            colors = ['black'] * len(df)
-        else:
-            column = data_output['orient_cluster']
-            cmap = 'gnuplot'
-            minval = np.nanmin(data_output['orient_cluster']) - 1.1
-            maxval = np.nanmax(data_output['orient_cluster']) + 0.1
-            colorsteps = len(data_output['orient_cluster'].unique())
-            colors = utilities_plot.colorscale(column, cmap, minval, maxval, colorsteps, cmap_reverse=False)
+    # Plot the fault planes
+    # Prioritize final_cluster_id (orientation + spatial) over orient_cluster (orientation only)
+    if 'final_cluster_id' in df.columns and not data_output['final_cluster_id'].isna().all():
+        # Use combined orientation + spatial clustering
+        column = data_output['final_cluster_id']
+        
+        # Convert string IDs to numeric for coloring (handle FS0001, F1_0, etc.)
+        numeric_ids = []
+        unique_ids = {}
+        counter = 0
+        for val in column:
+            if pd.isna(val):
+                numeric_ids.append(np.nan)
+            else:
+                str_val = str(val)
+                if str_val not in unique_ids:
+                    unique_ids[str_val] = counter
+                    counter += 1
+                numeric_ids.append(unique_ids[str_val])
+        
+        column = pd.Series(numeric_ids)
+        cmap = 'gnuplot'
+        minval = np.nanmin(column) - 1.1
+        maxval = np.nanmax(column) + 0.1
+        colorsteps = len(unique_ids)
+        colors = utilities_plot.colorscale(column, cmap, minval, maxval, colorsteps, cmap_reverse=False)
+    elif 'orient_cluster' in df.columns and not data_output['orient_cluster'].isna().all():
+        # Fallback to orientation-only clustering
+        column = data_output['orient_cluster']
+        cmap = 'gnuplot'
+        minval = np.nanmin(data_output['orient_cluster']) - 1.1
+        maxval = np.nanmax(data_output['orient_cluster']) + 0.1
+        colorsteps = len(data_output['orient_cluster'].unique())
+        colors = utilities_plot.colorscale(column, cmap, minval, maxval, colorsteps, cmap_reverse=False)
     else:
         colors = ['black'] * len(df)
 
@@ -4162,17 +4185,40 @@ def model_3d_single_df(df_hyfi, input_params):
                     show_unk_legend = False
 
     ############################################################################
-    # Plot the fault planes    
-    if 'orient_cluster' in df.columns:
-        if df['orient_cluster'].isna().all():
-            colors = ['black'] * len(df)
-        else:
-            column = df['orient_cluster']
-            cmap = 'gnuplot'
-            minval = np.nanmin(df['orient_cluster']) - 1.1
-            maxval = np.nanmax(df['orient_cluster']) + 0.1
-            colorsteps = len(df['orient_cluster'].unique())
-            colors = utilities_plot.colorscale(column, cmap, minval, maxval, colorsteps, cmap_reverse=False)
+    # Plot the fault planes
+    # Prioritize final_cluster_id (orientation + spatial) over orient_cluster (orientation only)
+    if 'final_cluster_id' in df.columns and not df['final_cluster_id'].isna().all():
+        # Use combined orientation + spatial clustering
+        column = df['final_cluster_id']
+        
+        # Convert string IDs to numeric for coloring (handle FS0001, F1_0, etc.)
+        numeric_ids = []
+        unique_ids = {}
+        counter = 0
+        for val in column:
+            if pd.isna(val):
+                numeric_ids.append(np.nan)
+            else:
+                str_val = str(val)
+                if str_val not in unique_ids:
+                    unique_ids[str_val] = counter
+                    counter += 1
+                numeric_ids.append(unique_ids[str_val])
+        
+        column = pd.Series(numeric_ids)
+        cmap = 'gnuplot'
+        minval = np.nanmin(column) - 1.1
+        maxval = np.nanmax(column) + 0.1
+        colorsteps = len(unique_ids)
+        colors = utilities_plot.colorscale(column, cmap, minval, maxval, colorsteps, cmap_reverse=False)
+    elif 'orient_cluster' in df.columns and not df['orient_cluster'].isna().all():
+        # Fallback to orientation-only clustering
+        column = df['orient_cluster']
+        cmap = 'gnuplot'
+        minval = np.nanmin(df['orient_cluster']) - 1.1
+        maxval = np.nanmax(df['orient_cluster']) + 0.1
+        colorsteps = len(df['orient_cluster'].unique())
+        colors = utilities_plot.colorscale(column, cmap, minval, maxval, colorsteps, cmap_reverse=False)
     else:
         colors = ['black'] * len(df)
 

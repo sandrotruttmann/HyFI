@@ -160,6 +160,11 @@ def dag_params_to_legacy_params(dag, node_id):
                 'fault_plane_radius_interval_meters': spatial_subclustering.get('fault_plane_radius_interval_meters', ac_params.get('fault_plane_radius_interval_meters', 10.0)),
                 'fault_plane_clustering_eps_meters': spatial_subclustering.get('fault_plane_clustering_eps_meters', ac_params.get('fault_plane_clustering_eps_meters', 200.0)),
                 'fault_plane_clustering_min_samples': spatial_subclustering.get('fault_plane_clustering_min_samples', ac_params.get('fault_plane_clustering_min_samples', 5)),
+                # Anisotropic clustering parameters
+                'use_anisotropic_eps': spatial_subclustering.get('use_anisotropic_eps', ac_params.get('use_anisotropic_eps', False)),
+                'in_plane_eps_meters': spatial_subclustering.get('in_plane_eps_meters', ac_params.get('in_plane_eps_meters', 500.0)),
+                'out_of_plane_eps_meters': spatial_subclustering.get('out_of_plane_eps_meters', ac_params.get('out_of_plane_eps_meters', 50.0)),
+                'anisotropic_min_samples': spatial_subclustering.get('anisotropic_min_samples', ac_params.get('anisotropic_min_samples', 5)),
             })
             
         # Add stress analysis parameters  
