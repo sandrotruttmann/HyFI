@@ -177,7 +177,7 @@ def create_advanced_multi_step_template(
         # Step 1: Large-scale spatial clustering
         SegmentationStep(
             step_name="macro_spatial",
-            description="Macro-scale spatial clustering for major fault systems",
+            description="Macro-scale spatial clustering for major faults",
             method='dbscan',
             features=['spatial'],
             dbscan_eps=2000.0,  # Large search radius

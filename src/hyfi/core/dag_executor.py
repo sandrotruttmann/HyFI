@@ -49,7 +49,7 @@ class DAGExecutor:
         cluster_name : str, optional
             Name of the cluster being processed (used for special handling)
         global_fault_counter : int, optional
-            Starting value for global fault system counter (default: 1)
+            Starting value for global fault counter (default: 1)
         sequence_label : str, optional
             Label of the sequence being processed (e.g., 'A1', 'B2')
         segmentation_level : str, optional
@@ -65,7 +65,7 @@ class DAGExecutor:
         self.execution_log = []
         self.start_time = None
         self.end_time = None
-        self.fault_system_metadata = []
+        self.fault_metadata = []
         
         # Setup logging
         logging.basicConfig(level=getattr(logging, dag_config.log_level.upper()))
@@ -140,20 +140,20 @@ class DAGExecutor:
             # Execution summary is now saved in _save_workflow_results()
             # self._save_execution_summary()
             
-            # Include fault system metadata in results
+            # Include fault metadata in results
             results_with_metadata = self.results.copy()
-            results_with_metadata['fault_system_metadata'] = self.fault_system_metadata
+            results_with_metadata['fault_metadata'] = self.fault_metadata
             results_with_metadata['next_fault_counter'] = self.global_fault_counter
             
             # Aggregate TEMP→FS mappings from all visualization results
-            all_temp_to_fs_mapping = {}
+            all_temp_to_fault_mapping = {}
             for node_id, node_results in self.results.items():
-                if isinstance(node_results, dict) and 'temp_to_fs_mapping' in node_results:
-                    mapping = node_results['temp_to_fs_mapping']
+                if isinstance(node_results, dict) and 'temp_to_fault_mapping' in node_results:
+                    mapping = node_results['temp_to_fault_mapping']
                     if mapping:
-                        all_temp_to_fs_mapping.update(mapping)
+                        all_temp_to_fault_mapping.update(mapping)
             
-            results_with_metadata['temp_to_fs_mapping'] = all_temp_to_fs_mapping
+            results_with_metadata['temp_to_fault_mapping'] = all_temp_to_fault_mapping
             
             return results_with_metadata
             
@@ -500,7 +500,7 @@ class DAGExecutor:
             'classification_results': result_df_hyfi,
             'df_hyfi': result_df_hyfi,
             'parameters': node.parameters,
-            'fault_system_metadata': fault_metadata,
+            'fault_metadata': fault_metadata,
             'next_fault_counter': next_counter
         }
     
@@ -632,24 +632,24 @@ class DAGExecutor:
                 try:
                     # Create interpolated fault planes using single dataframe
                     # Pass global fault counter to ensure continuous numbering
-                    combined_mesh, individual_meshes, point_cloud, fault_disc_meshes, interpolation_metadata, next_fault_counter, temp_to_fs_mapping = visualisation.create_interpolated_fault_planes(
+                    combined_mesh, individual_meshes, point_cloud, fault_disc_meshes, interpolation_metadata, next_fault_counter, temp_to_fault_mapping = visualisation.create_interpolated_fault_planes(
                         df_hyfi, viz_params, starting_fault_counter=self.global_fault_counter
                     )
                     
                     # Store the TEMP→FS mapping for later use
-                    df_hyfi.temp_to_fs_mapping = temp_to_fs_mapping
+                    df_hyfi.temp_to_fault_mapping = temp_to_fault_mapping
                     
                     # Update global fault counter with next available value
                     self.global_fault_counter = next_fault_counter
                     
                     # Store interpolation metadata
                     if interpolation_metadata:
-                        self.fault_system_metadata.extend(interpolation_metadata)
+                        self.fault_metadata.extend(interpolation_metadata)
                     
-                    # Add fault_system_id column by applying the temp→FS mapping
-                    if temp_to_fs_mapping:
-                        print(f"  Adding fault_system_id column to dataframe...")
-                        print(f"  Temp→FS mapping: {dict(list(temp_to_fs_mapping.items())[:5])}")
+                    # Add fault_id column by applying the temp→F mapping
+                    if temp_to_fault_mapping:
+                        print(f"  Adding fault_id column to dataframe...")
+                        print(f"  Temp→F mapping: {dict(list(temp_to_fault_mapping.items())[:5])}")
                         
                         # Use final_cluster_id_local if it exists, otherwise fall back to final_cluster_id
                         if 'final_cluster_id_local' in df_hyfi.columns:
@@ -670,22 +670,22 @@ class DAGExecutor:
                                 if pd.isna(cluster_id) or cluster_id == -1:
                                     return None
                                 # Try direct lookup first
-                                if cluster_id in temp_to_fs_mapping:
-                                    return temp_to_fs_mapping[cluster_id]
+                                if cluster_id in temp_to_fault_mapping:
+                                    return temp_to_fault_mapping[cluster_id]
                                 # Try string version
-                                if str(cluster_id) in temp_to_fs_mapping:
-                                    return temp_to_fs_mapping[str(cluster_id)]
+                                if str(cluster_id) in temp_to_fault_mapping:
+                                    return temp_to_fault_mapping[str(cluster_id)]
                                 # Try int version
                                 try:
-                                    if int(cluster_id) in temp_to_fs_mapping:
-                                        return temp_to_fs_mapping[int(cluster_id)]
+                                    if int(cluster_id) in temp_to_fault_mapping:
+                                        return temp_to_fault_mapping[int(cluster_id)]
                                 except (ValueError, TypeError):
                                     pass
                                 return None
                             
-                            df_hyfi['fault_system_id'] = df_hyfi[mapping_column].apply(get_fs_id)
-                            n_mapped = df_hyfi['fault_system_id'].notna().sum()
-                            print(f"  Mapped {n_mapped} events to {len(temp_to_fs_mapping)} fault systems")
+                            df_hyfi['fault_id'] = df_hyfi[mapping_column].apply(get_fs_id)
+                            n_mapped = df_hyfi['fault_id'].notna().sum()
+                            print(f"  Mapped {n_mapped} events to {len(temp_to_fault_mapping)} faults")
                             
                             # Remove final_cluster_id_local column if it exists (keep only final_cluster_id)
                             if 'final_cluster_id_local' in df_hyfi.columns:
@@ -804,7 +804,7 @@ class DAGExecutor:
                 'visualization_completed': True,
                 'data_for_visualization': df_hyfi,
                 'parameters': node.parameters,
-                'temp_to_fs_mapping': temp_to_fs_mapping  # Include the mapping in results
+                'temp_to_fault_mapping': temp_to_fault_mapping  # Include the mapping in results
             }
             
         except Exception as e:
@@ -963,9 +963,9 @@ class DAGExecutor:
                           'NCCP', 'NCCS', 'NCTP', 'NCTS', 'RCC', 'RCT', 'CID', 'Date']
             
             # Sequence clustering columns
-            sequence_columns = ['sequence_label', 'segmentation_level', 'fault_system_id']
+            sequence_columns = ['sequence_label', 'segmentation_level', 'fault_id']
             
-            # Rupture size metrics (after fault_system_id)
+            # Rupture size metrics (after fault_id)
             rupture_size_columns = ['Mw', 'rupt_area', 'rupt_radius']
             
             # Analysis result columns
@@ -1017,8 +1017,8 @@ class DAGExecutor:
                 summary['focal_mechanisms_validated'] = int(df_hyfi['epsilon'].count())
             if 'effective_normal_stress' in df_hyfi.columns:
                 summary['stress_analysis_completed'] = int(df_hyfi['effective_normal_stress'].count())
-            if 'fault_system_id' in df_hyfi.columns:
-                summary['fault_clusters'] = int(df_hyfi['fault_system_id'].nunique())
+            if 'fault_id' in df_hyfi.columns:
+                summary['fault_clusters'] = int(df_hyfi['fault_id'].nunique())
             
             # Save summary
             import json

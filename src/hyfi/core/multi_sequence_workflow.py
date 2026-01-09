@@ -83,10 +83,10 @@ class MultiSequenceWorkflow:
         self.sequence_results = {}
         self.aggregated_results = {}
         
-        # Global fault system counter (FS0001, FS0002, ...)
+        # Global fault counter (FS0001, FS0002, ...)
         self.global_fault_counter = 1
-        self.fault_system_metadata = []  # Track all fault systems across sequences
-        self.temp_to_fs_mappings = {}  # Track TEMP→FS mappings from all sequences
+        self.fault_metadata = []  # Track all faults across sequences
+        self.temp_to_fault_mappings = {}  # Track TEMP→FS mappings from all sequences
         
         # Timing
         self.start_time = None
@@ -129,8 +129,8 @@ class MultiSequenceWorkflow:
         # Step 6: Create enriched CSV output
         self._create_enriched_csv_output()
         
-        # Step 6.5: Export fault system metadata
-        self._export_fault_system_metadata()
+        # Step 6.5: Export fault metadata
+        self._export_fault_metadata()
         
         # Step 7: Merge and export combined VTP files
         self._merge_and_export_vtp_files()
@@ -254,16 +254,16 @@ class MultiSequenceWorkflow:
                 sequence_results = executor.execute()
                 
                 # Collect metadata (will be renumbered later for continuous IDs)
-                if 'fault_system_metadata' in sequence_results:
-                    self.fault_system_metadata.extend(sequence_results['fault_system_metadata'])
+                if 'fault_metadata' in sequence_results:
+                    self.fault_metadata.extend(sequence_results['fault_metadata'])
                 if 'next_fault_counter' in sequence_results:
                     self.global_fault_counter = sequence_results['next_fault_counter']
                 
                 # Collect TEMP→FS mappings from this sequence
-                if 'temp_to_fs_mapping' in sequence_results:
-                    temp_mapping = sequence_results['temp_to_fs_mapping']
+                if 'temp_to_fault_mapping' in sequence_results:
+                    temp_mapping = sequence_results['temp_to_fault_mapping']
                     if temp_mapping:
-                        self.temp_to_fs_mappings.update(temp_mapping)
+                        self.temp_to_fault_mappings.update(temp_mapping)
                         print(f"  Collected {len(temp_mapping)} TEMP→FS mappings from {sequence_name}")
                 
                 # Store results
@@ -630,7 +630,7 @@ class MultiSequenceWorkflow:
             'dilation_tendency': np.nan,
             
             # Fault system clustering results
-            'fault_system_id': None,  # Global FS ID (FS0001, FS0002, ...)
+            'fault_id': None,  # Global FS ID (FS0001, FS0002, ...)
             'orientation_cluster': np.nan,
             
             # Additional metadata
@@ -715,8 +715,8 @@ class MultiSequenceWorkflow:
                         enriched_data.loc[event_mask, 'slip_tendency'] = hyfi_row.get('slip_tendency', np.nan)
                         enriched_data.loc[event_mask, 'dilation_tendency'] = hyfi_row.get('dilation_tendency', np.nan)
                         
-                        # Fault system clustering (use fault_system_id directly from HyFI_results.csv)
-                        enriched_data.loc[event_mask, 'fault_system_id'] = hyfi_row.get('fault_system_id', None)
+                        # Fault system clustering (use fault_id directly from HyFI_results.csv)
+                        enriched_data.loc[event_mask, 'fault_id'] = hyfi_row.get('fault_id', None)
                         enriched_data.loc[event_mask, 'orientation_cluster'] = hyfi_row.get('orientation_cluster', np.nan)
                 
                 print(f"  Merged {len(cluster_hyfi_results)} results from {sequence_name}")
@@ -738,17 +738,17 @@ class MultiSequenceWorkflow:
         if 'analysis_status' in enriched_data.columns:
             enriched_data = enriched_data.drop(columns=['analysis_status'])
         
-        # Reorder columns to place fault_system_id right after segmentation_level
+        # Reorder columns to place fault_id right after segmentation_level
         # Get current column order
         cols = enriched_data.columns.tolist()
         
         # Find indices
-        if 'segmentation_level' in cols and 'fault_system_id' in cols:
-            # Remove fault_system_id from its current position
-            cols.remove('fault_system_id')
+        if 'segmentation_level' in cols and 'fault_id' in cols:
+            # Remove fault_id from its current position
+            cols.remove('fault_id')
             # Insert it right after segmentation_level
             seg_idx = cols.index('segmentation_level')
-            cols.insert(seg_idx + 1, 'fault_system_id')
+            cols.insert(seg_idx + 1, 'fault_id')
             # Reorder dataframe
             enriched_data = enriched_data[cols]
         
@@ -769,8 +769,8 @@ class MultiSequenceWorkflow:
         print(f"  Clustered events: {clustered_events} ({clustered_events/total_events:.1%})")
         print(f"  Fault network outliers: {outlier_events} ({outlier_events/total_events:.1%})")
     
-    def _export_fault_system_metadata(self):
-        """Export comprehensive fault system metadata to CSV with continuous numbering.
+    def _export_fault_metadata(self):
+        """Export comprehensive fault metadata to CSV with continuous numbering.
         
         The exported database contains:
         - Geometric properties: Both from original rupture planes AND interpolated mesh faces
@@ -781,10 +781,10 @@ class MultiSequenceWorkflow:
           * mesh_mean_* : Mean of stress values calculated on interpolated mesh faces
         - Mesh properties: From the interpolated fault surface mesh
         """
-        print("Exporting fault system metadata...")
+        print("Exporting fault metadata...")
         
-        if not self.fault_system_metadata:
-            print("  No fault system metadata available to export")
+        if not self.fault_metadata:
+            print("  No fault metadata available to export")
             return
         
         output_dir = Path(self.config.output_directory)
@@ -796,27 +796,27 @@ class MultiSequenceWorkflow:
         metadata_file = database_dir / 'HyFI_database_metadata.csv'
         
         # Convert to DataFrame
-        df_metadata = pd.DataFrame(self.fault_system_metadata)
+        df_metadata = pd.DataFrame(self.fault_metadata)
         
-        print(f"  Collected {len(df_metadata)} fault system metadata entries")
+        print(f"  Collected {len(df_metadata)} fault metadata entries")
         
-        # Remove duplicates based on fault_system_id (keep first occurrence)
+        # Remove duplicates based on fault_id (keep first occurrence)
         # This can happen if metadata is collected from multiple sources
         before_dedup = len(df_metadata)
-        df_metadata = df_metadata.drop_duplicates(subset=['fault_system_id'], keep='first')
+        df_metadata = df_metadata.drop_duplicates(subset=['fault_id'], keep='first')
         after_dedup = len(df_metadata)
         if before_dedup > after_dedup:
             print(f"  Removed {before_dedup - after_dedup} duplicate entries")
         
-        # Sort by original fault_system_id to maintain sequence order
-        df_metadata = df_metadata.sort_values('fault_system_id')
+        # Sort by original fault_id to maintain sequence order
+        df_metadata = df_metadata.sort_values('fault_id')
         
         # The metadata already has FS IDs from mesh interpolation, no need to renumber
         # Just verify they are in the correct format
-        print(f"  Fault system IDs in metadata: {list(df_metadata['fault_system_id'].head())}")
+        print(f"  Fault system IDs in metadata: {list(df_metadata['fault_id'].head())}")
         
-        if self.temp_to_fs_mappings:
-            print(f"  Available TEMP→FS mappings: {dict(list(self.temp_to_fs_mappings.items())[:5])}")
+        if self.temp_to_fault_mappings:
+            print(f"  Available TEMP→FS mappings: {dict(list(self.temp_to_fault_mappings.items())[:5])}")
         else:
             print("  Warning: No TEMP→FS mappings available")
         
@@ -843,7 +843,7 @@ class MultiSequenceWorkflow:
         
         # Select only requested columns in specified order
         requested_columns = [
-            'fault_system_id', 'segmentation_level', 'sequence_label', 'vtp_file',
+            'fault_id', 'segmentation_level', 'sequence_label', 'vtp_file',
             'n_events',
             'centroid_x', 'centroid_y', 'centroid_z',
             'rupture_mean_azimuth', 'rupture_mean_dip',
@@ -875,26 +875,26 @@ class MultiSequenceWorkflow:
         df_metadata.to_csv(metadata_file, index=False)
         
         print(f"  Active faults database exported: {metadata_file}")
-        print(f"  Total active fault systems: {len(df_metadata)} (using IDs from mesh interpolation)")
+        print(f"  Total active faults: {len(df_metadata)} (using IDs from mesh interpolation)")
         
         # Print summary by sequence
         if 'sequence_label' in df_metadata.columns:
             sequence_counts = df_metadata['sequence_label'].value_counts()
             print(f"  Fault systems by sequence:")
             for seq, count in sequence_counts.items():
-                print(f"    {seq}: {count} fault systems")
+                print(f"    {seq}: {count} faults")
         
         # Store in aggregated results
-        self.aggregated_results['fault_system_metadata'] = df_metadata
+        self.aggregated_results['fault_metadata'] = df_metadata
         
-        # The enriched catalog already has correct fault_system_id from HyFI_results.csv files
-        # No need to apply TEMP→FS mappings since fault_system_id is set directly during visualization
+        # The enriched catalog already has correct fault_id from HyFI_results.csv files
+        # No need to apply TEMP→FS mappings since fault_id is set directly during visualization
         if 'enriched_catalog' in self.aggregated_results:
             enriched_catalog = self.aggregated_results['enriched_catalog']
-            if 'fault_system_id' in enriched_catalog.columns:
-                fs_id_counts = enriched_catalog['fault_system_id'].value_counts()
+            if 'fault_id' in enriched_catalog.columns:
+                fs_id_counts = enriched_catalog['fault_id'].value_counts()
                 print(f"  Fault system IDs in hypocenter catalog: {list(fs_id_counts.index[:5])}")
-                print(f"  Total events in fault systems: {enriched_catalog['fault_system_id'].notna().sum()}")
+                print(f"  Total events in faults: {enriched_catalog['fault_id'].notna().sum()}")
         
         # Export enhanced focal mechanism catalog if available
         self._export_focal_mechanism_catalog()
@@ -977,30 +977,30 @@ class MultiSequenceWorkflow:
                             if seg_level in ['A', 'B', 'C']:
                                 id_to_segmentation[event_id] = f'Class {seg_level}'
                 
-                # Add fault system assignment from enriched catalog if available
+                # Add fault assignment from enriched catalog if available
                 if 'enriched_catalog' in self.aggregated_results:
                     enriched = self.aggregated_results['enriched_catalog']
-                    if 'fault_system_id' in enriched.columns:
-                        print(f"    Reading fault system IDs from enriched catalog for focal mechanisms...")
-                        fs_id_counts = enriched['fault_system_id'].value_counts()
+                    if 'fault_id' in enriched.columns:
+                        print(f"    Reading fault IDs from enriched catalog for focal mechanisms...")
+                        fs_id_counts = enriched['fault_id'].value_counts()
                         print(f"    Available FS IDs in enriched catalog: {list(fs_id_counts.index[:10])}")  # Show first 10
                         
                         for _, row in enriched.iterrows():
-                            if pd.notna(row.get('fault_system_id')):
-                                id_to_fault_system[row['ID']] = row['fault_system_id']
+                            if pd.notna(row.get('fault_id')):
+                                id_to_fault_system[row['ID']] = row['fault_id']
                         
-                        print(f"    Mapped {len(id_to_fault_system)} events to fault systems")
+                        print(f"    Mapped {len(id_to_fault_system)} events to faults")
                     else:
-                        print(f"    Warning: No fault_system_id column in enriched catalog")
+                        print(f"    Warning: No fault_id column in enriched catalog")
                 else:
                     print(f"    Warning: No enriched catalog available")
                 
                 # Map to focal mechanism data (match by ID)
                 df_focals['sequence_label'] = df_focals['ID'].map(id_to_sequence).fillna('unclustered')
                 df_focals['segmentation_level'] = df_focals['ID'].map(id_to_segmentation)
-                df_focals['fault_system_id'] = df_focals['ID'].map(id_to_fault_system)
+                df_focals['fault_id'] = df_focals['ID'].map(id_to_fault_system)
                 
-                # The fault_system_id from enriched catalog is already correct (no remapping needed)
+                # The fault_id from enriched catalog is already correct (no remapping needed)
                 print(f"    Fault system IDs already assigned from enriched catalog")
             
             # Save enhanced focal mechanism catalog
@@ -1011,11 +1011,11 @@ class MultiSequenceWorkflow:
             
             # Print summary
             n_with_sequence = len(df_focals[df_focals['sequence_label'] != 'unclustered'])
-            n_with_fs = df_focals['fault_system_id'].notna().sum()
+            n_with_fs = df_focals['fault_id'].notna().sum()
             print(f"    Total focal mechanisms: {len(df_focals)}")
             print(f"    Assigned to sequences: {n_with_sequence} ({n_with_sequence/len(df_focals):.1%})")
             if n_with_fs > 0:
-                print(f"    Assigned to fault systems: {n_with_fs} ({n_with_fs/len(df_focals):.1%})")
+                print(f"    Assigned to faults: {n_with_fs} ({n_with_fs/len(df_focals):.1%})")
             
             # Store in aggregated results
             self.aggregated_results['focal_mechanism_catalog'] = df_focals

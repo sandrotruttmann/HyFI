@@ -22,10 +22,10 @@ class HyFIQueries:
         self.db = database
     
     def fault_systems_overview(self, min_events: int = 5) -> pd.DataFrame:
-        """Get overview of active fault systems"""
+        """Get overview of active faults"""
         return self.db.query(f"""
             SELECT 
-                fault_system_id,
+                fault_id,
                 sequence_label,
                 n_events,
                 ROUND(rupture_mean_azimuth, 1) as azimuth,
@@ -39,10 +39,10 @@ class HyFIQueries:
         """)
     
     def events_by_fault_system(self) -> pd.DataFrame:
-        """Get event counts and statistics by fault system"""
+        """Get event counts and statistics by fault"""
         return self.db.query("""
             SELECT 
-                fault_system_id,
+                fault_id,
                 sequence_label,
                 COUNT(*) as num_events,
                 ROUND(AVG(MAG), 2) as avg_magnitude,
@@ -51,16 +51,16 @@ class HyFIQueries:
                 COUNT(*) FILTER (WHERE rupture_plane_azimuth IS NOT NULL) as with_planes,
                 COUNT(*) FILTER (WHERE instability_index IS NOT NULL) as with_stress
             FROM hypocenters
-            WHERE fault_system_id IS NOT NULL
-            GROUP BY fault_system_id, sequence_label
+            WHERE fault_id IS NOT NULL
+            GROUP BY fault_id, sequence_label
             ORDER BY num_events DESC
         """)
     
     def high_instability_faults(self, limit: int = 10) -> pd.DataFrame:
-        """Get fault systems with highest instability"""
+        """Get faults with highest instability"""
         return self.db.query(f"""
             SELECT 
-                fault_system_id,
+                fault_id,
                 n_events,
                 ROUND(rupture_mean_instability, 3) as instability,
                 ROUND(rupture_mean_sliptend, 3) as slip_tendency,
@@ -78,7 +78,7 @@ class HyFIQueries:
             SELECT 
                 ROUND(MAG / {bin_size}) * {bin_size} as mag_bin,
                 COUNT(*) as event_count,
-                COUNT(*) FILTER (WHERE fault_system_id IS NOT NULL) as in_fault_system
+                COUNT(*) FILTER (WHERE fault_id IS NOT NULL) as in_fault_system
             FROM hypocenters
             GROUP BY mag_bin
             ORDER BY mag_bin
@@ -91,7 +91,7 @@ class HyFIQueries:
         return self.db.query(f"""
             SELECT 
                 ID,
-                fault_system_id,
+                fault_id,
                 ROUND(MAG, 2) as magnitude,
                 ROUND(X, 0) as x,
                 ROUND(Y, 0) as y,
@@ -105,10 +105,10 @@ class HyFIQueries:
         """)
     
     def focal_mechanisms_summary(self) -> pd.DataFrame:
-        """Get focal mechanism distribution by fault system"""
+        """Get focal mechanism distribution by fault"""
         return self.db.query("""
             SELECT 
-                fault_system_id,
+                fault_id,
                 segmentation_level,
                 COUNT(*) as num_focals,
                 ROUND(AVG(Dip1), 1) as avg_dip1,
@@ -117,7 +117,7 @@ class HyFIQueries:
                 COUNT(*) FILTER (WHERE A IS NOT NULL) as with_active_plane
             FROM focals
             WHERE is_clustered = TRUE
-            GROUP BY fault_system_id, segmentation_level
+            GROUP BY fault_id, segmentation_level
             ORDER BY num_focals DESC
         """)
     
@@ -140,7 +140,7 @@ class HyFIQueries:
             SELECT 
                 ROUND(Z / 1000, 1) as depth_km,
                 COUNT(*) as event_count,
-                COUNT(*) FILTER (WHERE fault_system_id IS NOT NULL) as in_fault_system,
+                COUNT(*) FILTER (WHERE fault_id IS NOT NULL) as in_fault_system,
                 ROUND(AVG(MAG), 2) as avg_magnitude
             FROM hypocenters
             WHERE Z BETWEEN {min_depth} AND {max_depth}
@@ -156,45 +156,45 @@ class HyFIQueries:
                 DATE_PART('year', {time_column}::DATE) as year,
                 DATE_PART('month', {time_column}::DATE) as month,
                 COUNT(*) as event_count,
-                COUNT(*) FILTER (WHERE fault_system_id IS NOT NULL) as in_fault_system
+                COUNT(*) FILTER (WHERE fault_id IS NOT NULL) as in_fault_system
             FROM hypocenters
             WHERE {time_column} IS NOT NULL
             GROUP BY year, month
             ORDER BY year, month
         """)
     
-    def fault_system_details(self, fault_system_id: str) -> Dict[str, pd.DataFrame]:
-        """Get detailed information for a specific fault system"""
+    def fault_system_details(self, fault_id: str) -> Dict[str, pd.DataFrame]:
+        """Get detailed information for a specific fault"""
         results = {}
         
-        # First, check if the fault system ID exists in metadata
+        # First, check if the fault ID exists in metadata
         metadata_check = self.db.query(f"""
-            SELECT fault_system_id FROM metadata 
-            WHERE fault_system_id = '{fault_system_id}'
+            SELECT fault_id FROM metadata 
+            WHERE fault_id = '{fault_id}'
         """)
         
         if metadata_check.empty:
             # Try to find similar IDs
             similar_ids = self.db.query("""
-                SELECT DISTINCT fault_system_id FROM metadata 
-                ORDER BY fault_system_id
+                SELECT DISTINCT fault_id FROM metadata 
+                ORDER BY fault_id
                 LIMIT 10
             """)
-            results['error'] = f"Fault system '{fault_system_id}' not found in metadata table."
+            results['error'] = f"Fault system '{fault_id}' not found in metadata table."
             results['available_ids'] = similar_ids
             return results
         
         # Metadata
         results['metadata'] = self.db.query(f"""
             SELECT * FROM metadata
-            WHERE fault_system_id = '{fault_system_id}'
+            WHERE fault_id = '{fault_id}'
         """)
         
-        # Check what fault system IDs exist in hypocenters table
+        # Check what fault IDs exist in hypocenters table
         hypo_ids = self.db.query(f"""
-            SELECT DISTINCT fault_system_id FROM hypocenters 
-            WHERE fault_system_id LIKE '%{fault_system_id}%'
-            OR fault_system_id = '{fault_system_id}'
+            SELECT DISTINCT fault_id FROM hypocenters 
+            WHERE fault_id LIKE '%{fault_id}%'
+            OR fault_id = '{fault_id}'
         """)
         
         # Events - try exact match first, then partial match
@@ -204,20 +204,20 @@ class HyFIQueries:
                 rupture_plane_azimuth, rupture_plane_dip,
                 instability_index, slip_tendency, dilation_tendency
             FROM hypocenters
-            WHERE fault_system_id = '{fault_system_id}'
+            WHERE fault_id = '{fault_id}'
             ORDER BY MAG DESC
         """)
         
         if events_exact.empty and not hypo_ids.empty:
             # Try with the first matching ID from hypocenters
-            actual_id = hypo_ids.iloc[0]['fault_system_id']
+            actual_id = hypo_ids.iloc[0]['fault_id']
             events_exact = self.db.query(f"""
                 SELECT 
                     ID, MAG, X, Y, Z,
                     rupture_plane_azimuth, rupture_plane_dip,
                     instability_index, slip_tendency, dilation_tendency
                 FROM hypocenters
-                WHERE fault_system_id = '{actual_id}'
+                WHERE fault_id = '{actual_id}'
                 ORDER BY MAG DESC
             """)
             results['used_id_for_events'] = actual_id
@@ -225,26 +225,26 @@ class HyFIQueries:
         results['events'] = events_exact
         results['hypo_fault_ids'] = hypo_ids
         
-        # Check what fault system IDs exist in focals table  
+        # Check what fault IDs exist in focals table  
         focal_ids = self.db.query(f"""
-            SELECT DISTINCT fault_system_id FROM focals 
-            WHERE fault_system_id LIKE '%{fault_system_id}%'
-            OR fault_system_id = '{fault_system_id}'
+            SELECT DISTINCT fault_id FROM focals 
+            WHERE fault_id LIKE '%{fault_id}%'
+            OR fault_id = '{fault_id}'
         """)
         
         # Focal mechanisms - try exact match first, then partial match
         focals_exact = self.db.query(f"""
             SELECT * FROM focals
-            WHERE fault_system_id = '{fault_system_id}'
+            WHERE fault_id = '{fault_id}'
             ORDER BY segmentation_level
         """)
         
         if focals_exact.empty and not focal_ids.empty:
             # Try with the first matching ID from focals
-            actual_id = focal_ids.iloc[0]['fault_system_id'] 
+            actual_id = focal_ids.iloc[0]['fault_id'] 
             focals_exact = self.db.query(f"""
                 SELECT * FROM focals
-                WHERE fault_system_id = '{actual_id}'
+                WHERE fault_id = '{actual_id}'
                 ORDER BY segmentation_level
             """)
             results['used_id_for_focals'] = actual_id

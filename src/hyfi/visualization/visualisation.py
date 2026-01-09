@@ -425,7 +425,7 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_ri
         # Specified columns for rupture planes
         attribute_columns = [
             'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date',
-            'sequence_label', 'segmentation_level', 'fault_system_id',
+            'sequence_label', 'segmentation_level', 'fault_id',
             'Mw', 'rupt_area', 'rupt_radius',
             'rupt_plane_azi', 'rupt_plane_dip', 'rake',
             'Sn_eff', 'Tau', 'instab', 'sliptend', 'dilatend'
@@ -696,7 +696,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     include_multiple_scaling_laws : bool, optional
         If True, calculate and include multiple magnitude scaling laws
     starting_fault_counter : int, optional
-        Starting value for global fault system counter (default: 1)
+        Starting value for global fault counter (default: 1)
         Used to convert temporary cluster IDs to permanent FS IDs
         
     Returns
@@ -709,8 +709,8 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         Combined point cloud of fault plane points
     fault_disc_meshes : list
         List of circular disc meshes
-    fault_system_metadata : list
-        Metadata for each successfully interpolated fault system
+    fault_metadata : list
+        Metadata for each successfully interpolated fault
     next_fault_counter : int
         Next available counter value (for continuous numbering across sequences)
     """
@@ -834,7 +834,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             # Use same columns as rupture planes
             specified_columns = [
                 'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date',
-                'sequence_label', 'segmentation_level', 'fault_system_id',
+                'sequence_label', 'segmentation_level', 'fault_id',
                 'Mw', 'rupt_area', 'rupt_radius',
                 'rupt_plane_azi', 'rupt_plane_dip', 'rake',
                 'Sn_eff', 'Tau', 'instab', 'sliptend', 'dilatend'
@@ -876,7 +876,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             rename_map = _get_vtp_column_name_mapping()
             specified_columns = [
                 'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date',
-                'sequence_label', 'segmentation_level', 'fault_system_id',
+                'sequence_label', 'segmentation_level', 'fault_id',
                 'Mw', 'rupt_area', 'rupt_radius',
                 'rupt_plane_azi', 'rupt_plane_dip', 'rake',
                 'Sn_eff', 'Tau', 'instab', 'sliptend', 'dilatend'
@@ -1095,11 +1095,11 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     # Only successfully interpolated clusters get permanent FS IDs with global counter
     # This ensures continuous numbering across all sequences
     
-    print(f"\nAssigning permanent FS IDs (starting from FS{starting_fault_counter:04d})...")
+    print(f"\nAssigning permanent fault IDs (starting from F{starting_fault_counter:04d})...")
     print(f"  Number of successfully interpolated meshes: {len(individual_meshes)}")
     
-    # Create mapping from temporary cluster IDs to permanent FS IDs
-    temp_to_fs_mapping = {}
+    # Create mapping from temporary cluster IDs to permanent fault IDs
+    temp_to_fault_mapping = {}
     fault_counter = starting_fault_counter
     
     for i, mesh_info in enumerate(individual_meshes):
@@ -1110,35 +1110,35 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             print(f"  Warning: Mesh {i} has no cluster_id, skipping")
             continue
         
-        # Assign permanent FS ID using global counter
-        permanent_fs_id = f"FS{fault_counter:04d}"
+        # Assign permanent fault ID using global counter
+        permanent_fault_id = f"F{fault_counter:04d}"
         
         # Store the mapping
-        temp_to_fs_mapping[temp_cluster_id] = permanent_fs_id
+        temp_to_fault_mapping[temp_cluster_id] = permanent_fault_id
         
         # Update mesh_info with permanent ID
-        mesh_info['cluster_id'] = permanent_fs_id
-        mesh_info['permanent_fs_id'] = permanent_fs_id
+        mesh_info['cluster_id'] = permanent_fault_id
+        mesh_info['permanent_fault_id'] = permanent_fault_id
         mesh_info['original_temp_id'] = temp_cluster_id
         
         # Update the mesh point data with permanent ID
         if 'mesh' in mesh_info and mesh_info['mesh'] is not None:
-            mesh_info['mesh']['cluster_id'] = np.full(mesh_info['mesh'].n_points, permanent_fs_id)
+            mesh_info['mesh']['cluster_id'] = np.full(mesh_info['mesh'].n_points, permanent_fault_id)
         
         # Increment the global counter
         fault_counter += 1
     
     next_fault_counter = fault_counter
     
-    print(f"✓ Assigned {len(temp_to_fs_mapping)} permanent FS IDs (FS{starting_fault_counter:04d} to FS{next_fault_counter-1:04d})")
-    print(f"  Mapping created: {dict(list(temp_to_fs_mapping.items())[:3])}{'...' if len(temp_to_fs_mapping) > 3 else ''}")
+    print(f"✓ Assigned {len(temp_to_fault_mapping)} permanent fault IDs (F{starting_fault_counter:04d} to F{next_fault_counter-1:04d})")
+    print(f"  Mapping created: {dict(list(temp_to_fault_mapping.items())[:3])}{'...' if len(temp_to_fault_mapping) > 3 else ''}")
     
     # ============================================================================
     # GENERATE METADATA FOR SUCCESSFULLY INTERPOLATED FAULT SYSTEMS
     # ============================================================================
     
-    # Generate fault system metadata for successfully interpolated meshes
-    fault_system_metadata = []
+    # Generate fault metadata for successfully interpolated meshes
+    fault_metadata = []
     for mesh_info in individual_meshes:
         # Use the PERMANENT FS ID that was just assigned
         fs_id = mesh_info['cluster_id']
@@ -1156,7 +1156,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             segmentation_level = None
         
         if len(cluster_data) > 0:
-            # Only create metadata for successfully interpolated fault systems
+            # Only create metadata for successfully interpolated faults
             
             # Extract stress analysis results from original rupture planes (mean of rupture plane values)
             rupture_mean_instability = None
@@ -1225,7 +1225,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 )
             
             metadata = {
-                'fault_system_id': str(fs_id) if not pd.isna(fs_id) else None,
+                'fault_id': str(fs_id) if not pd.isna(fs_id) else None,
                 'segmentation_level': segmentation_level,
                 'sequence_label': sequence_label,
                 'vtp_file': f"{sequence_label}/vtp_export/{vtp_filename}" if sequence_label else f"vtp_export/{vtp_filename}",  # Relative path from output directory
@@ -1257,7 +1257,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 'mesh_mean_sliptend': mesh_mean_sliptend,
                 'mesh_mean_dilatend': mesh_mean_dilatend,
             }
-            fault_system_metadata.append(metadata)
+            fault_metadata.append(metadata)
             
             # Also update mesh_info with all metadata for VTP export
             mesh_info.update({
@@ -1279,11 +1279,11 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 'mesh_mean_dilatend': mesh_mean_dilatend,
             })
     
-    print(f"  Generated metadata for {len(fault_system_metadata)} interpolated fault systems")
+    print(f"  Generated metadata for {len(fault_metadata)} interpolated faults")
     
     # Print mapping summary
-    if temp_to_fs_mapping:
-        print(f"  Created temp→FS ID mapping for {len(temp_to_fs_mapping)} fault systems")
+    if temp_to_fault_mapping:
+        print(f"  Created temp→fault ID mapping for {len(temp_to_fault_mapping)} faults")
     
     # Print total area and magnitude range if meshes were created
     if len(individual_meshes) > 0:
@@ -1305,7 +1305,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         # Return starting counter since no permanent IDs were assigned
         return None, [], combined_pcd if combined_pcd.n_points > 0 else None, fault_disc_meshes, [], starting_fault_counter, {}
     
-    return combined_mesh, individual_meshes, combined_pcd, fault_disc_meshes, fault_system_metadata, next_fault_counter, temp_to_fs_mapping
+    return combined_mesh, individual_meshes, combined_pcd, fault_disc_meshes, fault_metadata, next_fault_counter, temp_to_fault_mapping
 
 
 def export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, output_dir, df_hyfi=None):
@@ -1888,7 +1888,7 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
             
             # Add scalar attributes (same value for all cells)
             if fs_id is not None:
-                mesh.cell_data['fault_system_id'] = np.full(mesh.n_cells, str(fs_id))
+                mesh.cell_data['fault_id'] = np.full(mesh.n_cells, str(fs_id))
             if segmentation_level is not None:
                 mesh.cell_data['segmentation_level'] = np.full(mesh.n_cells, segmentation_level)
             if sequence_label is not None:
@@ -2360,9 +2360,9 @@ def _create_focal_mechanism_disc_meshes(df_focal_events, n_radial_segments=16, n
         if 'segmentation_level' in df_focal_events.columns:
             mesh['segmentation_level'] = np.full(mesh.n_points, row.get('segmentation_level', np.nan))
         
-        if 'fault_system_id' in df_focal_events.columns:
-            fs_id = row.get('fault_system_id', '')
-            mesh['fault_system_id'] = np.full(mesh.n_points, str(fs_id))
+        if 'fault_id' in df_focal_events.columns:
+            fs_id = row.get('fault_id', '')
+            mesh['fault_id'] = np.full(mesh.n_points, str(fs_id))
         
         # Magnitude attribute
         mesh['Mw'] = np.full(mesh.n_points, row.get('Mw', np.nan))
@@ -2633,7 +2633,7 @@ def export_slip_vectors_vtp(df_hyfi, output_dir):
     point_date = []
     point_sequence_label = []
     point_segmentation_level = []
-    point_fault_system_id = []
+    point_fault_id = []
     point_mw = []
     
     for i, (pt, vec) in enumerate(zip(points, slip_vectors)):
@@ -2691,9 +2691,9 @@ def export_slip_vectors_vtp(df_hyfi, output_dir):
             seg_level = row['segmentation_level'] if not pd.isna(row['segmentation_level']) else 0
             point_segmentation_level.extend([seg_level, seg_level])
         
-        if 'fault_system_id' in df_valid.columns:
-            fs_id = str(row['fault_system_id']) if not pd.isna(row['fault_system_id']) else ''
-            point_fault_system_id.extend([fs_id, fs_id])
+        if 'fault_id' in df_valid.columns:
+            fs_id = str(row['fault_id']) if not pd.isna(row['fault_id']) else ''
+            point_fault_id.extend([fs_id, fs_id])
         
         # Magnitude (from request - using Mw if available, otherwise MAG)
         if 'Mw' in df_valid.columns:
@@ -2744,8 +2744,8 @@ def export_slip_vectors_vtp(df_hyfi, output_dir):
     if point_segmentation_level:
         line_mesh['segmentation_level'] = np.array(point_segmentation_level, dtype=np.float32)
     
-    if point_fault_system_id:
-        line_mesh['fault_system_id'] = np.array(point_fault_system_id)
+    if point_fault_id:
+        line_mesh['fault_id'] = np.array(point_fault_id)
     
     # Add magnitude attributes
     if point_mw:

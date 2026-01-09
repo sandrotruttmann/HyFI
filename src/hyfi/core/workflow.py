@@ -210,7 +210,7 @@ class FaultImagingWorkflow:
                     if col not in df_combined.columns and col in self.data_input.columns:
                         df_combined[col] = self.data_input[col]
                 
-                combined_mesh, individual_meshes, point_cloud, fault_disc_meshes, interpolation_metadata, next_fault_counter, temp_to_fs_mapping = visualisation.create_interpolated_fault_planes(
+                combined_mesh, individual_meshes, point_cloud, fault_disc_meshes, interpolation_metadata, next_fault_counter, temp_to_fault_mapping = visualisation.create_interpolated_fault_planes(
                     df_combined, viz_params, starting_fault_counter=1  # Legacy workflow always starts from 1
                 )
                 

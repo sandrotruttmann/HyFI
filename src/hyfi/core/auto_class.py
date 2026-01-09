@@ -132,7 +132,7 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
     input_params : dict
         Parameters including spatial clustering configuration
     starting_fault_counter : int
-        Starting value for global fault system counter
+        Starting value for global fault counter
     sequence_label : str, optional
         Sequence label (e.g., 'A1', 'B2')
     segmentation_level : str, optional
@@ -143,7 +143,7 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
     df_clustered : DataFrame
         Input dataframe with added spatial clustering columns and global fault IDs
     fault_metadata : list
-        Metadata for each fault system
+        Metadata for each fault
     next_counter : int
         Next available counter value
     """
@@ -305,7 +305,7 @@ def _spatial_clustering_by_orientation(df_clustered, input_params, starting_faul
     input_params : dict
         Parameters including spatial clustering configuration
     starting_fault_counter : int
-        Starting value for global fault system counter
+        Starting value for global fault counter
     sequence_label : str, optional
         Sequence label (e.g., 'A1', 'B2')
     segmentation_level : str, optional
@@ -316,7 +316,7 @@ def _spatial_clustering_by_orientation(df_clustered, input_params, starting_faul
     df_clustered : DataFrame
         Input dataframe with added spatial clustering columns and global fault IDs
     fault_metadata : list
-        Metadata for each fault system
+        Metadata for each fault
     next_counter : int
         Next available counter value
     """
@@ -1304,7 +1304,7 @@ def auto_classification(input_params, df_hyfi, starting_fault_counter=1, sequenc
         Input dataframe containing all hypocenter data and computed fault parameters.
         Clustering results will be added as new columns to this dataframe.
     starting_fault_counter : int, optional
-        Starting value for global fault system counter (default: 1)
+        Starting value for global fault counter (default: 1)
     sequence_label : str, optional
         Label of the sequence being processed (e.g., 'A1', 'B2')
     segmentation_level : str, optional
@@ -1313,9 +1313,9 @@ def auto_classification(input_params, df_hyfi, starting_fault_counter=1, sequenc
     Returns
     -------
     df_hyfi : DataFrame
-        Input dataframe with added clustering columns and global fault system IDs.
-    fault_system_metadata : list
-        List of dictionaries containing metadata for each fault system
+        Input dataframe with added clustering columns and global fault IDs.
+    fault_metadata : list
+        List of dictionaries containing metadata for each fault
     next_fault_counter : int
         Next available fault counter value
     """

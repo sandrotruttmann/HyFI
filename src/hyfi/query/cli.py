@@ -20,10 +20,10 @@ def cli(ctx, database_dir):
     ctx.obj['database_dir'] = Path(database_dir) if database_dir else None
 
 @cli.command()
-@click.option('--min-events', default=5, help='Minimum number of events per fault system')
+@click.option('--min-events', default=5, help='Minimum number of events per fault')
 @click.pass_context
 def overview(ctx, min_events):
-    """Show fault systems overview"""
+    """Show faults overview"""
     db_dir = ctx.obj['database_dir']
     if not db_dir:
         click.echo("Please specify --database-dir")
@@ -55,10 +55,10 @@ def summary(ctx):
         click.echo(result.to_string(index=False))
 
 @cli.command()
-@click.option('--limit', default=10, help='Number of top fault systems to show')
+@click.option('--limit', default=10, help='Number of top faults to show')
 @click.pass_context
 def instability(ctx, limit):
-    """Show fault systems with highest instability"""
+    """Show faults with highest instability"""
     db_dir = ctx.obj['database_dir']
     if not db_dir:
         click.echo("Please specify --database-dir")
@@ -97,7 +97,7 @@ def spatial(ctx, x, y, radius, limit):
 @click.option('--fault-id', required=True, type=str, help='Fault system ID to analyze')
 @click.pass_context
 def fault_detail(ctx, fault_id):
-    """Get detailed information for a specific fault system"""
+    """Get detailed information for a specific fault"""
     db_dir = ctx.obj['database_dir']
     if not db_dir:
         click.echo("Please specify --database-dir")
@@ -113,7 +113,7 @@ def fault_detail(ctx, fault_id):
         if 'error' in details:
             click.echo(f"\\nError: {details['error']}")
             if 'available_ids' in details:
-                click.echo("\\nAvailable fault system IDs in metadata:")
+                click.echo("\\nAvailable fault IDs in metadata:")
                 click.echo(details['available_ids'].to_string(index=False))
             return
         
@@ -131,18 +131,18 @@ def fault_detail(ctx, fault_id):
         if not details['events'].empty:
             click.echo(details['events'].head(10).to_string(index=False))
         else:
-            click.echo("No events found for this fault system ID")
+            click.echo("No events found for this fault ID")
         
         if 'focals' in details and not details['focals'].empty:
             click.echo("\\nFocal Mechanisms:")
             click.echo(details['focals'].to_string(index=False))
         else:
-            click.echo("\\nNo focal mechanisms found for this fault system ID")
+            click.echo("\\nNo focal mechanisms found for this fault ID")
 
 @cli.command()
 @click.pass_context
 def list_faults(ctx):
-    """List all available fault system IDs across tables"""
+    """List all available fault IDs across tables"""
     db_dir = ctx.obj['database_dir']
     if not db_dir:
         click.echo("Please specify --database-dir")
@@ -155,33 +155,33 @@ def list_faults(ctx):
         
         # Metadata table
         metadata_ids = db.query("""
-            SELECT DISTINCT fault_system_id, n_events 
+            SELECT DISTINCT fault_id, n_events 
             FROM metadata 
-            ORDER BY fault_system_id
+            ORDER BY fault_id
         """)
-        click.echo(f"\\nMetadata table ({len(metadata_ids)} fault systems):")
+        click.echo(f"\\nMetadata table ({len(metadata_ids)} faults):")
         click.echo(metadata_ids.to_string(index=False))
         
         # Hypocenters table
         hypo_ids = db.query("""
-            SELECT DISTINCT fault_system_id, COUNT(*) as event_count
+            SELECT DISTINCT fault_id, COUNT(*) as event_count
             FROM hypocenters 
-            WHERE fault_system_id IS NOT NULL
-            GROUP BY fault_system_id
-            ORDER BY fault_system_id
+            WHERE fault_id IS NOT NULL
+            GROUP BY fault_id
+            ORDER BY fault_id
         """)
-        click.echo(f"\\nHypocenters table ({len(hypo_ids)} fault systems):")
+        click.echo(f"\\nHypocenters table ({len(hypo_ids)} faults):")
         click.echo(hypo_ids.to_string(index=False))
         
         # Focals table
         focal_ids = db.query("""
-            SELECT DISTINCT fault_system_id, COUNT(*) as focal_count
+            SELECT DISTINCT fault_id, COUNT(*) as focal_count
             FROM focals 
-            WHERE fault_system_id IS NOT NULL
-            GROUP BY fault_system_id
-            ORDER BY fault_system_id
+            WHERE fault_id IS NOT NULL
+            GROUP BY fault_id
+            ORDER BY fault_id
         """)
-        click.echo(f"\\nFocals table ({len(focal_ids)} fault systems):")
+        click.echo(f"\\nFocals table ({len(focal_ids)} faults):")
         click.echo(focal_ids.to_string(index=False))
 
 @cli.command()
