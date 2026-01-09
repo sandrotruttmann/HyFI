@@ -612,6 +612,14 @@ class MultiSequenceWorkflow:
             'kent_kappa': np.nan,
             'kent_beta': np.nan,
             'nr_rupt_fits': np.nan,
+            'lambda_2_3': np.nan,
+            'kappa': np.nan,
+            'beta': np.nan,
+            
+            # Rupture size metrics
+            'Mw': np.nan,
+            'rupt_area': np.nan,
+            'rupt_radius': np.nan,
             
             # Stress analysis results
             'effective_normal_stress': np.nan,
@@ -624,7 +632,6 @@ class MultiSequenceWorkflow:
             # Fault system clustering results
             'fault_system_id': None,  # Global FS ID (FS0001, FS0002, ...)
             'orientation_cluster': np.nan,
-            'spatial_cluster': np.nan,
             
             # Additional metadata
             'analysis_status': 'not_processed',
@@ -674,40 +681,43 @@ class MultiSequenceWorkflow:
                     event_mask = enriched_data['ID'] == event_id
                     
                     if event_mask.any():
-                        # Fault plane orientation (using mean values from HyFI results)
-                        enriched_data.loc[event_mask, 'rupture_plane_azimuth'] = hyfi_row.get('rupt_plane_azi', np.nan)
-                        enriched_data.loc[event_mask, 'rupture_plane_dip'] = hyfi_row.get('rupt_plane_dip', np.nan)
+                        # Fault plane orientation - now using standardized column names from HyFI_results.csv
+                        enriched_data.loc[event_mask, 'rupture_plane_azimuth'] = hyfi_row.get('rupture_plane_azimuth', np.nan)
+                        enriched_data.loc[event_mask, 'rupture_plane_dip'] = hyfi_row.get('rupture_plane_dip', np.nan)
+                        enriched_data.loc[event_mask, 'rupture_plane_strike'] = hyfi_row.get('rupture_plane_strike', np.nan)
                         
-                        # Calculate strike from azimuth (azimuth - 90 degrees)
-                        if not pd.isna(hyfi_row.get('rupt_plane_azi')):
-                            strike = (hyfi_row.get('rupt_plane_azi') - 90) % 360
-                            enriched_data.loc[event_mask, 'rupture_plane_strike'] = strike
+                        # Normal vector components - now using standardized column names
+                        enriched_data.loc[event_mask, 'normal_vector_x'] = hyfi_row.get('normal_vector_x', np.nan)
+                        enriched_data.loc[event_mask, 'normal_vector_y'] = hyfi_row.get('normal_vector_y', np.nan)
+                        enriched_data.loc[event_mask, 'normal_vector_z'] = hyfi_row.get('normal_vector_z', np.nan)
                         
-                        # Normal vector components
-                        enriched_data.loc[event_mask, 'normal_vector_x'] = hyfi_row.get('nor_x_mean', np.nan)
-                        enriched_data.loc[event_mask, 'normal_vector_y'] = hyfi_row.get('nor_y_mean', np.nan)
-                        enriched_data.loc[event_mask, 'normal_vector_z'] = hyfi_row.get('nor_z_mean', np.nan)
-                        
-                        # Quality metrics
-                        enriched_data.loc[event_mask, 'nvector_quality_R'] = hyfi_row.get('R', np.nan)
-                        enriched_data.loc[event_mask, 'nvector_quality_N'] = hyfi_row.get('N', np.nan)
-                        enriched_data.loc[event_mask, 'nvector_quality_ratio'] = hyfi_row.get('R/N', np.nan)
+                        # Quality metrics - now using standardized column names
+                        enriched_data.loc[event_mask, 'nvector_quality_R'] = hyfi_row.get('nvector_quality_R', np.nan)
+                        enriched_data.loc[event_mask, 'nvector_quality_N'] = hyfi_row.get('nvector_quality_N', np.nan)
+                        enriched_data.loc[event_mask, 'nvector_quality_ratio'] = hyfi_row.get('nvector_quality_ratio', np.nan)
                         enriched_data.loc[event_mask, 'kent_kappa'] = hyfi_row.get('kappa', np.nan)
                         enriched_data.loc[event_mask, 'kent_beta'] = hyfi_row.get('beta', np.nan)
-                        enriched_data.loc[event_mask, 'nr_rupt_fits'] = hyfi_row.get('nr_fits', np.nan)
+                        enriched_data.loc[event_mask, 'nr_rupt_fits'] = hyfi_row.get('nr_rupt_fits', np.nan)
+                        enriched_data.loc[event_mask, 'lambda_2_3'] = hyfi_row.get('lambda_2_3', np.nan)
+                        enriched_data.loc[event_mask, 'kappa'] = hyfi_row.get('kappa', np.nan)
+                        enriched_data.loc[event_mask, 'beta'] = hyfi_row.get('beta', np.nan)
                         
-                        # Stress analysis results (if available)
-                        enriched_data.loc[event_mask, 'effective_normal_stress'] = hyfi_row.get('Sn_eff', np.nan)
-                        enriched_data.loc[event_mask, 'shear_stress'] = hyfi_row.get('Tau', np.nan)
-                        enriched_data.loc[event_mask, 'rake_angle'] = hyfi_row.get('rake', np.nan)
-                        enriched_data.loc[event_mask, 'instability_index'] = hyfi_row.get('instab', np.nan)
-                        enriched_data.loc[event_mask, 'slip_tendency'] = hyfi_row.get('sliptend', np.nan)
-                        enriched_data.loc[event_mask, 'dilation_tendency'] = hyfi_row.get('dilatend', np.nan)
+                        # Rupture size metrics
+                        enriched_data.loc[event_mask, 'Mw'] = hyfi_row.get('Mw', np.nan)
+                        enriched_data.loc[event_mask, 'rupt_area'] = hyfi_row.get('rupt_area', np.nan)
+                        enriched_data.loc[event_mask, 'rupt_radius'] = hyfi_row.get('rupt_radius', np.nan)
+                        
+                        # Stress analysis results - now using standardized column names
+                        enriched_data.loc[event_mask, 'effective_normal_stress'] = hyfi_row.get('effective_normal_stress', np.nan)
+                        enriched_data.loc[event_mask, 'shear_stress'] = hyfi_row.get('shear_stress', np.nan)
+                        enriched_data.loc[event_mask, 'rake_angle'] = hyfi_row.get('rake_angle', np.nan)
+                        enriched_data.loc[event_mask, 'instability_index'] = hyfi_row.get('instability_index', np.nan)
+                        enriched_data.loc[event_mask, 'slip_tendency'] = hyfi_row.get('slip_tendency', np.nan)
+                        enriched_data.loc[event_mask, 'dilation_tendency'] = hyfi_row.get('dilation_tendency', np.nan)
                         
                         # Fault system clustering (use fault_system_id directly from HyFI_results.csv)
                         enriched_data.loc[event_mask, 'fault_system_id'] = hyfi_row.get('fault_system_id', None)
-                        enriched_data.loc[event_mask, 'orientation_cluster'] = hyfi_row.get('orient_cluster', np.nan)
-                        enriched_data.loc[event_mask, 'spatial_cluster'] = hyfi_row.get('spatial_cluster', np.nan)
+                        enriched_data.loc[event_mask, 'orientation_cluster'] = hyfi_row.get('orientation_cluster', np.nan)
                 
                 print(f"  Merged {len(cluster_hyfi_results)} results from {sequence_name}")
                 
@@ -723,6 +733,10 @@ class MultiSequenceWorkflow:
         # Create HyFI_Database directory
         database_dir = output_dir / 'HyFI_Database'
         database_dir.mkdir(exist_ok=True)
+        
+        # Remove analysis_status column (internal tracking only)
+        if 'analysis_status' in enriched_data.columns:
+            enriched_data = enriched_data.drop(columns=['analysis_status'])
         
         # Reorder columns to place fault_system_id right after segmentation_level
         # Get current column order
@@ -745,19 +759,14 @@ class MultiSequenceWorkflow:
         # Store in aggregated results
         self.aggregated_results['enriched_catalog'] = enriched_data
         
-        # Print summary
+        # Print summary (calculate stats before removing analysis_status for reporting)
         total_events = len(enriched_data)
         clustered_events = len(enriched_data[enriched_data['sequence_label'] != 'unclustered'])
-        processed_events = len(enriched_data[enriched_data['analysis_status'] == 'processed'])
-        processed_no_results = len(enriched_data[enriched_data['analysis_status'] == 'processed_no_results'])
         outlier_events = len(enriched_data[enriched_data['sequence_outlier'] == True])
         
         print(f"Enhanced hypocenter catalog exported: {enriched_file}")
         print(f"  Total events: {total_events}")
         print(f"  Clustered events: {clustered_events} ({clustered_events/total_events:.1%})")
-        print(f"  Successfully analyzed: {processed_events} ({processed_events/total_events:.1%})")
-        if processed_no_results > 0:
-            print(f"  Processed without detailed results: {processed_no_results} ({processed_no_results/total_events:.1%})")
         print(f"  Fault network outliers: {outlier_events} ({outlier_events/total_events:.1%})")
     
     def _export_fault_system_metadata(self):
@@ -849,8 +858,9 @@ class MultiSequenceWorkflow:
         available_columns = [col for col in requested_columns if col in df_metadata.columns]
         df_metadata = df_metadata[available_columns]
         
-        # Round numeric columns to 2 decimal places (except centroids and integer columns)
+        # Round numeric columns to 3 decimal places
         columns_to_round = [
+            'centroid_x', 'centroid_y', 'centroid_z',
             'rupture_mean_azimuth', 'rupture_mean_dip',
             'mesh_mean_azimuth', 'mesh_mean_dip',
             'mesh_area_m2', 'max_mag',
@@ -859,7 +869,7 @@ class MultiSequenceWorkflow:
         ]
         for col in columns_to_round:
             if col in df_metadata.columns:
-                df_metadata[col] = df_metadata[col].round(2)
+                df_metadata[col] = df_metadata[col].round(3)
         
         # Export to CSV
         df_metadata.to_csv(metadata_file, index=False)
@@ -992,10 +1002,6 @@ class MultiSequenceWorkflow:
                 
                 # The fault_system_id from enriched catalog is already correct (no remapping needed)
                 print(f"    Fault system IDs already assigned from enriched catalog")
-                
-                # Add summary columns
-                df_focals['is_clustered'] = df_focals['sequence_label'] != 'unclustered'
-                df_focals['has_fault_system'] = df_focals['fault_system_id'].notna()
             
             # Save enhanced focal mechanism catalog
             focal_file_out = database_dir / 'HyFI_database_focals.csv'
@@ -1004,13 +1010,12 @@ class MultiSequenceWorkflow:
             print(f"  Enhanced focal mechanism catalog exported: {focal_file_out}")
             
             # Print summary
-            if 'is_clustered' in df_focals.columns:
-                n_clustered = df_focals['is_clustered'].sum()
-                n_with_fs = df_focals['has_fault_system'].sum() if 'has_fault_system' in df_focals.columns else 0
-                print(f"    Total focal mechanisms: {len(df_focals)}")
-                print(f"    Assigned to sequences: {n_clustered} ({n_clustered/len(df_focals):.1%})")
-                if n_with_fs > 0:
-                    print(f"    Assigned to fault systems: {n_with_fs} ({n_with_fs/len(df_focals):.1%})")
+            n_with_sequence = len(df_focals[df_focals['sequence_label'] != 'unclustered'])
+            n_with_fs = df_focals['fault_system_id'].notna().sum()
+            print(f"    Total focal mechanisms: {len(df_focals)}")
+            print(f"    Assigned to sequences: {n_with_sequence} ({n_with_sequence/len(df_focals):.1%})")
+            if n_with_fs > 0:
+                print(f"    Assigned to fault systems: {n_with_fs} ({n_with_fs/len(df_focals):.1%})")
             
             # Store in aggregated results
             self.aggregated_results['focal_mechanism_catalog'] = df_focals
@@ -1361,6 +1366,12 @@ class MultiSequenceWorkflow:
         # Create DataFrame and save to CSV
         summary_df = pd.DataFrame(summary_data)
         summary_df = summary_df.sort_values(['level', 'sequence_number'])
+        
+        # Round coordinate columns to 3 decimals
+        coordinate_columns = ['centroid_x', 'centroid_y', 'centroid_z']
+        for col in coordinate_columns:
+            if col in summary_df.columns:
+                summary_df[col] = summary_df[col].round(3)
         
         # Save to HyFI_Database folder
         database_dir = output_dir / 'HyFI_Database'

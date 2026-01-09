@@ -905,6 +905,100 @@ class DAGExecutor:
             # Note: FS IDs are now assigned directly during clustering
             # No TEMP→FS mapping needed since IDs are already permanent
             
+            # Clean up and standardize columns before saving
+            # 1. Remove unwanted columns
+            columns_to_remove = ['norxmean', 'norymean', 'norzmean', 'final_cluster_id', 'spatial_cluster']
+            df_hyfi = df_hyfi.drop(columns=[col for col in columns_to_remove if col in df_hyfi.columns], errors='ignore')
+            
+            # 2. Rename columns to match database_hypocenters naming convention
+            column_rename_map = {
+                'clust_labels': 'sequence_outlier',
+                'nor_x_mean': 'normal_vector_x',
+                'nor_y_mean': 'normal_vector_y',
+                'nor_z_mean': 'normal_vector_z',
+                'R': 'nvector_quality_R',
+                'N': 'nvector_quality_N',
+                'R/N': 'nvector_quality_ratio',
+                'nr_fits': 'nr_rupt_fits',
+                'rupt_plane_azi': 'rupture_plane_azimuth',
+                'rupt_plane_dip': 'rupture_plane_dip',
+                'Sn_eff': 'effective_normal_stress',
+                'Tau': 'shear_stress',
+                'rake': 'rake_angle',
+                'instab': 'instability_index',
+                'sliptend': 'slip_tendency',
+                'dilatend': 'dilation_tendency'
+            }
+            df_hyfi = df_hyfi.rename(columns=column_rename_map)
+            
+            # Convert sequence_outlier to boolean
+            if 'sequence_outlier' in df_hyfi.columns:
+                df_hyfi['sequence_outlier'] = df_hyfi['sequence_outlier'].astype(bool)
+            
+            # 3. Calculate strike from azimuth if available
+            if 'rupture_plane_azimuth' in df_hyfi.columns and 'rupture_plane_strike' not in df_hyfi.columns:
+                df_hyfi['rupture_plane_strike'] = (df_hyfi['rupture_plane_azimuth'] - 90) % 360
+            
+            # Round rupture area to 6 decimals
+            if 'rupt_area' in df_hyfi.columns:
+                df_hyfi['rupt_area'] = df_hyfi['rupt_area'].round(6)
+            
+            # Round specific columns to 3 decimals
+            round_3_decimals = [
+                'Mw', 'rupt_radius',
+                'normal_vector_x', 'normal_vector_y', 'normal_vector_z',
+                'lambda_2_3',
+                'effective_normal_stress', 'shear_stress', 'rake_angle',
+                'instability_index', 'slip_tendency', 'dilation_tendency',
+                'epsilon'
+            ]
+            for col in round_3_decimals:
+                if col in df_hyfi.columns:
+                    df_hyfi[col] = df_hyfi[col].round(3)
+            
+            # 4. Define standard column order (matching database_hypocenters)
+            # Base catalog columns first
+            base_columns = ['ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'EX', 'EY', 'EZ',
+                          'YR', 'MO', 'DY', 'HR', 'MI', 'SC', 'MAG',
+                          'NCCP', 'NCCS', 'NCTP', 'NCTS', 'RCC', 'RCT', 'CID', 'Date']
+            
+            # Sequence clustering columns
+            sequence_columns = ['sequence_label', 'segmentation_level', 'fault_system_id']
+            
+            # Rupture size metrics (after fault_system_id)
+            rupture_size_columns = ['Mw', 'rupt_area', 'rupt_radius']
+            
+            # Analysis result columns
+            analysis_columns = [
+                'rupture_plane_azimuth', 'rupture_plane_dip', 'rupture_plane_strike',
+                'normal_vector_x', 'normal_vector_y', 'normal_vector_z',
+                'nvector_quality_R', 'nvector_quality_N', 'nvector_quality_ratio',
+                'nr_rupt_fits',
+                'lambda_2_3', 'kappa', 'beta',
+                'effective_normal_stress', 'shear_stress', 'rake_angle',
+                'instability_index', 'slip_tendency', 'dilation_tendency',
+                'orientation_cluster'
+            ]
+            
+            # Sequence outlier flag (just before focal mechanisms)
+            outlier_column = ['sequence_outlier']
+            
+            # Focal mechanism columns (at the end)
+            focal_columns = ['Strike1', 'Dip1', 'Rake1', 'Strike2', 'Dip2', 'Rake2', 'A',
+                           'epsilon', 'pref_foc']
+            
+            # Build final column order with only existing columns
+            ordered_columns = []
+            for col_list in [base_columns, sequence_columns, rupture_size_columns, analysis_columns, outlier_column, focal_columns]:
+                ordered_columns.extend([col for col in col_list if col in df_hyfi.columns])
+            
+            # Add any remaining columns not in the predefined lists
+            remaining_cols = [col for col in df_hyfi.columns if col not in ordered_columns]
+            ordered_columns.extend(remaining_cols)
+            
+            # Reorder dataframe
+            df_hyfi = df_hyfi[ordered_columns]
+            
             # Save the single dataframe as CSV
             output_file = f"{output_dir}/HyFI_results.csv"
             df_hyfi.to_csv(output_file, index=False)
@@ -913,7 +1007,7 @@ class DAGExecutor:
             summary = {
                 'workflow_execution_time': execution_time,
                 'total_events': int(len(df_hyfi)),
-                'events_with_fault_planes': int(df_hyfi['rupt_plane_azi'].count()),
+                'events_with_fault_planes': int(df_hyfi['rupture_plane_azimuth'].count()) if 'rupture_plane_azimuth' in df_hyfi.columns else 0,
                 'workflow_steps_completed': list(self.results.keys()),
                 'execution_date': datetime.now().isoformat()
             }
@@ -921,10 +1015,10 @@ class DAGExecutor:
             # Add step-specific statistics
             if 'epsilon' in df_hyfi.columns:
                 summary['focal_mechanisms_validated'] = int(df_hyfi['epsilon'].count())
-            if 'Sn_eff' in df_hyfi.columns:
-                summary['stress_analysis_completed'] = int(df_hyfi['Sn_eff'].count())
-            if 'final_cluster_id' in df_hyfi.columns:
-                summary['fault_clusters'] = int(df_hyfi['final_cluster_id'].nunique())
+            if 'effective_normal_stress' in df_hyfi.columns:
+                summary['stress_analysis_completed'] = int(df_hyfi['effective_normal_stress'].count())
+            if 'fault_system_id' in df_hyfi.columns:
+                summary['fault_clusters'] = int(df_hyfi['fault_system_id'].nunique())
             
             # Save summary
             import json
