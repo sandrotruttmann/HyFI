@@ -1047,7 +1047,18 @@ class DAGExecutor:
             outlier_pcd = pv.PolyData(points)
             
             # Add hypocenter data as point arrays
-            for col in ['ID', 'LAT', 'LON', 'DEPTH', 'ML', 'MAG']:
+            # Core location and uncertainty columns
+            for col in ['ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'EX', 'EY', 'EZ']:
+                if col in hypocenter_data.columns:
+                    outlier_pcd[col] = hypocenter_data[col].values
+            
+            # Temporal information columns
+            for col in ['YR', 'MO', 'DY', 'HR', 'MI', 'SC']:
+                if col in hypocenter_data.columns:
+                    outlier_pcd[col] = hypocenter_data[col].values
+            
+            # Magnitude and quality columns (include ML for backward compatibility)
+            for col in ['MAG', 'ML', 'NCCP', 'NCCS', 'NCTP', 'NCTS', 'RCC', 'RCT', 'CID']:
                 if col in hypocenter_data.columns:
                     outlier_pcd[col] = hypocenter_data[col].values
             

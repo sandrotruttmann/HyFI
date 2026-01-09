@@ -138,6 +138,51 @@ def _evaluate_orientation_consistency(df_cluster, max_angular_deviation=45):
     return is_consistent, angular_spread, mean_azi, mean_dip
 
 
+def _get_vtp_column_name_mapping():
+    """Get column name mapping to match HyFI_results.csv output names."""
+    return {
+        'rupt_plane_azi': 'rupture_plane_azimuth',
+        'rupt_plane_dip': 'rupture_plane_dip',
+        'Sn_eff': 'effective_normal_stress',
+        'Tau': 'shear_stress',
+        'rake': 'rake_angle',
+        'instab': 'instability_index',
+        'sliptend': 'slip_tendency',
+        'dilatend': 'dilation_tendency'
+    }
+
+def _add_attributes_to_vtp(vtp_object, data_source, column_list=None, exclude_cols=None):
+    """Add attributes to VTP object with proper column name mapping.
+    
+    Parameters
+    ----------
+    vtp_object : pyvista.PolyData
+        VTP object to add attributes to
+    data_source : DataFrame or Series
+        Source data (single row Series or full DataFrame)
+    column_list : list, optional
+        Specific columns to add. If None, adds all columns.
+    exclude_cols : list, optional
+        Columns to exclude
+    """
+    rename_map = _get_vtp_column_name_mapping()
+    exclude_cols = exclude_cols or []
+    
+    if column_list is None:
+        column_list = data_source.columns if hasattr(data_source, 'columns') else data_source.index
+    
+    for col in column_list:
+        if col in exclude_cols:
+            continue
+        if col in data_source:
+            try:
+                # Use renamed column name for VTP attribute
+                vtp_col_name = rename_map.get(col, col)
+                values = data_source[col] if hasattr(data_source, 'columns') else data_source[col]
+                vtp_object[vtp_col_name] = values
+            except Exception as e:
+                pass
+
 def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_density_meters=10.0):
     """
     Generate point clouds from circular fault plane geometries with systematic spatial coverage.
@@ -166,18 +211,22 @@ def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_dens
     Returns
     -------
     tuple
-        (points, normals, rupture_radii) - numpy arrays
+        (points, normals, rupture_radii, is_hypocenter, event_indices) - numpy arrays
         - points: (n_total_points, 3) coordinates
         - normals: (n_total_points, 3) normal vectors
         - rupture_radii: (n_total_points,) rupture radius for each point
+        - is_hypocenter: (n_total_points,) 1 for hypocenter, 0 for enhanced points
+        - event_indices: (n_total_points,) index into df_subcluster for each point
         where n_total_points = len(df_subcluster) * actual_points_per_plane
     """
     
     all_points = []
     all_normals = []
-    all_rupture_radii = []  # NEW: track rupture radius for each point
+    all_rupture_radii = []
+    all_is_hypocenter = []  # NEW: track which points are hypocenters
+    all_event_indices = []  # NEW: track which event each point belongs to
     
-    for i, row in df_subcluster.iterrows():
+    for event_idx, (i, row) in enumerate(df_subcluster.iterrows()):
         # Get fault plane parameters
         p = np.array([row['X'], row['Y'], row['Z']])  # Hypocenter (center of circular plane)
         r = row['rupt_radius']  # Rupture radius
@@ -200,9 +249,11 @@ def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_dens
         v2 = v2 / np.linalg.norm(v2)
         
         plane_points = []
+        plane_is_hypocenter = []
         
         # 1. Always include the center point (hypocenter)
         plane_points.append(p.copy())
+        plane_is_hypocenter.append(1)  # Mark as hypocenter
         
         # 2. Generate full circles at fixed radius intervals
         # radius_interval parameter controls the spacing between rings
@@ -236,6 +287,7 @@ def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_dens
                 # Transform to global coordinates
                 global_point = p + local_point
                 plane_points.append(global_point)
+                plane_is_hypocenter.append(0)  # Mark as enhanced point (not hypocenter)
         
         # Convert to numpy array
         plane_points = np.array(plane_points)
@@ -246,8 +298,12 @@ def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_dens
         all_normals.extend([nor] * len(plane_points))
         # Each point on the plane has the same rupture radius
         all_rupture_radii.extend([r] * len(plane_points))
+        # Track which points are hypocenters vs enhanced points
+        all_is_hypocenter.extend(plane_is_hypocenter)
+        # Track which event each point belongs to
+        all_event_indices.extend([event_idx] * len(plane_points))
     
-    return np.array(all_points), np.array(all_normals), np.array(all_rupture_radii)
+    return np.array(all_points), np.array(all_normals), np.array(all_rupture_radii), np.array(all_is_hypocenter), np.array(all_event_indices)
 
 
 def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_rings=5):
@@ -363,27 +419,26 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_ri
         mesh['normal_z'] = np.full(mesh.n_points, normal[2])
         
         # Add additional attributes if available in the dataframe
-        # Include all hypocenter attributes plus fault-specific parameters
+        # Use renamed column names to match HyFI_results.csv
+        rename_map = _get_vtp_column_name_mapping()
+        
+        # Specified columns for rupture planes
         attribute_columns = [
-            # Basic hypocenter attributes (same as hypocenters VTP)
-            'ID', 'MAG', 'EX', 'EY', 'EZ',
-            # Fault plane orientation and geometry
-            'rupt_plane_azi', 'rupt_plane_dip', 'rupt_radius', 
-            # Magnitude and area estimates  
-            'Mw', 'rupt_area',
-            # Stress parameters
-            'Sn_eff', 'Tau', 'rake', 'instab',
-            # Tendency parameters
-            'sliptend', 'dilatend',
-            # Clustering information
-            'final_cluster_id', 'orient_cluster', 'spatial_cluster',
-            # Legacy magnitude column
-            'ML'
+            'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date',
+            'sequence_label', 'segmentation_level', 'fault_system_id',
+            'Mw', 'rupt_area', 'rupt_radius',
+            'rupt_plane_azi', 'rupt_plane_dip', 'rake',
+            'Sn_eff', 'Tau', 'instab', 'sliptend', 'dilatend'
         ]
         
-        for col in attribute_columns:
+        # Always include temporal attributes if available
+        temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
+        
+        for col in attribute_columns + temporal_columns:
             if col in df_subcluster.columns and not pd.isna(row[col]):
-                mesh[col] = np.full(mesh.n_points, row[col])
+                # Use renamed column name for VTP attribute
+                vtp_col_name = rename_map.get(col, col)
+                mesh[vtp_col_name] = np.full(mesh.n_points, row[col])
         
         # Add temporal information if Date column is available (same as hypocenters VTP)
         if 'Date' in df_subcluster.columns and not pd.isna(row['Date']):
@@ -417,17 +472,27 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_ri
                 # Month number (int32) - good for seasonal analysis
                 mesh['month'] = np.full(mesh.n_points, event_date.month, dtype=np.int32)
                 
-                # Keep string format for reference (though not colorable in ParaView)
-                date_string = event_date.strftime('%Y-%m-%d %H:%M:%S')
-                mesh['date_string'] = np.full(mesh.n_points, date_string)
-                
             except Exception as e:
                 print(f"    Warning: Could not add Date attributes to rupture plane mesh {i}: {e}")
         
-        # Add hypocenter coordinates
+        # Add hypocenter coordinates (both named versions)
+        mesh['X'] = np.full(mesh.n_points, center[0])
+        mesh['Y'] = np.full(mesh.n_points, center[1])
+        mesh['Z'] = np.full(mesh.n_points, center[2])
         mesh['hypocenter_x'] = np.full(mesh.n_points, center[0])
         mesh['hypocenter_y'] = np.full(mesh.n_points, center[1])
         mesh['hypocenter_z'] = np.full(mesh.n_points, center[2])
+        
+        # Add Date column if available (as string for reference)
+        if 'Date' in df_subcluster.columns and not pd.isna(row['Date']):
+            try:
+                date_str = str(row['Date'])
+                # Store as numeric array (convert to float using unix timestamp approach)
+                event_date = pd.to_datetime(row['Date'])
+                unix_timestamp = event_date.timestamp()
+                mesh['Date'] = np.full(mesh.n_points, unix_timestamp, dtype=np.float64)
+            except Exception as e:
+                print(f"    Warning: Could not add Date column to rupture plane mesh {i}: {e}")
         
         disc_meshes.append(mesh)
     
@@ -748,7 +813,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         
         # Generate points from circular fault plane geometries
         try:
-            points, normals, rupture_radii = _generate_fault_plane_points(df_cluster, radius_interval, point_density_meters)
+            points, normals, rupture_radii, is_hypocenter, event_indices = _generate_fault_plane_points(df_cluster, radius_interval, point_density_meters)
             
             # Check if we actually got valid points
             if len(points) == 0:
@@ -756,6 +821,39 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 continue
                 
             print(f"    Generated {len(points)} points from {len(df_cluster)} fault planes")
+            
+            # Create point cloud for this cluster
+            pcd = pv.PolyData(points)
+            pcd['normals'] = normals
+            pcd['is_hypocenter'] = is_hypocenter.astype(np.int32)
+            
+            # Propagate event attributes to all points
+            # Create attribute arrays for all points based on their source event
+            rename_map = _get_vtp_column_name_mapping()
+            
+            # Use same columns as rupture planes
+            specified_columns = [
+                'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date',
+                'sequence_label', 'segmentation_level', 'fault_system_id',
+                'Mw', 'rupt_area', 'rupt_radius',
+                'rupt_plane_azi', 'rupt_plane_dip', 'rake',
+                'Sn_eff', 'Tau', 'instab', 'sliptend', 'dilatend'
+            ]
+            temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
+            
+            for col in specified_columns + temporal_columns:
+                if col in df_cluster.columns:
+                    try:
+                        # Get values for each point's source event
+                        values = df_cluster.iloc[event_indices][col].values
+                        # Use renamed column name for VTP attribute
+                        vtp_col_name = rename_map.get(col, col)
+                        pcd[vtp_col_name] = values
+                    except Exception as e:
+                        pass  # Skip columns that can't be added
+            
+            pcd = pcd.clean()
+            
         except Exception as e:
             print(f"    Warning: Failed to generate fault plane points: {e}")
             # Fallback to hypocenter locations only if we have valid normal vectors
@@ -768,11 +866,32 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             normals = valid_rows[['nor_x_mean', 'nor_y_mean', 'nor_z_mean']].values.astype(np.float64)
             # Use rupture radii for fallback
             rupture_radii = valid_rows['rupt_radius'].values.astype(np.float64)
-        
-        # Create point cloud for this cluster
-        pcd = pv.PolyData(points)
-        pcd['normals'] = normals
-        pcd = pcd.clean()
+            
+            # Create point cloud for this cluster
+            pcd = pv.PolyData(points)
+            pcd['normals'] = normals
+            pcd['is_hypocenter'] = np.ones(pcd.n_points, dtype=np.int32)  # Fallback: all are hypocenters
+            
+            # Add attributes from valid_rows
+            rename_map = _get_vtp_column_name_mapping()
+            specified_columns = [
+                'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date',
+                'sequence_label', 'segmentation_level', 'fault_system_id',
+                'Mw', 'rupt_area', 'rupt_radius',
+                'rupt_plane_azi', 'rupt_plane_dip', 'rake',
+                'Sn_eff', 'Tau', 'instab', 'sliptend', 'dilatend'
+            ]
+            temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
+            
+            for col in specified_columns + temporal_columns:
+                if col in valid_rows.columns:
+                    try:
+                        vtp_col_name = rename_map.get(col, col)
+                        pcd[vtp_col_name] = valid_rows[col].values
+                    except:
+                        pass
+            
+            pcd = pcd.clean()
         
         # Check if we have enough points for Poisson reconstruction
         if pcd.n_points < 4:  # Minimum points needed for surface reconstruction
@@ -1139,6 +1258,26 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 'mesh_mean_dilatend': mesh_mean_dilatend,
             }
             fault_system_metadata.append(metadata)
+            
+            # Also update mesh_info with all metadata for VTP export
+            mesh_info.update({
+                'segmentation_level': segmentation_level,
+                'sequence_label': sequence_label,
+                'n_events': int(cluster_data['N'].sum()) if 'N' in cluster_data.columns else len(cluster_data),
+                'centroid_x': float(cluster_data['X'].mean()) if 'X' in cluster_data.columns else None,
+                'centroid_y': float(cluster_data['Y'].mean()) if 'Y' in cluster_data.columns else None,
+                'centroid_z': float(cluster_data['Z'].mean()) if 'Z' in cluster_data.columns else None,
+                'rupture_mean_azimuth': rupture_mean_azimuth,
+                'rupture_mean_dip': rupture_mean_dip,
+                'mesh_mean_azimuth': mesh_mean_azimuth,
+                'mesh_mean_dip': mesh_mean_dip,
+                'rupture_mean_instability': rupture_mean_instability,
+                'rupture_mean_sliptend': rupture_mean_sliptend,
+                'rupture_mean_dilatend': rupture_mean_dilatend,
+                'mesh_mean_instability': mesh_mean_instability,
+                'mesh_mean_sliptend': mesh_mean_sliptend,
+                'mesh_mean_dilatend': mesh_mean_dilatend,
+            })
     
     print(f"  Generated metadata for {len(fault_system_metadata)} interpolated fault systems")
     
@@ -1599,14 +1738,26 @@ def export_basic_vtp(df_hyfi, output_dir, fault_disc_meshes=None, use_focal_cons
         points = df_hyfi[['X', 'Y', 'Z']].values
         hypocenter_pcd = pv.PolyData(points)
         
-        # Add all scalar data
-        for col in df_hyfi.columns:
-            if col not in ['X', 'Y', 'Z']:
+        # Get column name mapping for VTP export
+        rename_map = _get_vtp_column_name_mapping()
+        
+        # Specified columns for hypocenters
+        specified_columns = ['ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'EX', 'EY', 'EZ',
+                           'YR', 'MO', 'DY', 'HR', 'MI', 'SC', 'MAG',
+                           'NCCP', 'NCCS', 'NCTP', 'NCTS', 'RCC', 'RCT', 'CID']
+        
+        # Always include temporal attributes if available
+        temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
+        
+        # Add specified columns
+        for col in specified_columns + temporal_columns:
+            if col in df_hyfi.columns:
                 try:
-                    values = df_hyfi[col].values
-                    hypocenter_pcd[col] = values
+                    # Use renamed column name for VTP attribute
+                    vtp_col_name = rename_map.get(col, col)
+                    hypocenter_pcd[vtp_col_name] = df_hyfi[col].values
                 except Exception as e:
-                    print(f"    Warning: Could not add {col} column to VTP: {e}")
+                    pass
         
         # Add temporal data if Date column exists
         if 'Date' in df_hyfi.columns:
@@ -1623,8 +1774,6 @@ def export_basic_vtp(df_hyfi, output_dir, fault_disc_meshes=None, use_focal_cons
                 hypocenter_pcd['decimal_year'] = decimal_years.values
                 
                 hypocenter_pcd['month'] = dates.dt.month.values
-                date_strings = dates.astype(str).values
-                hypocenter_pcd['date_string'] = date_strings
                 
                 print(f"    Added temporal data spanning {days_since_first.max()} days")
             except Exception as e:
@@ -1714,15 +1863,10 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
             except Exception as e:
                 print(f"  Warning: Could not remove {old_file}: {e}")
     
-    # Export combined mesh
-    if combined_mesh.n_points > 0:
-        combined_file = os.path.join(vtp_dir, 'faults_compiled.vtp')
-        combined_mesh.save(combined_file)
-        print(f"  Saved combined mesh: {combined_file}")
-    
-    # Export individual meshes with enhanced information
+    # Export individual meshes with enhanced information (process first to add metadata)
     for mesh_info in individual_meshes:
-        mesh = mesh_info['mesh']
+        # Work on a copy to avoid modifying the original mesh
+        mesh = mesh_info['mesh'].copy()
         ori_cluster = mesh_info['orientation_cluster']
         spatial_cluster = mesh_info['spatial_cluster']
         fault_idx = mesh_info['fault_idx']
@@ -1735,12 +1879,131 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
         cluster_id = mesh_info['cluster_id']
         filename = f"fault_{cluster_id}.vtp"
         
+        # Add metadata as cell data attributes (for each triangle/face)
+        if mesh.n_cells > 0:
+            # Get metadata from mesh_info
+            fs_id = mesh_info.get('cluster_id', cluster_id)
+            segmentation_level = mesh_info.get('segmentation_level')
+            sequence_label = mesh_info.get('sequence_label')
+            
+            # Add scalar attributes (same value for all cells)
+            if fs_id is not None:
+                mesh.cell_data['fault_system_id'] = np.full(mesh.n_cells, str(fs_id))
+            if segmentation_level is not None:
+                mesh.cell_data['segmentation_level'] = np.full(mesh.n_cells, segmentation_level)
+            if sequence_label is not None:
+                mesh.cell_data['sequence_label'] = np.full(mesh.n_cells, str(sequence_label))
+            
+            mesh.cell_data['vtp_file'] = np.full(mesh.n_cells, filename)
+            mesh.cell_data['n_events'] = np.full(mesh.n_cells, mesh_info.get('n_events', n_fault_planes))
+            
+            # Centroid coordinates
+            if 'centroid_x' in mesh_info and mesh_info['centroid_x'] is not None:
+                mesh.cell_data['centroid_x'] = np.full(mesh.n_cells, mesh_info['centroid_x'])
+            if 'centroid_y' in mesh_info and mesh_info['centroid_y'] is not None:
+                mesh.cell_data['centroid_y'] = np.full(mesh.n_cells, mesh_info['centroid_y'])
+            if 'centroid_z' in mesh_info and mesh_info['centroid_z'] is not None:
+                mesh.cell_data['centroid_z'] = np.full(mesh.n_cells, mesh_info['centroid_z'])
+            
+            # Rupture plane mean orientation
+            if 'rupture_mean_azimuth' in mesh_info and mesh_info['rupture_mean_azimuth'] is not None:
+                mesh.cell_data['rupture_mean_azimuth'] = np.full(mesh.n_cells, mesh_info['rupture_mean_azimuth'])
+            if 'rupture_mean_dip' in mesh_info and mesh_info['rupture_mean_dip'] is not None:
+                mesh.cell_data['rupture_mean_dip'] = np.full(mesh.n_cells, mesh_info['rupture_mean_dip'])
+            
+            # Mesh mean orientation
+            if 'mesh_mean_azimuth' in mesh_info and mesh_info['mesh_mean_azimuth'] is not None:
+                mesh.cell_data['mesh_mean_azimuth'] = np.full(mesh.n_cells, mesh_info['mesh_mean_azimuth'])
+            if 'mesh_mean_dip' in mesh_info and mesh_info['mesh_mean_dip'] is not None:
+                mesh.cell_data['mesh_mean_dip'] = np.full(mesh.n_cells, mesh_info['mesh_mean_dip'])
+            
+            # Mesh properties
+            if isinstance(area_m2, (int, float)):
+                mesh.cell_data['mesh_area_m2'] = np.full(mesh.n_cells, area_m2)
+            if isinstance(max_Mw, (int, float)) and not np.isnan(max_Mw):
+                mesh.cell_data['max_mag'] = np.full(mesh.n_cells, max_Mw)
+            
+            mesh.cell_data['mesh_vertices'] = np.full(mesh.n_cells, mesh.n_points)
+            mesh.cell_data['mesh_faces'] = np.full(mesh.n_cells, mesh.n_cells)
+            
+            # Rupture mean stress parameters
+            if 'rupture_mean_instability' in mesh_info and mesh_info['rupture_mean_instability'] is not None:
+                mesh.cell_data['rupture_mean_instability'] = np.full(mesh.n_cells, mesh_info['rupture_mean_instability'])
+            if 'rupture_mean_sliptend' in mesh_info and mesh_info['rupture_mean_sliptend'] is not None:
+                mesh.cell_data['rupture_mean_sliptend'] = np.full(mesh.n_cells, mesh_info['rupture_mean_sliptend'])
+            if 'rupture_mean_dilatend' in mesh_info and mesh_info['rupture_mean_dilatend'] is not None:
+                mesh.cell_data['rupture_mean_dilatend'] = np.full(mesh.n_cells, mesh_info['rupture_mean_dilatend'])
+            
+            # Mesh mean stress parameters (from cell data means)
+            if 'mesh_mean_instability' in mesh_info and mesh_info['mesh_mean_instability'] is not None:
+                mesh.cell_data['mesh_mean_instability'] = np.full(mesh.n_cells, mesh_info['mesh_mean_instability'])
+            if 'mesh_mean_sliptend' in mesh_info and mesh_info['mesh_mean_sliptend'] is not None:
+                mesh.cell_data['mesh_mean_sliptend'] = np.full(mesh.n_cells, mesh_info['mesh_mean_sliptend'])
+            if 'mesh_mean_dilatend' in mesh_info and mesh_info['mesh_mean_dilatend'] is not None:
+                mesh.cell_data['mesh_mean_dilatend'] = np.full(mesh.n_cells, mesh_info['mesh_mean_dilatend'])
+        
+        # Note: Cell data (stress params for each face) is already added by stress_analysis module
+        # Rename cell data columns to match HyFI_results.csv naming
+        rename_map = _get_vtp_column_name_mapping()
+        if mesh.n_cells > 0:
+            # Rename cell data attributes if they exist
+            for old_name, new_name in rename_map.items():
+                if old_name in mesh.cell_data:
+                    mesh.cell_data[new_name] = mesh.cell_data[old_name]
+                    # Remove old name to avoid duplication
+                    del mesh.cell_data[old_name]
+        
+        # Remove all point data attributes (keep only coordinates)
+        mesh.clear_point_data()
+        
+        # Store the modified mesh back in mesh_info for combined mesh rebuild
+        mesh_info['mesh_with_metadata'] = mesh
+        
         filepath = os.path.join(vtp_dir, filename)
         mesh.save(filepath)
         if isinstance(max_Mw, (int, float)) and not np.isnan(max_Mw):
             print(f"  Saved mesh: {filename} ({n_fault_planes} fault planes, {n_input_points} input points, {area_m2:.1f} m² area, max Mw {max_Mw:.2f})")
         else:
             print(f"  Saved mesh: {filename} ({n_fault_planes} fault planes, {n_input_points} input points, {area_m2:.1f} m² area)")
+    
+    # Now rebuild combined mesh with all metadata from individual meshes
+    if individual_meshes:
+        print("  Rebuilding combined mesh with metadata...")
+        rebuilt_combined_mesh = None
+        
+        # First, collect all unique cell data keys from all meshes
+        all_cell_data_keys = set()
+        for mesh_info in individual_meshes:
+            mesh = mesh_info.get('mesh_with_metadata')
+            if mesh and mesh.n_cells > 0:
+                all_cell_data_keys.update(mesh.cell_data.keys())
+        
+        # Ensure all meshes have all cell data keys (fill missing with NaN)
+        for mesh_info in individual_meshes:
+            mesh = mesh_info.get('mesh_with_metadata')
+            if mesh and mesh.n_cells > 0:
+                for key in all_cell_data_keys:
+                    if key not in mesh.cell_data:
+                        # Add missing key with NaN values
+                        mesh.cell_data[key] = np.full(mesh.n_cells, np.nan)
+        
+        # Now merge meshes
+        for mesh_info in individual_meshes:
+            mesh = mesh_info.get('mesh_with_metadata')
+            if mesh and mesh.n_points > 0:
+                if rebuilt_combined_mesh is None:
+                    rebuilt_combined_mesh = mesh.copy()
+                else:
+                    rebuilt_combined_mesh = rebuilt_combined_mesh + mesh
+        
+        # Save rebuilt combined mesh
+        if rebuilt_combined_mesh is not None and rebuilt_combined_mesh.n_points > 0:
+            # Clear point data (keep only coordinates)
+            rebuilt_combined_mesh.clear_point_data()
+            
+            combined_file = os.path.join(vtp_dir, 'faults_compiled.vtp')
+            rebuilt_combined_mesh.save(combined_file)
+            print(f"  Saved combined mesh: {combined_file} ({rebuilt_combined_mesh.n_cells} faces with {len(rebuilt_combined_mesh.cell_data.keys())} attributes)")
         
     # Print area and magnitude summary
     if individual_meshes:
@@ -1775,10 +2038,26 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
         hypocenter_points = df_hyfi[['X', 'Y', 'Z']].values
         hypocenter_pcd = pv.PolyData(hypocenter_points)
         
-        # Add hypocenter data as point arrays (handle datetime conversion)
-        for col in ['ID', 'X', 'Y', 'Z', 'EX', 'EY', 'EZ', 'MAG']:
+        # Add hypocenter data as point arrays with proper renaming
+        rename_map = _get_vtp_column_name_mapping()
+        
+        # Specified columns for hypocenters
+        specified_columns = ['ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'EX', 'EY', 'EZ',
+                           'YR', 'MO', 'DY', 'HR', 'MI', 'SC', 'MAG',
+                           'NCCP', 'NCCS', 'NCTP', 'NCTS', 'RCC', 'RCT', 'CID']
+        
+        # Always include temporal attributes if available
+        temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
+        
+        # Add specified columns
+        for col in specified_columns + temporal_columns:
             if col in df_hyfi.columns:
-                hypocenter_pcd[col] = df_hyfi[col].values
+                try:
+                    # Use renamed column name for VTP attribute
+                    vtp_col_name = rename_map.get(col, col)
+                    hypocenter_pcd[vtp_col_name] = df_hyfi[col].values
+                except:
+                    pass
         
         # Handle Date column separately - convert datetime to numeric formats for ParaView compatibility
         if 'Date' in df_hyfi.columns:
@@ -1801,10 +2080,6 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
                 
                 # Month number (good for seasonal analysis)
                 hypocenter_pcd['month'] = dates.dt.month.values
-                                
-                # Keep string format for reference (though not colorable in ParaView)
-                date_strings = dates.astype(str).values
-                hypocenter_pcd['date_string'] = date_strings
                 
                 print(f"    Added temporal data: {len(days_since_first)} events from {min_date.strftime('%Y-%m-%d')} to {dates.max().strftime('%Y-%m-%d')}")
                 print(f"    Date range: {days_since_first.max()} days total")
@@ -2047,16 +2322,66 @@ def _create_focal_mechanism_disc_meshes(df_focal_events, n_radial_segments=16, n
         focal_area = mesh.area
         
         # Add metadata and attributes
+        # Core location attributes
+        mesh['ID'] = np.full(mesh.n_points, str(row['ID']))
         mesh['ID_num'] = np.full(mesh.n_points, i)
-        mesh['ID_str'] = np.full(mesh.n_points, str(row['ID']))
-        mesh['MAG'] = np.full(mesh.n_points, row.get('MAG', np.nan))
+        
+        # Specified columns for focals
+        specified_columns = ['LAT', 'LON', 'DEPTH']
+        for col in specified_columns:
+            if col in df_focal_events.columns:
+                mesh[col] = np.full(mesh.n_points, row.get(col, np.nan))
+        
+        # X, Y, Z coordinates
+        mesh['X'] = np.full(mesh.n_points, center[0])
+        mesh['Y'] = np.full(mesh.n_points, center[1])
+        mesh['Z'] = np.full(mesh.n_points, center[2])
+        
+        # Date attribute
+        if 'Date' in df_focal_events.columns and not pd.isna(row['Date']):
+            try:
+                event_date = pd.to_datetime(row['Date'])
+                unix_timestamp = event_date.timestamp()
+                mesh['Date'] = np.full(mesh.n_points, unix_timestamp, dtype=np.float64)
+            except:
+                pass
+        
+        # Temporal attributes (always include if available)
+        temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
+        for col in temporal_columns:
+            if col in df_focal_events.columns:
+                mesh[col] = np.full(mesh.n_points, row.get(col, np.nan))
+        
+        # Sequence/cluster information
+        if 'sequence_label' in df_focal_events.columns:
+            seq_label = row.get('sequence_label', '')
+            mesh['sequence_label'] = np.full(mesh.n_points, str(seq_label))
+        
+        if 'segmentation_level' in df_focal_events.columns:
+            mesh['segmentation_level'] = np.full(mesh.n_points, row.get('segmentation_level', np.nan))
+        
+        if 'fault_system_id' in df_focal_events.columns:
+            fs_id = row.get('fault_system_id', '')
+            mesh['fault_system_id'] = np.full(mesh.n_points, str(fs_id))
+        
+        # Magnitude attribute
         mesh['Mw'] = np.full(mesh.n_points, row.get('Mw', np.nan))
-        mesh['A'] = np.full(mesh.n_points, row.get('A', np.nan))  # Original A value (0/1/2)
-        mesh['pref_foc'] = np.full(mesh.n_points, row['pref_foc'])  # Preferred plane (1 or 2)
+        
+        # Focal mechanism parameters (using original column names from dataframe)
+        mesh['Strike1'] = np.full(mesh.n_points, row.get('Strike1', np.nan))
+        mesh['Dip1'] = np.full(mesh.n_points, row.get('Dip1', np.nan))
+        mesh['Rake1'] = np.full(mesh.n_points, row.get('Rake1', np.nan))
+        mesh['Strike2'] = np.full(mesh.n_points, row.get('Strike2', np.nan))
+        mesh['Dip2'] = np.full(mesh.n_points, row.get('Dip2', np.nan))
+        mesh['Rake2'] = np.full(mesh.n_points, row.get('Rake2', np.nan))
+        mesh['A'] = np.full(mesh.n_points, row.get('A', np.nan))
+        mesh['epsilon'] = np.full(mesh.n_points, row.get('epsilon', np.nan))
+        mesh['pref_foc'] = np.full(mesh.n_points, row['pref_foc'])
+        
+        # Active plane attributes (for convenience)
         mesh['Strike'] = np.full(mesh.n_points, strike)
         mesh['Dip'] = np.full(mesh.n_points, dip)
         mesh['Rake'] = np.full(mesh.n_points, rake)
-        mesh['epsilon'] = np.full(mesh.n_points, row.get('epsilon', np.nan))
         mesh['radius'] = np.full(mesh.n_points, radius)
         mesh['area_m2'] = np.full(mesh.n_points, focal_area)
         
@@ -2066,7 +2391,7 @@ def _create_focal_mechanism_disc_meshes(df_focal_events, n_radial_segments=16, n
             cluster_id = np.nan
         mesh['final_cluster_id'] = np.full(mesh.n_points, cluster_id)
         
-        # Add hypocenter coordinates
+        # Add hypocenter coordinates (alternative names)
         mesh['hypocenter_x'] = np.full(mesh.n_points, center[0])
         mesh['hypocenter_y'] = np.full(mesh.n_points, center[1])
         mesh['hypocenter_z'] = np.full(mesh.n_points, center[2])
@@ -2298,6 +2623,18 @@ def export_slip_vectors_vtp(df_hyfi, output_dir):
     point_magnitude = []
     point_cluster_id = []
     point_event_id = []
+    # New attributes from request
+    point_lat = []
+    point_lon = []
+    point_depth = []
+    point_x = []
+    point_y = []
+    point_z = []
+    point_date = []
+    point_sequence_label = []
+    point_segmentation_level = []
+    point_fault_system_id = []
+    point_mw = []
     
     for i, (pt, vec) in enumerate(zip(points, slip_vectors)):
         row = df_valid.iloc[i]
@@ -2314,6 +2651,55 @@ def export_slip_vectors_vtp(df_hyfi, output_dir):
         point_rake.extend([row['rake'], row['rake']])
         point_rupture_radius.extend([row['rupt_radius'], row['rupt_radius']])
         
+        # Core location attributes (from request)
+        if 'ID' in df_valid.columns:
+            event_id = str(row['ID'])
+            point_event_id.extend([event_id, event_id])
+        
+        if 'LAT' in df_valid.columns:
+            lat = row['LAT'] if not pd.isna(row['LAT']) else 0.0
+            point_lat.extend([lat, lat])
+        
+        if 'LON' in df_valid.columns:
+            lon = row['LON'] if not pd.isna(row['LON']) else 0.0
+            point_lon.extend([lon, lon])
+        
+        if 'DEPTH' in df_valid.columns:
+            depth = row['DEPTH'] if not pd.isna(row['DEPTH']) else 0.0
+            point_depth.extend([depth, depth])
+        
+        # X, Y, Z coordinates (from request)
+        point_x.extend([row['X'], row['X']])
+        point_y.extend([row['Y'], row['Y']])
+        point_z.extend([row['Z'], row['Z']])
+        
+        # Date attribute (from request)
+        if 'Date' in df_valid.columns and not pd.isna(row['Date']):
+            try:
+                event_date = pd.to_datetime(row['Date'])
+                unix_timestamp = event_date.timestamp()
+                point_date.extend([unix_timestamp, unix_timestamp])
+            except:
+                point_date.extend([0.0, 0.0])
+        
+        # Sequence/cluster information (from request)
+        if 'sequence_label' in df_valid.columns:
+            seq_label = str(row['sequence_label']) if not pd.isna(row['sequence_label']) else ''
+            point_sequence_label.extend([seq_label, seq_label])
+        
+        if 'segmentation_level' in df_valid.columns:
+            seg_level = row['segmentation_level'] if not pd.isna(row['segmentation_level']) else 0
+            point_segmentation_level.extend([seg_level, seg_level])
+        
+        if 'fault_system_id' in df_valid.columns:
+            fs_id = str(row['fault_system_id']) if not pd.isna(row['fault_system_id']) else ''
+            point_fault_system_id.extend([fs_id, fs_id])
+        
+        # Magnitude (from request - using Mw if available, otherwise MAG)
+        if 'Mw' in df_valid.columns:
+            mw = row['Mw'] if not pd.isna(row['Mw']) else 0.0
+            point_mw.extend([mw, mw])
+        
         if 'MAG' in df_valid.columns:
             mag = row['MAG'] if not pd.isna(row['MAG']) else 0.0
             point_magnitude.extend([mag, mag])
@@ -2321,10 +2707,6 @@ def export_slip_vectors_vtp(df_hyfi, output_dir):
         if 'final_cluster_id' in df_valid.columns:
             cluster = str(row['final_cluster_id'])
             point_cluster_id.extend([cluster, cluster])
-        
-        if 'ID' in df_valid.columns:
-            event_id = str(row['ID'])
-            point_event_id.extend([event_id, event_id])
     
     line_points = np.array(line_points, dtype=np.float64)
     line_connections = np.hstack(line_connections)
@@ -2332,18 +2714,53 @@ def export_slip_vectors_vtp(df_hyfi, output_dir):
     # Create line mesh
     line_mesh = pv.PolyData(line_points, lines=line_connections)
     
-    # Add point attributes
-    line_mesh['rake'] = np.array(point_rake, dtype=np.float32)
+    # Add point attributes (always present)
+    line_mesh['rake_angle'] = np.array(point_rake, dtype=np.float32)  # Use renamed column name
     line_mesh['rupture_radius_m'] = np.array(point_rupture_radius, dtype=np.float32)
+    
+    # Add core location attributes
+    if point_x:
+        line_mesh['X'] = np.array(point_x, dtype=np.float32)
+        line_mesh['Y'] = np.array(point_y, dtype=np.float32)
+        line_mesh['Z'] = np.array(point_z, dtype=np.float32)
+    
+    if point_lat:
+        line_mesh['LAT'] = np.array(point_lat, dtype=np.float32)
+    
+    if point_lon:
+        line_mesh['LON'] = np.array(point_lon, dtype=np.float32)
+    
+    if point_depth:
+        line_mesh['DEPTH'] = np.array(point_depth, dtype=np.float32)
+    
+    # Add temporal attribute
+    if point_date:
+        line_mesh['Date'] = np.array(point_date, dtype=np.float64)
+    
+    # Add sequence/cluster information
+    if point_sequence_label:
+        line_mesh['sequence_label'] = np.array(point_sequence_label)
+    
+    if point_segmentation_level:
+        line_mesh['segmentation_level'] = np.array(point_segmentation_level, dtype=np.float32)
+    
+    if point_fault_system_id:
+        line_mesh['fault_system_id'] = np.array(point_fault_system_id)
+    
+    # Add magnitude attributes
+    if point_mw:
+        line_mesh['Mw'] = np.array(point_mw, dtype=np.float32)
     
     if point_magnitude:
         line_mesh['magnitude'] = np.array(point_magnitude, dtype=np.float32)
+        line_mesh['MAG'] = np.array(point_magnitude, dtype=np.float32)  # MAG alias
     
     if point_cluster_id:
         line_mesh['cluster_id'] = np.array(point_cluster_id)
     
     if point_event_id:
         line_mesh['event_id'] = np.array(point_event_id)
+        line_mesh['ID'] = np.array(point_event_id)  # ID alias (from request)
     
     # Apply tube filter to make lines thicker (visible in 3D)
     # Tube radius based on typical rupture radius scale
