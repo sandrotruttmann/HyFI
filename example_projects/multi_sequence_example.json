@@ -13,7 +13,7 @@
   },
   "workflow_dag": {
     "step_1_load_data": {
-      "hypocenter_file": "../data_examples/SECOS_20250305_HyFI_VS_filtered_3.csv",
+      "hypocenter_file": "../data_examples/SECOS_20250305_HyFI_VS_filtered_smallest.csv",
       "hypocenter_separator": ",",
       "focal_mechanism_file": "../data_examples/SECOS_20250305_FM_HyFI.csv",
       "focal_mechanism_separator": ","

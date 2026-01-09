@@ -39,7 +39,8 @@ dependencies = [
     "mplstereonet>=0.6",
     "spherecluster>=0.1.7",
     "mycolorpy>=1.5",
-    "click>=8.0"
+    "click>=8.0",
+    "duckdb>=0.9.0"
 ]
 
 [project.optional-dependencies]
@@ -73,6 +74,7 @@ Citation = "https://doi.org/10.1029/2023JB026352"
 
 [project.scripts]
 hyfi = "hyfi.cli:main"
+hyfi-query = "hyfi.query.cli:cli"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

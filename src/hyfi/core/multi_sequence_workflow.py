@@ -86,6 +86,7 @@ class MultiSequenceWorkflow:
         # Global fault system counter (FS0001, FS0002, ...)
         self.global_fault_counter = 1
         self.fault_system_metadata = []  # Track all fault systems across sequences
+        self.temp_to_fs_mappings = {}  # Track TEMP→FS mappings from all sequences
         
         # Timing
         self.start_time = None
@@ -257,6 +258,13 @@ class MultiSequenceWorkflow:
                     self.fault_system_metadata.extend(sequence_results['fault_system_metadata'])
                 if 'next_fault_counter' in sequence_results:
                     self.global_fault_counter = sequence_results['next_fault_counter']
+                
+                # Collect TEMP→FS mappings from this sequence
+                if 'temp_to_fs_mapping' in sequence_results:
+                    temp_mapping = sequence_results['temp_to_fs_mapping']
+                    if temp_mapping:
+                        self.temp_to_fs_mappings.update(temp_mapping)
+                        print(f"  Collected {len(temp_mapping)} TEMP→FS mappings from {sequence_name}")
                 
                 # Store results
                 self.sequence_results[sequence_name] = {
@@ -696,8 +704,8 @@ class MultiSequenceWorkflow:
                         enriched_data.loc[event_mask, 'slip_tendency'] = hyfi_row.get('sliptend', np.nan)
                         enriched_data.loc[event_mask, 'dilation_tendency'] = hyfi_row.get('dilatend', np.nan)
                         
-                        # Fault system clustering (global FS IDs)
-                        enriched_data.loc[event_mask, 'fault_system_id'] = hyfi_row.get('final_cluster_id', None)
+                        # Fault system clustering (use fault_system_id directly from HyFI_results.csv)
+                        enriched_data.loc[event_mask, 'fault_system_id'] = hyfi_row.get('fault_system_id', None)
                         enriched_data.loc[event_mask, 'orientation_cluster'] = hyfi_row.get('orient_cluster', np.nan)
                         enriched_data.loc[event_mask, 'spatial_cluster'] = hyfi_row.get('spatial_cluster', np.nan)
                 
@@ -794,14 +802,14 @@ class MultiSequenceWorkflow:
         # Sort by original fault_system_id to maintain sequence order
         df_metadata = df_metadata.sort_values('fault_system_id')
         
-        # Renumber fault systems continuously (FS0001, FS0002, FS0003...)
-        print("  Renumbering fault systems continuously...")
-        old_to_new_id_map = {}
-        for i, old_id in enumerate(df_metadata['fault_system_id'].values, start=1):
-            new_id = f"FS{i:04d}"
-            old_to_new_id_map[old_id] = new_id
+        # The metadata already has FS IDs from mesh interpolation, no need to renumber
+        # Just verify they are in the correct format
+        print(f"  Fault system IDs in metadata: {list(df_metadata['fault_system_id'].head())}")
         
-        df_metadata['fault_system_id'] = df_metadata['fault_system_id'].map(old_to_new_id_map)
+        if self.temp_to_fs_mappings:
+            print(f"  Available TEMP→FS mappings: {dict(list(self.temp_to_fs_mappings.items())[:5])}")
+        else:
+            print("  Warning: No TEMP→FS mappings available")
         
         # Add orientation and stress analysis results if not available (for backward compatibility)
         orientation_stress_columns = [
@@ -857,7 +865,7 @@ class MultiSequenceWorkflow:
         df_metadata.to_csv(metadata_file, index=False)
         
         print(f"  Active faults database exported: {metadata_file}")
-        print(f"  Total active fault systems: {len(df_metadata)} (continuously numbered FS0001-FS{len(df_metadata):04d})")
+        print(f"  Total active fault systems: {len(df_metadata)} (using IDs from mesh interpolation)")
         
         # Print summary by sequence
         if 'sequence_label' in df_metadata.columns:
@@ -869,23 +877,14 @@ class MultiSequenceWorkflow:
         # Store in aggregated results
         self.aggregated_results['fault_system_metadata'] = df_metadata
         
-        # Update fault_system_id in enriched hypocenter catalog using the same renumbering
-        if 'enriched_catalog' in self.aggregated_results and old_to_new_id_map:
+        # The enriched catalog already has correct fault_system_id from HyFI_results.csv files
+        # No need to apply TEMP→FS mappings since fault_system_id is set directly during visualization
+        if 'enriched_catalog' in self.aggregated_results:
             enriched_catalog = self.aggregated_results['enriched_catalog']
             if 'fault_system_id' in enriched_catalog.columns:
-                # Apply the same ID mapping to hypocenter catalog
-                enriched_catalog['fault_system_id'] = enriched_catalog['fault_system_id'].map(
-                    lambda x: old_to_new_id_map.get(x, x) if pd.notna(x) else x
-                )
-                
-                # Re-save the hypocenter catalog with updated fault_system_id
-                database_dir = output_dir / 'HyFI_Database'
-                enriched_file = database_dir / 'HyFI_database_hypocenters.csv'
-                enriched_catalog.to_csv(enriched_file, index=False)
-                print(f"  Updated fault_system_id links in hypocenter catalog")
-        
-        # Store the mapping for use in focal mechanism export
-        self._fs_id_mapping = old_to_new_id_map
+                fs_id_counts = enriched_catalog['fault_system_id'].value_counts()
+                print(f"  Fault system IDs in hypocenter catalog: {list(fs_id_counts.index[:5])}")
+                print(f"  Total events in fault systems: {enriched_catalog['fault_system_id'].notna().sum()}")
         
         # Export enhanced focal mechanism catalog if available
         self._export_focal_mechanism_catalog()
@@ -972,14 +971,27 @@ class MultiSequenceWorkflow:
                 if 'enriched_catalog' in self.aggregated_results:
                     enriched = self.aggregated_results['enriched_catalog']
                     if 'fault_system_id' in enriched.columns:
+                        print(f"    Reading fault system IDs from enriched catalog for focal mechanisms...")
+                        fs_id_counts = enriched['fault_system_id'].value_counts()
+                        print(f"    Available FS IDs in enriched catalog: {list(fs_id_counts.index[:10])}")  # Show first 10
+                        
                         for _, row in enriched.iterrows():
                             if pd.notna(row.get('fault_system_id')):
                                 id_to_fault_system[row['ID']] = row['fault_system_id']
+                        
+                        print(f"    Mapped {len(id_to_fault_system)} events to fault systems")
+                    else:
+                        print(f"    Warning: No fault_system_id column in enriched catalog")
+                else:
+                    print(f"    Warning: No enriched catalog available")
                 
                 # Map to focal mechanism data (match by ID)
                 df_focals['sequence_label'] = df_focals['ID'].map(id_to_sequence).fillna('unclustered')
                 df_focals['segmentation_level'] = df_focals['ID'].map(id_to_segmentation)
                 df_focals['fault_system_id'] = df_focals['ID'].map(id_to_fault_system)
+                
+                # The fault_system_id from enriched catalog is already correct (no remapping needed)
+                print(f"    Fault system IDs already assigned from enriched catalog")
                 
                 # Add summary columns
                 df_focals['is_clustered'] = df_focals['sequence_label'] != 'unclustered'

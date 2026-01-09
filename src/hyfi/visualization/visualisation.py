@@ -973,26 +973,46 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     # ============================================================================
     # ASSIGN PERMANENT FS IDs TO SUCCESSFULLY INTERPOLATED MESHES
     # ============================================================================
-    # Only successfully interpolated clusters get permanent FS IDs
-    # This ensures continuous numbering without gaps from failed interpolations
+    # Only successfully interpolated clusters get permanent FS IDs with global counter
+    # This ensures continuous numbering across all sequences
     
+    print(f"\nAssigning permanent FS IDs (starting from FS{starting_fault_counter:04d})...")
+    print(f"  Number of successfully interpolated meshes: {len(individual_meshes)}")
+    
+    # Create mapping from temporary cluster IDs to permanent FS IDs
+    temp_to_fs_mapping = {}
     fault_counter = starting_fault_counter
     
-    print(f"\nAssigning permanent FS IDs (starting from FS{fault_counter:04d})...")
-    
-    for mesh_info in individual_meshes:
-        # Assign a new unique permanent FS ID for each successfully interpolated mesh
-        permanent_id = f"FS{fault_counter:04d}"
-        mesh_info['cluster_id'] = permanent_id
-        mesh_info['permanent_fs_id'] = permanent_id
+    for i, mesh_info in enumerate(individual_meshes):
+        # Get the temporary cluster ID from clustering
+        temp_cluster_id = mesh_info.get('cluster_id', None)
+        
+        if temp_cluster_id is None:
+            print(f"  Warning: Mesh {i} has no cluster_id, skipping")
+            continue
+        
+        # Assign permanent FS ID using global counter
+        permanent_fs_id = f"FS{fault_counter:04d}"
+        
+        # Store the mapping
+        temp_to_fs_mapping[temp_cluster_id] = permanent_fs_id
+        
+        # Update mesh_info with permanent ID
+        mesh_info['cluster_id'] = permanent_fs_id
+        mesh_info['permanent_fs_id'] = permanent_fs_id
+        mesh_info['original_temp_id'] = temp_cluster_id
         
         # Update the mesh point data with permanent ID
-        mesh_info['mesh']['cluster_id'] = np.full(mesh_info['mesh'].n_points, permanent_id)
+        if 'mesh' in mesh_info and mesh_info['mesh'] is not None:
+            mesh_info['mesh']['cluster_id'] = np.full(mesh_info['mesh'].n_points, permanent_fs_id)
         
+        # Increment the global counter
         fault_counter += 1
     
     next_fault_counter = fault_counter
-    print(f"✓ Assigned {len(individual_meshes)} permanent fault system IDs (FS{starting_fault_counter:04d} to FS{next_fault_counter-1:04d})")
+    
+    print(f"✓ Assigned {len(temp_to_fs_mapping)} permanent FS IDs (FS{starting_fault_counter:04d} to FS{next_fault_counter-1:04d})")
+    print(f"  Mapping created: {dict(list(temp_to_fs_mapping.items())[:3])}{'...' if len(temp_to_fs_mapping) > 3 else ''}")
     
     # ============================================================================
     # GENERATE METADATA FOR SUCCESSFULLY INTERPOLATED FAULT SYSTEMS
@@ -1122,6 +1142,10 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     
     print(f"  Generated metadata for {len(fault_system_metadata)} interpolated fault systems")
     
+    # Print mapping summary
+    if temp_to_fs_mapping:
+        print(f"  Created temp→FS ID mapping for {len(temp_to_fs_mapping)} fault systems")
+    
     # Print total area and magnitude range if meshes were created
     if len(individual_meshes) > 0:
         total_area = sum(mesh_info.get('area_m2', 0) for mesh_info in individual_meshes if isinstance(mesh_info.get('area_m2'), (int, float)))
@@ -1140,9 +1164,9 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         print("This may be due to insufficient valid fault plane data or reconstruction failures.")
         # Still return the point cloud and disc meshes if they exist
         # Return starting counter since no permanent IDs were assigned
-        return None, [], combined_pcd if combined_pcd.n_points > 0 else None, fault_disc_meshes, [], starting_fault_counter
+        return None, [], combined_pcd if combined_pcd.n_points > 0 else None, fault_disc_meshes, [], starting_fault_counter, {}
     
-    return combined_mesh, individual_meshes, combined_pcd, fault_disc_meshes, fault_system_metadata, next_fault_counter
+    return combined_mesh, individual_meshes, combined_pcd, fault_disc_meshes, fault_system_metadata, next_fault_counter, temp_to_fs_mapping
 
 
 def export_meshes_as_obj(combined_mesh, individual_meshes, fault_disc_meshes, output_dir, df_hyfi=None):

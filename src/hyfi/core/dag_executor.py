@@ -12,6 +12,7 @@ from typing import Dict, Any, List, Optional
 import time
 from datetime import datetime
 import numpy as np
+import pandas as pd
 
 from ..config.schema import HyFIWorkflowDAG
 from ..config.validation import ConfigValidationError
@@ -143,6 +144,16 @@ class DAGExecutor:
             results_with_metadata = self.results.copy()
             results_with_metadata['fault_system_metadata'] = self.fault_system_metadata
             results_with_metadata['next_fault_counter'] = self.global_fault_counter
+            
+            # Aggregate TEMP→FS mappings from all visualization results
+            all_temp_to_fs_mapping = {}
+            for node_id, node_results in self.results.items():
+                if isinstance(node_results, dict) and 'temp_to_fs_mapping' in node_results:
+                    mapping = node_results['temp_to_fs_mapping']
+                    if mapping:
+                        all_temp_to_fs_mapping.update(mapping)
+            
+            results_with_metadata['temp_to_fs_mapping'] = all_temp_to_fs_mapping
             
             return results_with_metadata
             
@@ -621,9 +632,12 @@ class DAGExecutor:
                 try:
                     # Create interpolated fault planes using single dataframe
                     # Pass global fault counter to ensure continuous numbering
-                    combined_mesh, individual_meshes, point_cloud, fault_disc_meshes, interpolation_metadata, next_fault_counter = visualisation.create_interpolated_fault_planes(
+                    combined_mesh, individual_meshes, point_cloud, fault_disc_meshes, interpolation_metadata, next_fault_counter, temp_to_fs_mapping = visualisation.create_interpolated_fault_planes(
                         df_hyfi, viz_params, starting_fault_counter=self.global_fault_counter
                     )
+                    
+                    # Store the TEMP→FS mapping for later use
+                    df_hyfi.temp_to_fs_mapping = temp_to_fs_mapping
                     
                     # Update global fault counter with next available value
                     self.global_fault_counter = next_fault_counter
@@ -631,6 +645,55 @@ class DAGExecutor:
                     # Store interpolation metadata
                     if interpolation_metadata:
                         self.fault_system_metadata.extend(interpolation_metadata)
+                    
+                    # Add fault_system_id column by applying the temp→FS mapping
+                    if temp_to_fs_mapping:
+                        print(f"  Adding fault_system_id column to dataframe...")
+                        print(f"  Temp→FS mapping: {dict(list(temp_to_fs_mapping.items())[:5])}")
+                        
+                        # Use final_cluster_id_local if it exists, otherwise fall back to final_cluster_id
+                        if 'final_cluster_id_local' in df_hyfi.columns:
+                            mapping_column = 'final_cluster_id_local'
+                            print(f"  Using final_cluster_id_local for mapping")
+                            print(f"  Sample final_cluster_id_local values: {df_hyfi[mapping_column].dropna().unique()[:5]}")
+                        elif 'final_cluster_id' in df_hyfi.columns:
+                            mapping_column = 'final_cluster_id'
+                            print(f"  Using final_cluster_id for mapping")
+                            print(f"  Sample final_cluster_id values: {df_hyfi[mapping_column].dropna().unique()[:5]}")
+                        else:
+                            print(f"  Warning: No cluster ID column found for mapping")
+                            mapping_column = None
+                        
+                        if mapping_column:
+                            # Convert mapping keys to match dataframe types (handle both string and numeric keys)
+                            def get_fs_id(cluster_id):
+                                if pd.isna(cluster_id) or cluster_id == -1:
+                                    return None
+                                # Try direct lookup first
+                                if cluster_id in temp_to_fs_mapping:
+                                    return temp_to_fs_mapping[cluster_id]
+                                # Try string version
+                                if str(cluster_id) in temp_to_fs_mapping:
+                                    return temp_to_fs_mapping[str(cluster_id)]
+                                # Try int version
+                                try:
+                                    if int(cluster_id) in temp_to_fs_mapping:
+                                        return temp_to_fs_mapping[int(cluster_id)]
+                                except (ValueError, TypeError):
+                                    pass
+                                return None
+                            
+                            df_hyfi['fault_system_id'] = df_hyfi[mapping_column].apply(get_fs_id)
+                            n_mapped = df_hyfi['fault_system_id'].notna().sum()
+                            print(f"  Mapped {n_mapped} events to {len(temp_to_fs_mapping)} fault systems")
+                            
+                            # Remove final_cluster_id_local column if it exists (keep only final_cluster_id)
+                            if 'final_cluster_id_local' in df_hyfi.columns:
+                                df_hyfi.drop(columns=['final_cluster_id_local'], inplace=True)
+                                print(f"  Removed final_cluster_id_local column")
+                            
+                            if n_mapped == 0:
+                                print(f"  Warning: No events were mapped!")
                     
                     # Calculate stress on mesh faces if enabled and stress data available
                     if viz_params.get('enable_mesh_stress', False) and combined_mesh is not None:
@@ -740,7 +803,8 @@ class DAGExecutor:
             result = {
                 'visualization_completed': True,
                 'data_for_visualization': df_hyfi,
-                'parameters': node.parameters
+                'parameters': node.parameters,
+                'temp_to_fs_mapping': temp_to_fs_mapping  # Include the mapping in results
             }
             
         except Exception as e:
@@ -837,6 +901,9 @@ class DAGExecutor:
                 execution_time = (datetime.now() - self.start_time).total_seconds()
             else:
                 execution_time = 0
+            
+            # Note: FS IDs are now assigned directly during clustering
+            # No TEMP→FS mapping needed since IDs are already permanent
             
             # Save the single dataframe as CSV
             output_file = f"{output_dir}/HyFI_results.csv"

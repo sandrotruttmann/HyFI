@@ -48,6 +48,9 @@ __all__ = [
     "model_validation", 
     "auto_class",
     "stress_analysis",
+    
+    # Query system
+    "query",
     "visualisation"
 ]
 
@@ -111,6 +114,7 @@ from .utils.utilities import save_data
 from .core import fault_network, model_validation, auto_class, stress_analysis
 from .visualization import visualisation
 from .utils import utilities
+from . import query
 
 # Configuration management
 from .config.parameters import (
@@ -151,5 +155,6 @@ __all__ = [
     'auto_class', 
     'stress_analysis',
     'visualisation',
+    'query',
     'utilities'
 ]
