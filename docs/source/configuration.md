@@ -84,11 +84,6 @@ The workflow DAG contains the following analysis steps:
 }
 ```
 
-**Usage**:
-```bash
-hyfi run config_single_TEMPLATE.json
-```
-
 ---
 
 ## Multi-Sequence DAG Configuration
@@ -179,11 +174,6 @@ In comparison to the single-sequence processing, the workflow DAG for multi-sequ
     }
   }
 }
-```
-
-**Usage**:
-```bash
-hyfi run config_multi_TEMPLATE.json
 ```
 
 ---

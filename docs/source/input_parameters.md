@@ -13,7 +13,7 @@ This document provides detailed explanations for all **HyFI** parameters in `con
 - [Auto Classification](#auto-classification)
 - [Stress Analysis](#stress-analysis)
 - [Visualization](#visualization)
-- [Multi-Sequence Segmentation](#multi-sequence-segmentation)
+- [Multi-Sequence Processing](#multi-sequence-processing)
 
 ---
 
@@ -34,10 +34,20 @@ Configuration metadata for documentation and tracking purposes.
 
 Settings that apply to the entire workflow.
 
+### Common Settings (Single & Multi-Sequence)
+
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `output_directory` | string | `"./hyfi_output"` | Directory where all output files will be saved |
-| `log_level` | string | `"INFO"` | Logging verbosity. Options: `"DEBUG"`, `"INFO"`, `"WARNING"`, `"ERROR"`, `"CRITICAL"` |
+| `output_directory` | string | `"./hyfi_output"` | Directory where all output files will be saved. For single-sequence: all outputs go to this directory. For multi-sequence: individual sequence results go to subdirectories within this path |
+| `log_level` | string | `"INFO"` | Logging verbosity. Options: `"DEBUG"` (verbose), `"INFO"` (standard), `"WARNING"` (errors only), `"ERROR"`, `"CRITICAL"` |
+
+### Multi-Sequence Only Settings
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `parallel_processing` | boolean | `false` | Enable parallel processing of segmentation steps and per-sequence analysis. **Note**: Currently single-threaded (future feature). Set to `true` for future compatibility, but sequential execution will be used |
+| `max_workers` | integer | `4` | Maximum number of parallel worker processes for multi-sequence processing. Used when `parallel_processing: true` is implemented. Range: 1-16 depending on system CPU cores. Recommended: 4-8 for typical systems |
+| `save_individual_results` | boolean | `true` | Save intermediate and individual sequence analysis results to disk. When `true`, creates subdirectories for each sequence with full analysis outputs; when `false`, only final merged results are kept (saves disk space but loses per-sequence details) |
 
 ---
 
@@ -278,13 +288,39 @@ Visualization and export settings for analysis results.
 
 ---
 
-## Multi-Sequence Segmentation
+## Multi-Sequence Processing
 
-Parameters for multi-sequence catalog segmentation. This section applies only to multi-sequence workflows where the catalog is segmented into distinct earthquake sequences before analysis.
+Parameters for catalog segmentation and merging procedures that are required specifically for the multi-sequence workflow in addition to the single-sequence parameters.
 
 See [Workflows Guide](workflows.md) for complete multi-sequence workflow documentation.
 
-### Segmentation Configuration
+**Note**: Multi-sequence global settings (`parallel_processing`, `max_workers`, `save_individual_results`) are documented in [Global Settings](#global-settings) → Multi-Sequence Only Settings.
+
+### Step 1: Load Input Data
+
+Data loading in the multi-sequence workflow is configured in the `step_1_load_data` workflow step. This step loads and prepares the earthquake catalog for segmentation:
+
+```json
+"step_1_load_data": {
+  "hypocenter_file": "data_examples/SECOS_20250305_HyFI.csv",
+  "hypocenter_separator": ",",
+  "focal_mechanism_file": "data_examples/SECOS_20250305_FM_HyFI.csv",
+  "focal_mechanism_separator": ","
+}
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `hypocenter_file` | string | **Yes** | Path to hypocenter catalog file (e.g., "data_examples/SECOS_20250305_HyFI.csv"). This is the full earthquake catalog to be segmented into sequences |
+| `hypocenter_separator` | string | Yes | Column separator for hypocenter file. Options: `","` (CSV), `"\t"` (TSV), `";"` (semicolon). Must match the format of your input file |
+| `focal_mechanism_file` | string or null | No | Path to focal mechanism catalog. Set to `null` if not available. Optional but recommended for improved fault plane selection via focal constraints |
+| `focal_mechanism_separator` | string | No | Column separator for focal mechanism file. Options: `","`, `"\t"`, `";"`. Only needed if `focal_mechanism_file` is specified |
+
+**Required Columns** (see [Input Data](#input-data) section for complete column descriptions):
+- Hypocenter: `YR`, `MO`, `DY`, `HR`, `MI`, `SC`, `LAT`, `LON`, `Z`, `X`, `Y`, `EX`, `EY`, `EZ`, `ID`, `MAG` (or `ML`/`Mw`)
+- Focal Mechanism (if used): `ID`, `Strike1`, `Dip1`, `Rake1`, `Strike2`, `Dip2`, `Rake2`, `A` (optional)
+
+### Step 2: Segmentation Configuration
 
 Multi-sequence segmentation is configured in the `step_2_catalog_segmentation` workflow step:
 
@@ -307,37 +343,31 @@ Multi-sequence segmentation is configured in the `step_2_catalog_segmentation` w
 }
 ```
 
-### Clustering Method
+To achieve hierarchical multi-scale clustering, multiple segmentation steps can be defined.
+
+#### Clustering Method
 
 | Parameter | Type | Options | Description |
 |-----------|------|---------|-------------|
 | `method` | string | `"dbscan"`, `"hdbscan"` | Clustering algorithm to use for segmentation |
 
 **Method Comparison**:
-- **DBSCAN**: Density-based spatial clustering with fixed distance threshold. Good for uniform density distributions. Fast and deterministic
-- **HDBSCAN**: Hierarchical DBSCAN that adapts to varying densities. Better for complex catalogs with varying cluster densities. Slower but more robust
+- **DBSCAN**: Density-based spatial clustering with fixed distance threshold.
+- **HDBSCAN**: Hierarchical DBSCAN that adapts to varying densities.
 
-### Feature Selection
-
-| Parameter | Type | Options | Description |
-|-----------|------|---------|-------------|
-| `features` | array | `["spatial"]`, `["spatial", "temporal"]` | Features to use for clustering |
-
-**Feature Options**:
-- `["spatial"]`: Spatial clustering only using X, Y, Z coordinates. Groups events by location regardless of time
-- `["spatial", "temporal"]`: Spatiotemporal clustering using X, Y, Z, and time. Groups events that are close in both space and time
-
-### Cluster Dimension
+#### Feature Selection
 
 | Parameter | Type | Options | Description |
 |-----------|------|---------|-------------|
-| `cluster_dimension` | string | `"3d"`, `"2d"` | Spatial dimensionality for clustering |
+| `features` | array | `["spatial"]`, `["spatial", "temporal"]` | Features to use for clustering. Options: `["spatial"]`  (Spatial clustering only using X, Y, Z coordinates. Groups events by location regardless of time), `["spatial", "temporal"]` (Spatiotemporal clustering using X, Y, Z, and time. Groups events that are close in both space and time) |
 
-**Dimension Options**:
-- `"3d"`: Full 3D spatial clustering using X, Y, Z coordinates. Standard for most fault analysis
-- `"2d"`: Horizontal clustering using only X, Y coordinates (ignores depth). Useful for analyzing lateral distribution or when depth uncertainty is high
+#### Cluster Dimension
 
-### Core Parameters
+| Parameter | Type | Options | Description |
+|-----------|------|---------|-------------|
+| `cluster_dimension` | string | `"3d"`, `"2d"` | Spatial dimensionality for clustering. Options: `"3d"` (Full 3D spatial clustering using X, Y, Z coordinates. Standard for most fault analysis), `"2d"` (Horizontal clustering using only X, Y coordinates (ignores depth). Useful for analyzing lateral distribution or when depth uncertainty is high) |
+
+#### DBSCAN Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -347,139 +377,136 @@ Multi-sequence segmentation is configured in the `step_2_catalog_segmentation` w
 | `min_cluster_size` | integer | `10` | Minimum number of events required to keep a cluster after segmentation. Clusters with fewer events are treated as outliers. Typical range: 10-50 |
 | `outlier_handling` | string | `"next_step"` | How to handle events not assigned to any cluster. Options: `"next_step"` (pass to next segmentation step), `"keep"` (create outlier sequence), `"discard"` (remove from analysis) |
 
-### Multi-Scale Segmentation
+#### DBSCAN-Specific Parameters
 
-Multiple segmentation steps can be defined for hierarchical multi-scale clustering:
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `dbscan_metric` | string | `"euclidean"` | Distance metric for DBSCAN. Options: `"euclidean"` (standard Euclidean distance, **recommended**), `"manhattan"` (L1 distance), `"chebyshev"` (Chebyshev distance). Only used with `method: "dbscan"` |
 
-```json
-"segmentation_steps": [
-  {
-    "step_name": "Class_A",
-    "method": "dbscan",
-    "dbscan_eps": 350.0,
-    "dbscan_min_samples": 10,
-    "min_cluster_size": 20,
-    "outlier_handling": "next_step"
-  },
-  {
-    "step_name": "Class_B",
-    "method": "dbscan",
-    "dbscan_eps": 500.0,
-    "dbscan_min_samples": 10,
-    "min_cluster_size": 10,
-    "outlier_handling": "next_step"
-  },
-  {
-    "step_name": "Class_C",
-    "method": "dbscan",
-    "dbscan_eps": 1000.0,
-    "dbscan_min_samples": 5,
-    "min_cluster_size": 5,
-    "outlier_handling": "keep"
-  }
-]
-```
+#### HDBSCAN Parameters
 
-**Multi-Scale Strategy**:
-1. First step uses tight clustering (small `eps`, high `min_cluster_size`) to identify well-defined sequences
-2. Outliers from first step are passed to second step with relaxed parameters
-3. Process continues through all steps in sequence
-4. Final outliers are handled according to `final_outlier_handling`
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `hdbscan_min_cluster_size` | integer | `15` | Minimum number of samples in a cluster. Range: 5-50. Lower values = more clusters but potential noise. Higher values = fewer, larger clusters. Only used with `method: "hdbscan"` |
+| `hdbscan_min_samples` | integer or null | `null` | Minimum number of samples in a neighborhood for a point to be considered a core point. `null` = same as `hdbscan_min_cluster_size`. Use integer 3-20 for custom values. Only used with `method: "hdbscan"` |
 
-### Final Outlier Handling
+#### Temporal Clustering Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `temporal_window_days` | integer | `30` | Time window for grouping events (days). Range: 1-365. Events within this time window are grouped together regardless of spatial separation. Only used with `method: "temporal"` or when `"temporal"` is in `features` |
+
+**Temporal Method**: Groups events by time windows, independent of location. Useful for identifying earthquake swarms and sequences that occur within specific time periods.
+
+#### Spatial-Temporal Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `spatial_weight` | float | `0.7` | Weight for spatial vs temporal features in combined analysis. Range: 0.0-1.0. Use 0.7 = 70% spatial/30% temporal (**recommended**), 0.5 = equal weight, 0.9 = mostly spatial. Only used with `method: "spatial_temporal"` or when both `"spatial"` and `"temporal"` are in `features` |
+
+**Spatial-Temporal Method**: Combines spatial and temporal clustering using weighted features. Better for identifying space-time patterns in seismicity.
+
+#### Outlier Handling (Per-Step)
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `process_outliers` | boolean | `true` | Whether to process outlier events in subsequent segmentation steps. When `true`, events not assigned to clusters are passed to the next step. When `false`, outliers are discarded immediately |
+| `outlier_handling` | string | `"next_step"` | Strategy for handling unassigned events in this step. Options: `"next_step"` (pass to next segmentation step, **recommended for hierarchical**), `"keep"` (create separate outlier sequence), `"discard"` (remove from analysis). Applies only to this specific step |
+
+**Hierarchical Workflow Strategy**: 
+- Use `outlier_handling: "next_step"` for all intermediate steps
+- Use `outlier_handling: "keep"` or `"discard"` only for the final step
+- This creates a hierarchical multi-scale segmentation where fine-scale clusters are found first, then broader clusters are identified from remaining events
+
+#### Final Outlier Handling
 
 | Parameter | Type | Options | Description |
 |-----------|------|---------|-------------|
-| `final_outlier_handling` | string | `"keep"`, `"discard"` | How to handle events not clustered after all segmentation steps. `"keep"` creates a `Z_outliers` sequence directory, `"discard"` removes them from analysis |
+| `final_outlier_handling` | string | `"keep"`, `"discard"` | How to handle events not clustered after all segmentation steps are complete. `"keep"` creates a `Z_outliers` sequence directory with unclustered events, `"discard"` removes them from analysis and subsequent per-sequence processing |
+| `max_outlier_ratio` | float | `0.3` | Maximum acceptable ratio of outlier events relative to total catalog. Range: 0.0-1.0 (0.3 = 30%). If exceeded, a warning is logged but processing continues. Used for validation/diagnostics |
 
-### Parameter Selection Guidelines
 
-#### Spatial Scale (dbscan_eps)
+### Step 3: Per-Sequence Analysis Configuration
 
-| Cluster Type | eps (meters) | Use Case |
-|--------------|--------------|----------|
-| Very Tight   | 100-250      | Single fault plane, high-quality locations |
-| Tight        | 250-500      | Well-defined clusters, standard analysis |
-| Moderate     | 500-1000     | Dispersed seismicity, location uncertainty |
-| Loose        | 1000-2000    | Regional analysis, broad structures |
+After segmentation, HyFI core analysis is applied independently to each identified sequence in the `step_3_per_sequence_analysis` workflow step:
 
-#### Cluster Quality (min_cluster_size)
-
-| min_cluster_size | Use Case |
-|------------------|----------|
-| 5-10             | Exploratory analysis, small sequences |
-| 10-20            | Standard analysis, balanced filtering |
-| 20-50            | High-quality sequences only, strict filtering |
-| 50+              | Major sequences only, very strict filtering |
-
-### Example Configurations
-
-#### Simple Single-Scale Segmentation
 ```json
-"step_2_catalog_segmentation": {
-  "enabled": true,
-  "segmentation_steps": [
-    {
-      "step_name": "Primary",
-      "method": "dbscan",
-      "features": ["spatial"],
-      "cluster_dimension": "3d",
-      "dbscan_eps": 500.0,
-      "dbscan_min_samples": 10,
-      "min_cluster_size": 15
-    }
-  ],
-  "final_outlier_handling": "keep"
+"step_3_per_sequence_analysis": {
+  "description": "Apply HyFI core analysis to each sequence identified in step_2",
+  "fault_network": { ... },
+  "model_validation": { ... },
+  "auto_classification": { ... },
+  "stress_analysis": { ... },
+  "visualization": { ... }
 }
 ```
 
-#### Multi-Scale Hierarchical Segmentation
+This step applies all single-sequence analysis modules (Fault Network, Model Validation, Auto-Classification, Stress Analysis, and Visualization) to each sequence independently. The configuration is identical to the single-sequence workflow parameters documented in the respective sections:
+
+
+### Step 4: Merge and Export Configuration
+
+After per-sequence analysis, individual results are merged and exported in the `step_4_merge_and_export` workflow step:
+
 ```json
-"step_2_catalog_segmentation": {
+"step_4_merge_and_export": {
   "enabled": true,
-  "segmentation_steps": [
-    {
-      "step_name": "Fine",
-      "method": "dbscan",
-      "features": ["spatial"],
-      "dbscan_eps": 200.0,
-      "min_cluster_size": 30,
-      "outlier_handling": "next_step"
-    },
-    {
-      "step_name": "Medium",
-      "method": "dbscan",
-      "dbscan_eps": 500.0,
-      "min_cluster_size": 15,
-      "outlier_handling": "next_step"
-    },
-    {
-      "step_name": "Coarse",
-      "method": "hdbscan",
-      "dbscan_eps": 1000.0,
-      "min_cluster_size": 10,
-      "outlier_handling": "keep"
-    }
-  ],
-  "final_outlier_handling": "discard"
+  "description": "Merge VTP files and export combined results",
+  "merge_vtp_files": true,
+  "merged_output": {
+    "merged_vtp_path": "./output/HyFI_Database/HyFI_Database_vtp/",
+    "export_merged_csv": true,
+    "export_summary_statistics": true
+  }
 }
 ```
 
-#### Spatiotemporal Segmentation
-```json
-"step_2_catalog_segmentation": {
-  "enabled": true,
-  "segmentation_steps": [
-    {
-      "step_name": "Swarms",
-      "method": "dbscan",
-      "features": ["spatial", "temporal"],
-      "cluster_dimension": "3d",
-      "dbscan_eps": 400.0,
-      "dbscan_min_samples": 8,
-      "min_cluster_size": 12
-    }
-  ],
-  "final_outlier_handling": "keep"
-}
+#### VTP File Merging
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `merge_vtp_files` | boolean | `true` | Merge individual VTP files from all sequences into combined VTP files. Creates one merged file for each analysis layer (hypocenters, rupture planes, focal planes, interpolated surfaces, slip vectors, etc.). All sequences are combined into single files with metadata tracking which sequence each point/geometry belongs to |
+
+**Merged VTP Output Files**:
+- `hypocenters_ALL.vtp` - All hypocenter points with cluster attribution
+- `rupture_planes_ALL.vtp` - All rupture plane meshes from all sequences
+- `faults_ALL.vtp` - Combined fault plane compilation
+- `focal_planes_ALL.vtp` - All focal mechanism planes (if constraints enabled)
+- `interpolated_surfaces_ALL.vtp` - All interpolated fault surfaces
+
+#### Merged Output Configuration
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `merged_output` → `merged_vtp_path` | string | Required | Directory path for merged VTP files. Example: `"./output/HyFI_Database/HyFI_Database_vtp/"`. Merged VTP files are saved to this location for combined 3D visualization |
+| `export_merged_csv` | boolean | `true` | Export enriched merged CSV catalog with all analysis results from all sequences. Output file: `HyFI_Database/merged_catalog_enriched.csv`. Combines hypocenters + fault plane parameters + auto-classification results. Useful for GIS import and further analysis |
+| `export_summary_statistics` | boolean | `true` | Export summary statistics CSV with aggregate metrics per sequence. Output file: `HyFI_Database/summary_statistics.csv`. One row per sequence with event counts, magnitude range, spatial extent, and mean orientations |
+
+#### Output Directory Structure
+
 ```
+output_directory/
+├── HyFI_Database/                               # Main export folder
+│   ├── merged_catalog_enriched.csv              # All events + analysis results
+│   ├── summary_statistics.csv                   # Per-sequence summary
+│   ├── HyFI_database_metadata.csv               # Fault system metadata
+│   ├── HyFI_database_focal_mechanisms.csv       # Focal mechanism compilation
+│   └── HyFI_Database_vtp/                       # Merged VTP files
+│       ├── hypocenters_merged.vtp
+│       ├── rupture_planes_merged.vtp
+│       ├── faults_merged.vtp
+│       ├── focal_planes_merged.vtp
+│       └── interpolated_surfaces_merged.vtp
+├── A1/                                          # Individual sequence outputs
+│   ├── 3D_model.html
+│   ├── A1_data.csv
+│   ├── vtp_export/
+│   └── ...
+├── A2/
+├── B1/
+└── Z_outliers/                                  # Unclustered events (if kept)
+```
+
+---
+
+Happy fault imaging! 🎉
