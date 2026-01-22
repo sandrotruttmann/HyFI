@@ -35,7 +35,7 @@ class HyFIQueries:
                 ROUND(rupture_mean_instability, 3) as instability
             FROM metadata
             WHERE n_events >= {min_events}
-            ORDER BY n_events DESC
+            ORDER BY fault_id ASC
         """)
     
     def events_by_fault_system(self) -> pd.DataFrame:

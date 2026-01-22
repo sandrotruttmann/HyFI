@@ -1,6 +1,6 @@
 # HyFI Modules
 
-HyFI consists of several interconnected analysis modules that work together to reconstruct 3D fault geometry from earthquake hypocenter data.
+**HyFI** consists of several interconnected analysis modules that work together to reconstruct 3D fault geometry from earthquake hypocenter data.
 
 ## Core Analysis Modules
 

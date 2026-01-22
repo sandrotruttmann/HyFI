@@ -1,6 +1,6 @@
 # Quickstart
 
-This quickstart guide will help you run your first HyFI analysis in minutes.
+This quickstart guide will help you run your first simple HyFI analysis of a single earthquake sequence.
 
 ## Prerequisites
 
@@ -40,12 +40,6 @@ HyFI uses JSON configuration files to define the entire analysis workflow. Run t
 hyfi run config_A0.json
 ```
 
-Or use the full Python command:
-
-```bash
-python -m hyfi.cli.main config_A0.json
-```
-
 The analysis will run and you'll see progress output in the terminal.
 
 ### Step 5: View the Results
@@ -57,67 +51,41 @@ cd ../output_A0
 ls -l
 ```
 
-You should see:
-- `HyFI_results.csv` - Main results table with fault parameters
-- `3D_model.html` - Interactive 3D visualization (open in browser)
-- `vtp_export/` - ParaView-compatible files
+You should see (among other files):
+- `HyFI_results.csv` - Main results table that incorporates the input data, complemented with the HyFI results for each hypocenter
+- `3D_model.html` - Simple interactive 3D visualization (open in browser)
+- `vtp_export/` - ParaView-compatible 3d visualization files
 - `execution_summary.json` - Analysis metadata and statistics
 
-Open the 3D visualization:
 
-```bash
-# Linux/macOS
-open 3D_model.html
+### Step 6: Opening VTP Files in ParaView
 
-# Or just open it in your web browser
-firefox 3D_model.html
-```
+1. **Launch ParaView**
 
-## Advanced Usage
+2. **Open VTP files:**
+   - File → Open
+   - Navigate to your HyFI output directory (e.g., `output_A0/vtp_export/`)
+   - Select one or more `.vtp` files (e.g., `faults_compiled.vtp`, `rupture_planes.vtp`)
+   - Click "Apply" in the Properties panel
 
-### Validating Configuration
+3. **Visualize your data:**
+   - Use the toolbar to change representation (Surface, Wireframe, Points)
+   - Apply filters (Clip, Slice, Threshold) to analyze specific regions
+   - Color by different attributes (cluster_id, magnitude, depth, etc.)
+   - Export images or animations
 
-Before running, validate your configuration file:
-
-```bash
-hyfi config validate config_A0.json
-```
-
-### Creating a New Project
-
-Create a new project template:
-
-```bash
-hyfi config create --output my_project.json
-```
-
-Edit the input parameters specified in `my_project.json` to configure your analysis, then run:
-
-```bash
-hyfi run my_project.json
-```
-
-### Using Python Scripts
-
-You can also run HyFI from Python:
-
-```python
-from hyfi.core.dag_executor import DAGExecutor
-from hyfi.config.parameters import load_config
-
-# Load configuration
-config = load_config("config_A0.json")
-
-# Execute workflow
-executor = DAGExecutor(config.workflow_dag)
-results = executor.execute()
-```
 
 ## Next Steps
 
-- **[Configuration Guide](configuration)**: Learn about JSON configuration structure
-- **[Input Parameters](input_parameters)**: Detailed parameter documentation
-- **[HyFI Modules](modules/index)**: Understand each analysis module
-- **[Output Guide](output)**: Explore output files and formats
+Congrats! You have successfully went through the **[Installation Guide](installation)** and **[Quickstart](quickstart)** of **HyFI**. You find more information on the following pages:
 
-For detailed information about all configuration options, see the [Input Parameters](input_parameters) section.
+- **[Processing Workflow](workflows)**: Learn about single- vs multi-sequence processing
+- **[Configuration](configuration)**: Learn how to set up JSON configuration files for your analysis
+- **[Input Parameters](input_parameters)**: Detailed documentation of all configuration parameters
+- **[Modules](modules/index)**: Understand the different analysis modules (e.g. fault network reconstruction)
+- **[Output Guide](output)**: Learn about the generated output files and visualizations
+- **[Queries](querying)**: Learn how to efficiently query the HyFI results using SQL and DuckDB.
+
+---
+
+Happy fault imaging! 🎉

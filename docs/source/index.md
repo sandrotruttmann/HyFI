@@ -23,10 +23,12 @@ quickstart.md
 ```{toctree}
 :maxdepth: 3
 :caption: User Guide
+workflows.md
 configuration.md
 input_parameters.md
 modules/index.md
 output.md
+querying.md
 ```
 
 ```{toctree}
@@ -48,4 +50,17 @@ license.md
 
 * {ref}`genindex`
 * {ref}`modindex`
-* {ref}`search`
+
+
+
+- **[Processing Workflow](workflows)**: Understand the different processing workflows of HyFI to analyze simple or more complex earthquake catalogs
+- **[Configuration Guide](configuration)**: Learn how to set up JSON configuration files for your analysis
+- **[Input Parameters](input_parameters)**: Detailed documentation of all configuration parameters
+- **[HyFI Modules](modules/index)**: Understand the different analysis modules (fault network, validation, classification, stress analysis)
+- **[Output Guide](output)**: Learn about the generated output files and visualizations
+- **[Queries](querying)**: Learn how to efficiently query the HyFI results using SQL and DuckDB.
+- **[Examples](examples)**: Explore example projects and use cases
+
+---
+
+Happy fault imaging! 🎉

@@ -1,8 +1,8 @@
 # HyFI Output
 
-After running HyFI, the output directory contains various files and subdirectories with analysis results, visualizations, and data exports. This guide explains each output component in detail.
+After running **HyFI**, the output directory contains various files and subdirectories with analysis results, visualizations, and data exports. This guide explains each output component in detail.
 
-## Output Directory Structure
+## Single-Sequence Output Structure
 
 ```
 output_directory/
@@ -29,6 +29,28 @@ output_directory/
 ├── obj_export/                                   # OBJ 3D model files (if enabled)
 └── move_export/                                  # MOVE format files (if enabled)
 ```
+
+### Multi-Sequence Output Structure
+
+```
+output_multi/
+├── A1/  # First Class A sequence
+│   ├── HyFI_results.csv
+│   ├── 3D_model.html
+│   └── vtp_export/
+├── A2/  # Second Class A sequence
+│   └── ...
+├── B1/  # First Class B sequence
+│   └── ...
+├── Z_outliers/  # Unassigned events (if kept)
+│   └── ...
+├── HyFI_Database/
+│   └── hyfi_results.db
+├── merged_sequences.vtp
+└── segmentation_summary.json
+```
+
+
 
 ## Core Output Files
 

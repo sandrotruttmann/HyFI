@@ -1,6 +1,6 @@
 # HyFI Input Parameters
 
-This document provides detailed explanations for all parameters in `config_TEMPLATE.json` for HyFI analysis.
+This document provides detailed explanations for all **HyFI** parameters in `config_single_TEMPLATE.json` and `config_multi_TEMPLATE.json`.
 
 ---
 
@@ -13,6 +13,7 @@ This document provides detailed explanations for all parameters in `config_TEMPL
 - [Auto Classification](#auto-classification)
 - [Stress Analysis](#stress-analysis)
 - [Visualization](#visualization)
+- [Multi-Sequence Segmentation](#multi-sequence-segmentation)
 
 ---
 
@@ -274,80 +275,211 @@ Visualization and export settings for analysis results.
 - `focal_planes_combined.vtp` - All focal mechanism planes (if focal constraints enabled)
 - `interpolated_surfaces_*.vtp` - Interpolated fault surfaces (if interpolation enabled)
 
+
 ---
 
-## Usage Examples
+## Multi-Sequence Segmentation
 
-### Minimal Configuration
+Parameters for multi-sequence catalog segmentation. This section applies only to multi-sequence workflows where the catalog is segmented into distinct earthquake sequences before analysis.
+
+See [Workflows Guide](workflows.md) for complete multi-sequence workflow documentation.
+
+### Segmentation Configuration
+
+Multi-sequence segmentation is configured in the `step_2_catalog_segmentation` workflow step:
+
 ```json
-{
-  "workflow_dag": {
-    "input_data": {
-      "hypocenter_file": "my_catalog.csv",
-      "hypocenter_separator": ","
+"step_2_catalog_segmentation": {
+  "enabled": true,
+  "segmentation_steps": [
+    {
+      "step_name": "Class_A",
+      "method": "dbscan",
+      "features": ["spatial"],
+      "cluster_dimension": "3d",
+      "dbscan_eps": 350.0,
+      "dbscan_min_samples": 10,
+      "min_cluster_size": 20,
+      "outlier_handling": "next_step"
+    }
+  ],
+  "final_outlier_handling": "keep"
+}
+```
+
+### Clustering Method
+
+| Parameter | Type | Options | Description |
+|-----------|------|---------|-------------|
+| `method` | string | `"dbscan"`, `"hdbscan"` | Clustering algorithm to use for segmentation |
+
+**Method Comparison**:
+- **DBSCAN**: Density-based spatial clustering with fixed distance threshold. Good for uniform density distributions. Fast and deterministic
+- **HDBSCAN**: Hierarchical DBSCAN that adapts to varying densities. Better for complex catalogs with varying cluster densities. Slower but more robust
+
+### Feature Selection
+
+| Parameter | Type | Options | Description |
+|-----------|------|---------|-------------|
+| `features` | array | `["spatial"]`, `["spatial", "temporal"]` | Features to use for clustering |
+
+**Feature Options**:
+- `["spatial"]`: Spatial clustering only using X, Y, Z coordinates. Groups events by location regardless of time
+- `["spatial", "temporal"]`: Spatiotemporal clustering using X, Y, Z, and time. Groups events that are close in both space and time
+
+### Cluster Dimension
+
+| Parameter | Type | Options | Description |
+|-----------|------|---------|-------------|
+| `cluster_dimension` | string | `"3d"`, `"2d"` | Spatial dimensionality for clustering |
+
+**Dimension Options**:
+- `"3d"`: Full 3D spatial clustering using X, Y, Z coordinates. Standard for most fault analysis
+- `"2d"`: Horizontal clustering using only X, Y coordinates (ignores depth). Useful for analyzing lateral distribution or when depth uncertainty is high
+
+### Core Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `step_name` | string | Required | Label for this segmentation step (e.g., "Class_A", "Fine_Scale", "Primary"). Used in output directory names |
+| `dbscan_eps` | float | Required | Maximum distance between events in the same cluster (meters). Smaller values = tighter clusters. Typical range: 100-1000 m |
+| `dbscan_min_samples` | integer | `10` | Minimum number of events required to form a dense cluster core. Higher values = stricter clustering. Typical range: 5-20 |
+| `min_cluster_size` | integer | `10` | Minimum number of events required to keep a cluster after segmentation. Clusters with fewer events are treated as outliers. Typical range: 10-50 |
+| `outlier_handling` | string | `"next_step"` | How to handle events not assigned to any cluster. Options: `"next_step"` (pass to next segmentation step), `"keep"` (create outlier sequence), `"discard"` (remove from analysis) |
+
+### Multi-Scale Segmentation
+
+Multiple segmentation steps can be defined for hierarchical multi-scale clustering:
+
+```json
+"segmentation_steps": [
+  {
+    "step_name": "Class_A",
+    "method": "dbscan",
+    "dbscan_eps": 350.0,
+    "dbscan_min_samples": 10,
+    "min_cluster_size": 20,
+    "outlier_handling": "next_step"
+  },
+  {
+    "step_name": "Class_B",
+    "method": "dbscan",
+    "dbscan_eps": 500.0,
+    "dbscan_min_samples": 10,
+    "min_cluster_size": 10,
+    "outlier_handling": "next_step"
+  },
+  {
+    "step_name": "Class_C",
+    "method": "dbscan",
+    "dbscan_eps": 1000.0,
+    "dbscan_min_samples": 5,
+    "min_cluster_size": 5,
+    "outlier_handling": "keep"
+  }
+]
+```
+
+**Multi-Scale Strategy**:
+1. First step uses tight clustering (small `eps`, high `min_cluster_size`) to identify well-defined sequences
+2. Outliers from first step are passed to second step with relaxed parameters
+3. Process continues through all steps in sequence
+4. Final outliers are handled according to `final_outlier_handling`
+
+### Final Outlier Handling
+
+| Parameter | Type | Options | Description |
+|-----------|------|---------|-------------|
+| `final_outlier_handling` | string | `"keep"`, `"discard"` | How to handle events not clustered after all segmentation steps. `"keep"` creates a `Z_outliers` sequence directory, `"discard"` removes them from analysis |
+
+### Parameter Selection Guidelines
+
+#### Spatial Scale (dbscan_eps)
+
+| Cluster Type | eps (meters) | Use Case |
+|--------------|--------------|----------|
+| Very Tight   | 100-250      | Single fault plane, high-quality locations |
+| Tight        | 250-500      | Well-defined clusters, standard analysis |
+| Moderate     | 500-1000     | Dispersed seismicity, location uncertainty |
+| Loose        | 1000-2000    | Regional analysis, broad structures |
+
+#### Cluster Quality (min_cluster_size)
+
+| min_cluster_size | Use Case |
+|------------------|----------|
+| 5-10             | Exploratory analysis, small sequences |
+| 10-20            | Standard analysis, balanced filtering |
+| 20-50            | High-quality sequences only, strict filtering |
+| 50+              | Major sequences only, very strict filtering |
+
+### Example Configurations
+
+#### Simple Single-Scale Segmentation
+```json
+"step_2_catalog_segmentation": {
+  "enabled": true,
+  "segmentation_steps": [
+    {
+      "step_name": "Primary",
+      "method": "dbscan",
+      "features": ["spatial"],
+      "cluster_dimension": "3d",
+      "dbscan_eps": 500.0,
+      "dbscan_min_samples": 10,
+      "min_cluster_size": 15
+    }
+  ],
+  "final_outlier_handling": "keep"
+}
+```
+
+#### Multi-Scale Hierarchical Segmentation
+```json
+"step_2_catalog_segmentation": {
+  "enabled": true,
+  "segmentation_steps": [
+    {
+      "step_name": "Fine",
+      "method": "dbscan",
+      "features": ["spatial"],
+      "dbscan_eps": 200.0,
+      "min_cluster_size": 30,
+      "outlier_handling": "next_step"
     },
-    "fault_network": {
-      "parameters": {
-        "search_radius_meters": 100,
-        "search_time_window_hours": 8760
-      }
-    }
-  }
-}
-```
-
-### Automatic Parameter Optimization
-```json
-{
-  "workflow_dag": {
-    "fault_network": {
-      "parameters": {
-        "search_radius_meters": "auto",
-        "search_time_window_hours": "auto",
-        "auto_optimize_parameters": true,
-        "optimization_method": "optuna"
-      }
-    }
-  }
-}
-```
-
-### With Focal Mechanism Constraints
-```json
-{
-  "workflow_dag": {
-    "input_data": {
-      "hypocenter_file": "hypocenters.csv",
-      "focal_mechanism_file": "focal_mechanisms.csv",
-      "focal_mechanism_separator": ","
+    {
+      "step_name": "Medium",
+      "method": "dbscan",
+      "dbscan_eps": 500.0,
+      "min_cluster_size": 15,
+      "outlier_handling": "next_step"
     },
-    "fault_network": {
-      "parameters": {
-        "use_focal_constraints": true
-      }
+    {
+      "step_name": "Coarse",
+      "method": "hdbscan",
+      "dbscan_eps": 1000.0,
+      "min_cluster_size": 10,
+      "outlier_handling": "keep"
     }
-  }
+  ],
+  "final_outlier_handling": "discard"
 }
 ```
 
-### Advanced Spatial Clustering
+#### Spatiotemporal Segmentation
 ```json
-{
-  "workflow_dag": {
-    "auto_classification": {
-      "enabled": true,
-      "parameters": {
-        "spatial_sub_clustering": {
-          "enable_spatial_clustering": true,
-          "spatial_clustering_method": "dbscan",
-          "min_events_per_cluster": 10,
-          "fault_plane_clustering_eps_meters": 200,
-          "fault_plane_clustering_min_samples": 5,
-          "use_fault_plane_points_for_clustering": true
-        }
-      }
+"step_2_catalog_segmentation": {
+  "enabled": true,
+  "segmentation_steps": [
+    {
+      "step_name": "Swarms",
+      "method": "dbscan",
+      "features": ["spatial", "temporal"],
+      "cluster_dimension": "3d",
+      "dbscan_eps": 400.0,
+      "dbscan_min_samples": 8,
+      "min_cluster_size": 12
     }
-  }
+  ],
+  "final_outlier_handling": "keep"
 }
 ```
-
