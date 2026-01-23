@@ -1,22 +1,22 @@
 # Fault Network Reconstruction
 
-The fault network reconstruction module is the core component of HyFI that performs 3D fault imaging from earthquake hypocenter data.
+The fault network reconstruction module is the core component of **HyFI** that performs 3D fault imaging from earthquake hypocenter data.
 
 ## Overview
 
-This module uses a Monte Carlo simulation-based approach to reconstruct 3D fault geometries by:
+This module uses a Monte Carlo simulation-based approach to reconstruct 3D rupture geometries by:
 1. Perturbing hypocenter locations within their error ellipsoids
-2. Computing local fault plane orientations from neighbor point distributions
-3. Aggregating results across multiple Monte Carlo iterations
-4. Detecting and removing outliers
+2. Computing rupture plane orientations from neighbor point distributions using principal component analysis (PCA)
+3. Aggregating results across multiple Monte Carlo iterations using spherical statistics
+4. Detecting and removing outliers within the sequence
 
 ## Key Features
 
 - **Monte Carlo Simulation**: Accounts for location uncertainties by sampling within error ellipsoids
 - **Adaptive Neighbor Search**: Uses spatiotemporal search (radius + time window) or k-nearest neighbors
-- **Planar Surface Estimation**: Computes best-fit plane orientations using eigenvalue decomposition
+- **Planar Surface Estimation**: Computes best-fit rupture plane orientations using PCA
 - **Statistical Aggregation**: Combines results from multiple iterations using Fisher statistics
-- **Outlier Detection**: Supports multiple methods (LOF, Isolation Forest, angle-based, DBSCAN)
+- **Outlier Detection**: Removes outlier events to ensure consistent rupture plane reconstruction multiple methods (LOF, Isolation Forest, DBSCAN)
 
 ## Main Parameters
 
@@ -27,7 +27,6 @@ This module uses a Monte Carlo simulation-based approach to reconstruct 3D fault
 
 ### Monte Carlo Settings
 - `n_mc`: Number of Monte Carlo iterations (1 = no perturbation)
-- `multiprocessing_bool`: Enable parallel processing
 
 ### Quality Filters
 - `S1_S2_ratio`: Eigenvalue ratio threshold for planarity (e.g., 3.0)
@@ -36,16 +35,24 @@ This module uses a Monte Carlo simulation-based approach to reconstruct 3D fault
 ## Outputs
 
 The module produces a pandas DataFrame with computed fault parameters for each hypocenter:
-- Mean strike, dip, and normal vector components
-- Eigenvalues (S1, S2, S3) and eigenvectors
-- Fault plane normal vector statistics
-- Quality metrics (neighbor counts, eigenvalue ratios)
+- Mean strike, dip, and normal vector components of rupture planes
+- Eigenvalues (S1, S2, S3) and eigenvectors from PCA
+- Rupture plane normal vector statistics
+- Quality metrics (e.g., eigenvalue ratios)
 
 ## Automatic Parameter Optimization
 
-When enabled, the module uses Optuna to optimize `search_radius_meters` and `search_time_window_hours` based on:
+xxx TODO: COMPLEMENT DOCU
+
+When enabled, the module uses Optuna to optimize `search_radius_meters` and `search_time_window_hours` automatically based on:
 - Maximizing the fraction of valid fault plane estimates
-- Achieving target neighbor counts
+- Minimizing the misfit between rupture plane orientations and focal planes
 - Minimizing outlier fractions
 
 See [Parameter Optimization](../pareto_optimization) for details.
+
+
+
+---
+
+Happy fault imaging! 🎉

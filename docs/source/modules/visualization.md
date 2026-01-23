@@ -1,10 +1,18 @@
-# Visualization and Export
+# Interpolation, Visualization and Export
 
-HyFI provides comprehensive visualization and export capabilities for fault network results.
+**HyFI** provides comprehensive 3D interpolation, visualization and export capabilities for the processing results.
 
-## 3D Visualization
 
-### Interactive HTML Model
+## Fault Surface Interpolation (Optional)
+
+Optional interpolation creates continuous fault surfaces:
+- Triangulated mesh connecting nearby rupture planes to reconstruct geometries of active faults
+- Useful for visualizing large-scale datasets
+
+
+## Visualization
+
+### 3D Interactive HTML Model
 The main output `3D_model.html` is an interactive Plotly visualization showing:
 - Fault planes as 3D surfaces colored by attributes
 - Earthquake hypocenters as point clouds
@@ -27,7 +35,7 @@ Lower-hemisphere stereonets visualize:
 
 ## Export Formats
 
-### VTP Export (ParaView/VTK)
+### 3D Export (VTP)
 Directory: `vtp_export/`
 
 VTP (VTK PolyData) files for advanced visualization in ParaView:
@@ -51,27 +59,6 @@ Machine-readable tabular data:
 - Same content as main `HyFI_results.csv`
 - Additional export options for specific subsets
 
-### MOVE Export (Structural Geology)
-Directory: `move_export/`
+---
 
-ASCII format for Petex MOVE software:
-- Fault planes as oriented discs
-- Ready for structural interpretation workflows
-
-## Visualization Parameters
-
-Key configuration options:
-- `plot_bool`: Enable/disable 3D visualization
-- `stereonet_bool`: Generate stereonets
-- `export_vtp`: Export VTP files
-- `export_obj`: Export OBJ files
-- `export_csv`: Export CSV files
-- `color_by`: Attribute for coloring fault planes
-
-## Interpolated Fault Surfaces
-
-Optional fault surface interpolation creates continuous surfaces:
-- Triangulated mesh connecting nearby fault planes
-- Honors orientation constraints from HyFI results
-- Useful for visualizing large-scale fault geometry
-- Parameters: `interpolate_faults`, `interpolation_distance_threshold`
+Happy fault imaging! 🎉

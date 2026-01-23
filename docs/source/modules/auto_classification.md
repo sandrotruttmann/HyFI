@@ -1,11 +1,11 @@
 # Automatic Classification
 
-The automatic classification module groups fault planes into orientation clusters representing distinct fault sets or structural domains.
+The automatic classification module groups rupture planes into clusters representing distinct fault sets.
 
 ## Overview
 
-This module performs unsupervised clustering of fault plane orientations to identify:
-- Major fault sets with similar orientations
+This module performs unsupervised clustering of rupture plane orientations and locations to identify:
+- Active faults with similar orientations
 - Structural domains with coherent deformation patterns
 - Spatial variations in fault system geometry
 
@@ -55,3 +55,7 @@ Results can be visualized as:
 - Stereonets colored by cluster
 - 3D fault planes colored by cluster
 - Spatial maps showing cluster distributions
+
+---
+
+Happy fault imaging! 🎉

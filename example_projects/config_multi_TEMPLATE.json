@@ -225,16 +225,8 @@
     },
     "step_4_merge_and_export": {
       "enabled": true,
-      "description": "Merge VTP files from individual sequences and save to SQL database",
+      "description": "Merge VTP files from individual sequences and save to database",
       "merge_vtp_files": true,
-      "sql_database": {
-        "enabled": true,
-        "database_type": "sqlite",
-        "database_path": "./hyfi_multi_output/HyFI_Database/hyfi_results.db",
-        "store_sequence_attributes": true,
-        "store_fault_parameters": true,
-        "store_stress_analysis": true
-      },
       "merged_output": {
         "merged_vtp_path": "./hyfi_multi_output/HyFI_Database/HyFI_Database_vtp/merged_sequences.vtp",
         "export_merged_csv": true,

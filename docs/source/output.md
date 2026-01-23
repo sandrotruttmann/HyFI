@@ -4,30 +4,35 @@ After running **HyFI**, the output directory contains various files and subdirec
 
 ## Single-Sequence Output Structure
 
+xxx TODO: clean-up output
+- remove "A2_data.csv" saving
+- remove "active_plane_statistics.txt" saving
+- rename "parameter_optimization_optuna.png" to "parameter_optimization.png"
+- check if csv_export is valid (works??)
+
+
 ```
 output_directory/
-├── HyFI_results.csv                              # Main results table
-├── 3D_model.html                                 # Interactive 3D visualization
-├── Stereoplot.pdf                                # Stereonet plot (if enabled)
+├── HyFI_results.csv                              # Main results table, incorporating both hypocenter and focal data, complemented with HyFI processing results
+├── 3D_model.html                                 # Interactive 3D visualization (can be opened in any web browser)
+├── Stereoplot.pdf                                # Stereonet plot of rupture planes (if enabled) (poles to planes on lower hemisphere)
 ├── execution_summary.json                        # Run statistics and metadata
-├── active_plane_determination_summary.csv        # Focal mechanism analysis
-├── active_plane_statistics.txt                   # Active plane statistics report
+├── active_plane_determination_summary.csv        # Report of focal mechanism analysis (e.g., newly determined active planes)
 ├── interpolated_faults_summary.csv               # Interpolated fault surfaces
 ├── parameter_optimization_report.json            # Optimization results (if enabled)
-├── parameter_optimization_optuna.png             # Optimization plot (if enabled)
+├── parameter_optimization.png             # Optimization plot (if enabled)
 ├── csv_export/                                   # CSV data files
 │   ├── hypocenters.csv
 │   └── enhanced_pointcloud.csv
-├── vtp_export/                                   # VTK files for ParaView
+├── vtp_export/                                   # VTP files for ParaView
 │   ├── hypocenters.vtp
 │   ├── enhanced_pointcloud.vtp
 │   ├── rupture_planes.vtp
 │   ├── slip_vectors.vtp
 │   ├── focals_compiled.vtp
 │   ├── fault_F1.vtp
-│   └── faults_compiled_*.vtp
-├── obj_export/                                   # OBJ 3D model files (if enabled)
-└── move_export/                                  # MOVE format files (if enabled)
+│   └── faults_compiled.vtp
+└── obj_export/                                  # OBJ files (if enabled) (e.g. for visualization in MOVE)
 ```
 
 ### Multi-Sequence Output Structure
@@ -37,17 +42,26 @@ output_multi/
 ├── A1/  # First Class A sequence
 │   ├── HyFI_results.csv
 │   ├── 3D_model.html
-│   └── vtp_export/
+│   ├── ...
+│   └── obj_export/
 ├── A2/  # Second Class A sequence
 │   └── ...
 ├── B1/  # First Class B sequence
 │   └── ...
-├── Z_outliers/  # Unassigned events (if kept)
+├── Z_outliers/  # Unassigned outlier events (if kept)
 │   └── ...
-├── HyFI_Database/
-│   └── hyfi_results.db
-├── merged_sequences.vtp
-└── segmentation_summary.json
+└── HyFI_Database/
+    ├── HyFI_database_metadata.csv              # xxx
+    ├── HyFI_database_segmentation.csv          # xxx
+    ├── HyFI_database_hypocenters.csv           # xxx
+    ├── HyFI_database_focals.csv                # xxx
+    └── HyFI_Database_vtp                       # Merged VTP files of all individual clusters
+        ├── hypoceners_ALL.vtp
+        ├── enhanced_pointcloud_ALL.vtp
+        ├── rupture_planes_ALL.vtp
+        ├── focals_ALL.vtp
+        └── faults_ALL.vtp
+
 ```
 
 
@@ -56,7 +70,7 @@ output_multi/
 
 ### 1. HyFI_results.csv
 
-The main results table containing all events with computed fault plane parameters.
+The main results table containing all events with computed rupture plane parameters.
 
 **Key Columns:**
 
@@ -76,10 +90,10 @@ The main results table containing all events with computed fault plane parameter
 - `epsilon` - Angular misfit between focal mechanism and fitted rupture plane
 
 #### Computed Rupture Plane Parameters
-- `rupt_plane_azi` - Mean fault strike azimuth (degrees, 0-360°)
-- `rupt_plane_dip` - Mean fault dip angle (degrees, 0-90°)
-- `nor_x_mean`, `nor_y_mean`, `nor_z_mean` - Fault normal vector components
-- `nr_fits` - Number of successfully fitted fault planes in Monte Carlo simulations
+- `rupt_plane_azi` - Mean rupture plane strike azimuth (degrees, 0-360°)
+- `rupt_plane_dip` - Mean rupture plane dip angle (degrees, 0-90°)
+- `nor_x_mean`, `nor_y_mean`, `nor_z_mean` - Rupture plane normal vector components
+- `nr_fits` - Number of successfully fitted rupture planes in Monte Carlo simulations
 - `kappa` - Concentration parameter (higher = more consistent orientations)
 - `beta`, `lambda_2_3` - Eigenvalue ratios (geometric quality metrics)
 
@@ -104,10 +118,6 @@ The main results table containing all events with computed fault plane parameter
 - `sliptend` - Slip tendency
 - `dilatend` - Dilation tendency
 
-**Special Values:**
-- `-999.0` - Parameter not computed or not applicable
-- `-1` - Event excluded from analysis (e.g., outlier)
-- `0` - Focal mechanism available but active plane unknown
 
 ### 2. 3D_model.html
 
@@ -117,13 +127,6 @@ Interactive 3D visualization built with Plotly. Open in a web browser to:
 - View individual event properties on hover
 - Examine fault plane orientations and spatial relationships
 - Visualize stress parameters with color mapping (if enabled)
-
-**Features:**
-- Color-coded by fault cluster
-- Fault plane patches shown as semi-transparent surfaces
-- Hypocenters shown as scatter points
-- Focal mechanisms displayed (if available)
-- Interpolated fault surfaces (if enabled)
 
 ### 3. execution_summary.json
 
@@ -163,32 +166,8 @@ Details of focal mechanism validation and active plane selection for each event 
 - **epsilon < 30°** - Good agreement between focal mechanism and fitted plane
 - **epsilon > 45°** - Poor agreement; investigate event location or focal mechanism quality
 
-### 5. active_plane_statistics.txt
 
-Human-readable summary report of active plane determination:
-
-```
-Total events with focal mechanisms: 27
-
-DETERMINATION METHOD BREAKDOWN:
-  Pre-specified active planes (A=1 or A=2): 18
-  Newly determined preferred planes (geometric selection): 5
-  Not determined: 1
-
-Newly determined plane selection breakdown:
-  - Plane 1 selected: 3 events
-  - Plane 2 selected: 2 events
-  - Mean angular difference: 30.2°
-  - Median angular difference: 31.2°
-  - Best match: 5.9°
-  - Worst match: 47.6°
-
-Pre-specified plane angular differences:
-  - Mean angular difference: 20.9°
-  - Median angular difference: 18.8°
-```
-
-### 6. interpolated_faults_summary.csv
+### 5. interpolated_faults_summary.csv
 
 Summary of interpolated fault surfaces (if Poisson surface reconstruction is enabled):
 
@@ -204,9 +183,9 @@ Summary of interpolated fault surfaces (if Poisson surface reconstruction is ena
 
 **Usage:** Assess the extent and continuity of identified fault structures.
 
-### 7. parameter_optimization_report.json
+### 6. parameter_optimization_report.json
 
-Detailed results from automatic parameter optimization (if enabled).
+In addition to the visual optimization results, plotted in the *parameter_optimization.png* figure, detailed results from automatic parameter optimization are provided in JSON format (if enabled).
 
 **Structure:**
 ```json
@@ -243,7 +222,7 @@ CSV files for external analysis:
 
 ### vtp_export/
 
-VTK PolyData files for visualization in **ParaView** or **Blender**:
+VTK PolyData files for visualization in ParaView:
 
 **Core Files:**
 - **`hypocenters.vtp`** - All hypocenter points with attributes
@@ -256,42 +235,12 @@ VTK PolyData files for visualization in **ParaView** or **Blender**:
 - **`fault_F*.vtp`** - Individual interpolated fault surfaces (one per cluster)
 - **`faults_compiled_*.vtp`** - Combined fault meshes with attributes
 
-**VTK Attributes:**
-Each VTP file contains point/cell data arrays:
-- Event properties (magnitude, location, time)
-- Fault orientation (strike, dip, rake)
-- Stress parameters (Sn_eff, Tau, instability)
-- Cluster assignments
-- Quality metrics (kappa, epsilon, R/N)
 
-**ParaView Workflow:**
-1. Open VTP files in ParaView
-2. Apply "Glyph" filter to visualize orientations
-3. Use "Calculator" for custom expressions
-4. Color by any attribute (magnitude, stress, cluster, etc.)
-
-### obj_export/, move_export/
+### obj_export/
 
 3D model files in various formats (if enabled in configuration):
 - **OBJ** - Wavefront OBJ format (widely compatible, enabled via `export_obj: true`)
-- **MOVE** - Petex MOVE format (structural geology software)
 
-## Visualization Files
+---
 
-### Stereoplot.pdf
-
-Lower-hemisphere equal-area stereonet projection showing:
-- Fault pole orientations (colored by cluster)
-- Density contours
-- Mean orientation vectors
-- Statistical distribution of fault attitudes
-
-Useful for structural geology analysis and comparison with regional tectonics.
-
-### parameter_optimization_optuna.png
-
-Visualization of optimization process (if Optuna method used):
-- Optimization history (objective value vs. trial)
-- Parameter importance
-- Parallel coordinate plot
-- Slice plots showing parameter interactions
+Happy fault imaging! 🎉
