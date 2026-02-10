@@ -37,7 +37,7 @@ cd example_projects
 HyFI uses JSON configuration files to define the entire analysis workflow. Run the example project:
 
 ```bash
-hyfi run config_A0.json
+hyfi run -c config_A0.json
 ```
 
 The analysis will run and you'll see progress output in the terminal.

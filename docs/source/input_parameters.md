@@ -197,9 +197,13 @@ All spatial sub-clustering parameters are organized under the `spatial_sub_clust
 | `enable_spatial_clustering` | boolean | `true` | Enable spatial sub-clustering within orientation clusters to identify separate fault structures |
 | `spatial_clustering_method` | string | `"dbscan"` | Spatial clustering method. Options: `"dbscan"` (density-based, **recommended**), `"kmeans"` (k-means), `"hierarchical"` (agglomerative) |
 | `min_events_per_cluster` | integer | `10` | Minimum number of events required to form a valid spatial cluster |
-| `use_fault_plane_points_for_clustering` | boolean | `true` | Use enhanced point cloud (fault plane surface points) instead of hypocenters for spatial clustering. Improves spatial resolution when enabled |
-| `fault_plane_clustering_eps_meters` | float | `200.0` | DBSCAN `eps` parameter in meters - maximum distance between points in a cluster. Range: 100-500m. Lower = tighter clusters |
-| `fault_plane_clustering_min_samples` | integer | `5` | DBSCAN `min_samples` parameter - minimum number of points required to form a dense region. Range: 3-10. Higher = more conservative clustering |
+| `use_fault_plane_points_for_clustering` | boolean | `false` | Use enhanced point cloud (fault plane surface points) instead of hypocenters for spatial clustering. Improves spatial resolution when enabled. When `true`, generates synthetic points on fault plane surfaces |
+| `fault_plane_point_density_meters` | float | `10.0` | Target spacing in meters between points on fault plane circumference. Range: 5-50m. **Lower values = denser point cloud, more computation**. Typical: 10-25m |
+| `fault_plane_radius_interval_meters` | float | `10.0` | Spacing in meters between concentric circles when generating fault plane points. Range: 5-50m. **Lower values = more circles and higher resolution**. Typical: 10-25m |
+| `use_anisotropic_eps` | boolean | `false` | Use anisotropic (direction-dependent) distance metrics for DBSCAN. When `true`, different distance thresholds are applied in-plane vs. out-of-plane, improving detection of elongated fault structures |
+| `in_plane_eps_meters` | float | `500.0` | DBSCAN `eps` parameter in meters for **in-plane** distances (when using anisotropic metric). Range: 100-1000m. Lower = tighter clusters |
+| `out_of_plane_eps_meters` | float | `50.0` | DBSCAN `eps` parameter in meters for **out-of-plane** distances (when using anisotropic metric). Range: 10-100m. Typically much smaller than `in_plane_eps_meters` |
+| `anisotropic_min_samples` | integer | `5` | DBSCAN `min_samples` parameter when using anisotropic metric. Minimum number of neighbors required. Range: 3-20. Higher = more conservative clustering |
 
 ---
 
@@ -270,6 +274,8 @@ Visualization and export settings for analysis results.
 | `density_threshold` | float | `0.01` | Minimum density threshold for surface reconstruction. Range: 0.01-0.9. Lower = includes sparse regions, higher = only dense regions |
 | `max_distance_factor` | float | `2.5` | Maximum distance factor for point-to-surface association. Range: 1.0-5.0. Higher = more permissive association |
 | `min_fault_planes_for_interpolation` | integer | `10` | Minimum number of fault planes required in a cluster to attempt Poisson surface reconstruction. Clusters with fewer fault planes are skipped |
+| `fault_plane_radius_interval_meters` | float | `10.0` | Spacing in meters between concentric circles when generating synthetic fault plane points. |
+| `fault_plane_point_density_meters` | float | `10.0` | Target spacing in meters between points on fault plane circles. Increase to reduce computation time. |
 
 ### 3D Export Parameters
 

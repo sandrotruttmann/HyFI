@@ -26,7 +26,7 @@ To set up a single-sequence HyFI analysis, the user has to configure the **[HyFI
 Once the configuration file with the proper structure is setup and saved in JSON format, single-sequence processing can be started with:
 
 ```bash
-hyfi run config_single_TEMPLATE.json
+hyfi run -c config_single_TEMPLATE.json
 ```
 
 This will create a new directory as specified in the configuration file where all **[HyFI Output](output)** in the single-sequence format is saved to.
@@ -69,7 +69,7 @@ To set up a multi-sequence HyFI analysis, the user has to configure the **[HyFI 
 Once the configuration file with the proper structure is setup and saved in JSON format, multi-sequence processing can be started with:
 
 ```bash
-hyfi run config_multi_TEMPLATE.json
+hyfi run -c config_multi_TEMPLATE.json
 ```
 
 This will create a new directory as specified in the configuration file where all **[HyFI Output](output)** in the multi-sequence format is saved to. Note that the multi-sequence outputs incorporates a nested structure of the individually processed clusters.
