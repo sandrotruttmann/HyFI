@@ -25,6 +25,147 @@ import matplotlib.pyplot as plt
 import os
 import pyvista as pv
 import open3d as o3d
+from numba import jit, prange
+
+
+# =============================================================================
+# NUMBA-OPTIMIZED GEOMETRIC COMPUTATIONS
+# =============================================================================
+
+@jit(nopython=True, cache=True, fastmath=True)
+def _normalize_vector(v):
+    """Normalize a 3D vector (numba-optimized)."""
+    norm = np.sqrt(v[0]**2 + v[1]**2 + v[2]**2)
+    if norm > 0:
+        return v / norm
+    return v
+
+@jit(nopython=True, cache=True, fastmath=True)
+def _cross_product(a, b):
+    """Compute cross product a × b (numba-optimized)."""
+    result = np.empty(3, dtype=np.float64)
+    result[0] = a[1]*b[2] - a[2]*b[1]
+    result[1] = a[2]*b[0] - a[0]*b[2]
+    result[2] = a[0]*b[1] - a[1]*b[0]
+    return result
+
+@jit(nopython=True, cache=True, fastmath=True)
+def _generate_disc_vertices_and_faces(center, normal, radius, n_segments):
+    """
+    Generate vertices and faces for a circular disc with 2 rings (inner + outer).
+    Numba-optimized for speed.
+    
+    Parameters
+    ----------
+    center : ndarray(3,)
+        Center point (hypocenter)
+    normal : ndarray(3,)
+        Unit normal vector to the plane
+    radius : float
+        Rupture radius
+    n_segments : int
+        Number of angular segments
+        
+    Returns
+    -------
+    vertices : ndarray(n_vertices, 3)
+        Vertex coordinates
+    faces : ndarray(n_faces, 3)
+        Face vertex indices
+    """
+    # Create orthonormal basis vectors in the plane
+    v1 = np.empty(3, dtype=np.float64)
+    v2 = np.empty(3, dtype=np.float64)
+    
+    # Choose reference vector based on normal orientation
+    if abs(normal[2]) < 0.9:
+        ref = np.array([0.0, 0.0, 1.0], dtype=np.float64)
+    else:
+        ref = np.array([1.0, 0.0, 0.0], dtype=np.float64)
+    
+    # v1 = normal × ref
+    v1 = _cross_product(normal, ref)
+    v1 = _normalize_vector(v1)
+    
+    # v2 = normal × v1
+    v2 = _cross_product(normal, v1)
+    v2 = _normalize_vector(v2)
+    
+    # Pre-allocate vertex array: center + inner ring + outer ring
+    n_vertices = 1 + 2 * n_segments
+    vertices = np.empty((n_vertices, 3), dtype=np.float64)
+    
+    # Center point
+    vertices[0] = center
+    
+    # Inner ring (half radius)
+    inner_radius = radius / 2.0
+    for i in range(n_segments):
+        angle = 2.0 * np.pi * i / n_segments
+        cos_a = np.cos(angle)
+        sin_a = np.sin(angle)
+        
+        # Point in local plane coordinates
+        local_x = inner_radius * cos_a
+        local_y = inner_radius * sin_a
+        
+        # Transform to global coordinates
+        vertices[1 + i, 0] = center[0] + local_x * v1[0] + local_y * v2[0]
+        vertices[1 + i, 1] = center[1] + local_x * v1[1] + local_y * v2[1]
+        vertices[1 + i, 2] = center[2] + local_x * v1[2] + local_y * v2[2]
+    
+    # Outer ring (full radius)
+    for i in range(n_segments):
+        angle = 2.0 * np.pi * i / n_segments
+        cos_a = np.cos(angle)
+        sin_a = np.sin(angle)
+        
+        # Point in local plane coordinates
+        local_x = radius * cos_a
+        local_y = radius * sin_a
+        
+        # Transform to global coordinates
+        idx = 1 + n_segments + i
+        vertices[idx, 0] = center[0] + local_x * v1[0] + local_y * v2[0]
+        vertices[idx, 1] = center[1] + local_x * v1[1] + local_y * v2[1]
+        vertices[idx, 2] = center[2] + local_x * v1[2] + local_y * v2[2]
+    
+    # Pre-allocate face array: center→inner (n_segments) + inner→outer (2*n_segments)
+    n_faces = 3 * n_segments
+    faces = np.empty((n_faces, 3), dtype=np.int32)
+    
+    # Faces from center to inner ring
+    for i in range(n_segments):
+        next_i = (i + 1) % n_segments
+        faces[i, 0] = 0
+        faces[i, 1] = 1 + i
+        faces[i, 2] = 1 + next_i
+    
+    # Faces between inner and outer rings (2 triangles per segment)
+    for i in range(n_segments):
+        next_i = (i + 1) % n_segments
+        
+        # Inner ring vertex indices
+        p1 = 1 + i
+        p2 = 1 + next_i
+        
+        # Outer ring vertex indices
+        p3 = 1 + n_segments + i
+        p4 = 1 + n_segments + next_i
+        
+        # Triangle 1
+        face_idx = n_segments + 2 * i
+        faces[face_idx, 0] = p1
+        faces[face_idx, 1] = p3
+        faces[face_idx, 2] = p2
+        
+        # Triangle 2
+        face_idx = n_segments + 2 * i + 1
+        faces[face_idx, 0] = p2
+        faces[face_idx, 1] = p3
+        faces[face_idx, 2] = p4
+    
+    return vertices, faces
 
 
 # =============================================================================
@@ -306,12 +447,15 @@ def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_dens
     return np.array(all_points), np.array(all_normals), np.array(all_rupture_radii), np.array(all_is_hypocenter), np.array(all_event_indices)
 
 
-def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_rings=5):
+def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16):
     """
-    Create circular disc meshes for fault planes.
+    Create circular disc meshes for fault planes (minimal, efficient for planar surfaces).
+    
+    Uses numba-optimized geometric computations for speed.
     
     This function creates triangular mesh representations of the circular fault planes
-    as discs, which can be exported and visualized alongside the point clouds.
+    as discs using minimal geometry: outer ring + 1 inner ring + center. This is optimal
+    for planar surfaces where we only need to define the disc boundary and one intermediate ring.
     
     Parameters
     ----------
@@ -321,8 +465,6 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_ri
         'nor_x_mean', 'nor_y_mean', 'nor_z_mean' (normal vectors)
     n_radial_segments : int
         Number of angular segments around each ring (default: 16)
-    n_rings : int
-        Number of concentric rings for mesh density (default: 5)
         
     Returns
     -------
@@ -331,78 +473,63 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_ri
     """
     
     disc_meshes = []
+    combined_batch = None
+    batch_size = 100  # Combine every 100 meshes to keep memory constant
+    total_events = len(df_subcluster)
+    
+    print(f"  Generating circular disc meshes for {total_events} events (outer ring + 1 inner, {n_radial_segments} segments)...")
+    print(f"    Using numba-optimized geometric computations...")
+    
+    import time
+    start_total = time.time()
+    
+    # Pre-calculate date range ONCE (not in the loop!)
+    min_date = None
+    max_date = None
+    if 'Date' in df_subcluster.columns and df_subcluster['Date'].notna().any():
+        try:
+            all_dates = pd.to_datetime(df_subcluster['Date'].dropna())
+            min_date = all_dates.min()
+            max_date = all_dates.max()
+        except:
+            pass
+    
+    rename_map = _get_vtp_column_name_mapping()  # Calculate once outside loop
+    attribute_columns = [
+        'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date',
+        'sequence_label', 'segmentation_level', 'fault_id',
+        'Mw', 'rupt_area', 'rupt_radius',
+        'rupt_plane_azi', 'rupt_plane_dip', 'rake',
+        'Sn_eff', 'Tau', 'instab', 'sliptend', 'dilatend'
+    ]
+    temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
+    all_cols = attribute_columns + temporal_columns
+    
+    batch_meshes = []
     
     for i, row in df_subcluster.iterrows():
+        if i % 100 == 0 and i > 0:
+            elapsed = time.time() - start_total
+            rate = i / elapsed
+            print(f"    Progress: {i}/{total_events} discs ({rate:.1f} discs/sec, {len(disc_meshes)} batches combined)...")
+        
         # Get fault plane parameters
-        center = np.array([row['X'], row['Y'], row['Z']])  # Hypocenter (center of circular plane)
-        radius = row['rupt_radius']  # Rupture radius
-        normal = np.array([row['nor_x_mean'], row['nor_y_mean'], row['nor_z_mean']])  # Normal vector
+        center = np.array([row['X'], row['Y'], row['Z']], dtype=np.float64)
+        radius = float(row['rupt_radius'])
+        normal = np.array([row['nor_x_mean'], row['nor_y_mean'], row['nor_z_mean']], dtype=np.float64)
         
         # Skip this fault plane if any parameters are NaN or invalid
         if np.any(np.isnan(normal)) or np.isnan(radius) or radius <= 0:
-            print(f"    Warning: Skipping circular disc mesh {i} with invalid parameters")
             continue
-            
-        normal = normal / np.linalg.norm(normal)  # Ensure normalized
         
-        # Create two orthonormal vectors in the plane
-        if abs(normal[2]) < 0.9:
-            v1 = np.cross(normal, [0, 0, 1])
-        else:
-            v1 = np.cross(normal, [1, 0, 0])
-        v1 = v1 / np.linalg.norm(v1)
-        v2 = np.cross(normal, v1)
-        v2 = v2 / np.linalg.norm(v2)
+        # Normalize normal vector
+        normal = _normalize_vector(normal)
         
-        # Create disc mesh vertices
-        vertices = [center]  # Start with center point
-        
-        # Create concentric rings
-        for ring_idx in range(1, n_rings + 1):
-            ring_radius = radius * (ring_idx / n_rings)
-            
-            for seg_idx in range(n_radial_segments):
-                angle = 2 * np.pi * seg_idx / n_radial_segments
-                # Point in local plane coordinates
-                local_point = ring_radius * (np.cos(angle) * v1 + np.sin(angle) * v2)
-                # Transform to global coordinates
-                global_point = center + local_point
-                vertices.append(global_point)
-        
-        vertices = np.array(vertices)
-        
-        # Create triangular faces
-        faces = []
-        
-        # Triangles from center to first ring
-        for seg_idx in range(n_radial_segments):
-            next_seg = (seg_idx + 1) % n_radial_segments
-            # Triangle: center, current_point, next_point
-            faces.append([0, 1 + seg_idx, 1 + next_seg])
-        
-        # Triangles between rings
-        for ring_idx in range(n_rings - 1):
-            ring_start = 1 + ring_idx * n_radial_segments
-            next_ring_start = 1 + (ring_idx + 1) * n_radial_segments
-            
-            for seg_idx in range(n_radial_segments):
-                next_seg = (seg_idx + 1) % n_radial_segments
-                
-                # Current ring points
-                p1 = ring_start + seg_idx
-                p2 = ring_start + next_seg
-                
-                # Next ring points
-                p3 = next_ring_start + seg_idx
-                p4 = next_ring_start + next_seg
-                
-                # Two triangles to form a quad
-                faces.append([p1, p3, p2])  # Triangle 1
-                faces.append([p2, p3, p4])  # Triangle 2
+        # Use numba-optimized function to generate vertices and faces
+        vertices, faces = _generate_disc_vertices_and_faces(center, normal, radius, n_radial_segments)
         
         # Convert faces to PyVista format (add face size)
-        faces = np.array(faces)
-        faces_pv = np.hstack([np.full((faces.shape[0], 1), 3), faces])
+        faces_pv = np.hstack([np.full((faces.shape[0], 1), 3, dtype=np.int32), faces.astype(np.int32)])
         
         # Create PyVista mesh
         mesh = pv.PolyData(vertices, faces_pv.flatten())
@@ -413,69 +540,37 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_ri
         # Add metadata and attributes from dataframe
         mesh['fault_id'] = np.full(mesh.n_points, i)
         mesh['radius'] = np.full(mesh.n_points, radius)
-        mesh['area_m2'] = np.full(mesh.n_points, disc_area)  # Add calculated area
+        mesh['area_m2'] = np.full(mesh.n_points, disc_area)
         mesh['normal_x'] = np.full(mesh.n_points, normal[0])
         mesh['normal_y'] = np.full(mesh.n_points, normal[1])
         mesh['normal_z'] = np.full(mesh.n_points, normal[2])
         
-        # Add additional attributes if available in the dataframe
-        # Use renamed column names to match HyFI_results.csv
-        rename_map = _get_vtp_column_name_mapping()
-        
-        # Specified columns for rupture planes
-        attribute_columns = [
-            'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date',
-            'sequence_label', 'segmentation_level', 'fault_id',
-            'Mw', 'rupt_area', 'rupt_radius',
-            'rupt_plane_azi', 'rupt_plane_dip', 'rake',
-            'Sn_eff', 'Tau', 'instab', 'sliptend', 'dilatend'
-        ]
-        
-        # Always include temporal attributes if available
-        temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
-        
-        for col in attribute_columns + temporal_columns:
+        # Add attributes
+        for col in all_cols:
             if col in df_subcluster.columns and not pd.isna(row[col]):
-                # Use renamed column name for VTP attribute
                 vtp_col_name = rename_map.get(col, col)
                 mesh[vtp_col_name] = np.full(mesh.n_points, row[col])
         
-        # Add temporal information if Date column is available (same as hypocenters VTP)
-        if 'Date' in df_subcluster.columns and not pd.isna(row['Date']):
+        # Add temporal information if Date column is available
+        if 'Date' in df_subcluster.columns and not pd.isna(row['Date']) and min_date is not None:
             try:
-                # Convert to datetime if not already
                 event_date = pd.to_datetime(row['Date'])
                 
-                # Calculate temporal attributes relative to the entire dataset
-                if len(df_subcluster) > 1:
-                    # Use the dataset's date range for consistency
-                    all_dates = pd.to_datetime(df_subcluster['Date'].dropna())
-                    min_date = all_dates.min()
-                    max_date = all_dates.max()
-                else:
-                    # Fallback for single event
-                    min_date = event_date
-                    max_date = event_date
-                
-                # Days since first event in dataset (float32)
                 days_since_first = (event_date - min_date).days
                 mesh['days_since_first'] = np.full(mesh.n_points, float(days_since_first), dtype=np.float32)
                 
-                # Unix timestamp (float64) - preserves full temporal information
                 unix_timestamp = event_date.timestamp()
                 mesh['unix_timestamp'] = np.full(mesh.n_points, unix_timestamp, dtype=np.float64)
                 
-                # Year as decimal (float32) - good for multi-year datasets
                 decimal_year = event_date.year + event_date.dayofyear / 365.25
                 mesh['decimal_year'] = np.full(mesh.n_points, decimal_year, dtype=np.float32)
                 
-                # Month number (int32) - good for seasonal analysis
                 mesh['month'] = np.full(mesh.n_points, event_date.month, dtype=np.int32)
                 
             except Exception as e:
-                print(f"    Warning: Could not add Date attributes to rupture plane mesh {i}: {e}")
+                pass  # Silently skip date parsing errors
         
-        # Add hypocenter coordinates (both named versions)
+        # Add hypocenter coordinates
         mesh['X'] = np.full(mesh.n_points, center[0])
         mesh['Y'] = np.full(mesh.n_points, center[1])
         mesh['Z'] = np.full(mesh.n_points, center[2])
@@ -483,18 +578,28 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16, n_ri
         mesh['hypocenter_y'] = np.full(mesh.n_points, center[1])
         mesh['hypocenter_z'] = np.full(mesh.n_points, center[2])
         
-        # Add Date column if available (as string for reference)
+        # Add Date column if available
         if 'Date' in df_subcluster.columns and not pd.isna(row['Date']):
             try:
-                date_str = str(row['Date'])
-                # Store as numeric array (convert to float using unix timestamp approach)
                 event_date = pd.to_datetime(row['Date'])
                 unix_timestamp = event_date.timestamp()
                 mesh['Date'] = np.full(mesh.n_points, unix_timestamp, dtype=np.float64)
-            except Exception as e:
-                print(f"    Warning: Could not add Date column to rupture plane mesh {i}: {e}")
+            except:
+                pass
         
-        disc_meshes.append(mesh)
+        # Batch combine meshes instead of appending individually
+        batch_meshes.append(mesh)
+        
+        if len(batch_meshes) >= batch_size:
+            # Combine batch and store
+            combined = pv.merge(batch_meshes)
+            disc_meshes.append(combined)
+            batch_meshes = []
+    
+    # Combine remaining meshes
+    if len(batch_meshes) > 0:
+        combined = pv.merge(batch_meshes)
+        disc_meshes.append(combined)
     
     return disc_meshes
 
@@ -910,7 +1015,20 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
         
         # Create circular disc meshes for visualization
         disc_meshes = _create_circular_fault_disc_meshes(df_cluster)
-        fault_disc_meshes.extend(disc_meshes)
+        if len(disc_meshes) > 0:
+            # Batch combine disc meshes more efficiently - combine every N meshes to avoid memory spike
+            if len(fault_disc_meshes) > 0:
+                # Combine new meshes with existing ones in batches
+                temp_combined = fault_disc_meshes[-1] if len(fault_disc_meshes) == 1 else pv.merge([fault_disc_meshes[-1]] + disc_meshes)
+                if len(fault_disc_meshes) > 1:
+                    temp_combined = pv.merge(fault_disc_meshes[:-1] + [temp_combined])
+                fault_disc_meshes = [temp_combined]
+            else:
+                # First batch
+                if len(disc_meshes) > 1:
+                    fault_disc_meshes = [pv.merge(disc_meshes)]
+                else:
+                    fault_disc_meshes = disc_meshes
         
         # Attempt Poisson surface reconstruction
         try:
@@ -1724,7 +1842,8 @@ def export_basic_vtp(df_hyfi, output_dir, fault_disc_meshes=None, use_focal_cons
     output_dir : str
         Output directory path
     fault_disc_meshes : list, optional
-        List of circular disc mesh dictionaries for rupture planes
+        List of circular disc mesh dictionaries for rupture planes.
+        If not provided, they will be generated from the dataframe.
     use_focal_constraints : bool, default=False
         Whether to also export enhanced focal fault planes
     """
@@ -1733,6 +1852,24 @@ def export_basic_vtp(df_hyfi, output_dir, fault_disc_meshes=None, use_focal_cons
     # Create VTP output directory
     vtp_dir = os.path.join(output_dir, 'vtp_export')
     os.makedirs(vtp_dir, exist_ok=True)
+    
+    # If fault_disc_meshes not provided, generate them on the fly
+    if fault_disc_meshes is None or len(fault_disc_meshes) == 0:
+        if df_hyfi is not None and len(df_hyfi) > 0:
+            # Generate circular disc meshes for all events with valid fault plane data
+            try:
+                required_cols = ['nor_x_mean', 'nor_y_mean', 'nor_z_mean', 'rupt_radius']
+                df_valid = df_hyfi.dropna(subset=required_cols)
+                if len(df_valid) > 0:
+                    fault_disc_meshes = _create_circular_fault_disc_meshes(df_valid)
+                    print(f"  Generated {len(fault_disc_meshes)} circular disc meshes from event fault planes")
+                else:
+                    fault_disc_meshes = []
+            except Exception as e:
+                print(f"  Warning: Could not generate circular disc meshes: {e}")
+                fault_disc_meshes = []
+        else:
+            fault_disc_meshes = []
     
     # Export hypocenters
     if df_hyfi is not None and len(df_hyfi) > 0:
