@@ -369,6 +369,17 @@ class ParameterOptimizer:
             
         except Exception as e:
             logger.warning(f"Error in objective function with params ({r_nn}, {dt_nn}): {e}")
+            if return_details:
+                return {
+                    'objective_score': 1e6,
+                    'n_events': 0,
+                    'n_planes': 0,
+                    'plane_recovery_rate': 0,
+                    'quality_metrics': {},
+                    'focal_metrics': {},
+                    'data_output': None,
+                    'error': str(e)
+                }
             return 1e6  # Large penalty for failed evaluations
     
     def _calculate_quality_metrics(self, data_output):

@@ -102,7 +102,15 @@ class AutoClassificationNode:
                 "clustering_algorithm": "vmf_soft",
                 "rotate_poles_before_analysis": True,
                 "convergence_tolerance": 1e-6,
-                "maximum_iterations": 100
+                "maximum_iterations": 100,
+                "spatial_clustering_method": "dbscan",
+                "use_fault_plane_points_for_clustering": False,
+                "fault_plane_point_density_meters": 10.0,
+                "fault_plane_radius_interval_meters": 10.0,
+                "use_anisotropic_eps": False,
+                "in_plane_eps_meters": 500.0,
+                "out_of_plane_eps_meters": 50.0,
+                "anisotropic_min_samples": 5
             }
     
     def to_dict(self) -> Dict[str, Any]:

@@ -51,20 +51,20 @@ def validate_file_exists(file_path: Union[str, Path], required: bool = True) -> 
     return path
 
 
-def validate_positive_number(value: Union[int, float], name: str) -> Union[int, float]:
+def validate_positive_number(value: Union[int, float, None], name: str) -> Union[int, float, None]:
     """
     Validate that a number is positive.
     
     Parameters
     ----------
-    value : Union[int, float]
-        Value to validate
+    value : Union[int, float, None]
+        Value to validate (None values are allowed and returned as-is)
     name : str
         Name of the parameter for error messages
         
     Returns
     -------
-    Union[int, float]
+    Union[int, float, None]
         Validated value
         
     Raises
@@ -72,19 +72,21 @@ def validate_positive_number(value: Union[int, float], name: str) -> Union[int, 
     ConfigValidationError
         If value is not positive
     """
+    if value is None:
+        return None
     if value <= 0:
         raise ConfigValidationError(f"{name} must be positive, got {value}")
     return value
 
 
-def validate_range(value: Union[int, float], min_val: float, max_val: float, name: str) -> Union[int, float]:
+def validate_range(value: Union[int, float, None], min_val: float, max_val: float, name: str) -> Union[int, float, None]:
     """
     Validate that a value is within a specified range.
     
     Parameters
     ----------
-    value : Union[int, float]
-        Value to validate
+    value : Union[int, float, None]
+        Value to validate (None values are allowed and returned as-is)
     min_val : float
         Minimum allowed value
     max_val : float
@@ -94,7 +96,7 @@ def validate_range(value: Union[int, float], min_val: float, max_val: float, nam
         
     Returns
     -------
-    Union[int, float]
+    Union[int, float, None]
         Validated value
         
     Raises
@@ -102,6 +104,8 @@ def validate_range(value: Union[int, float], min_val: float, max_val: float, nam
     ConfigValidationError
         If value is outside the range
     """
+    if value is None:
+        return None
     if not (min_val <= value <= max_val):
         raise ConfigValidationError(f"{name} must be between {min_val} and {max_val}, got {value}")
     return value
@@ -141,19 +145,21 @@ def validate_separator(separator: str) -> str:
     
     Parameters
     ----------
-    separator : str
-        Separator character(s)
+    separator : str or None
+        Separator character(s). Can be None if the file is optional and not being used
         
     Returns
     -------
-    str
-        Validated separator
+    str or None
+        Validated separator or None
         
     Raises
     ------
     ConfigValidationError
         If separator is invalid
     """
+    if separator is None:
+        return None
     valid_separators = ['\t', ',', ';', ' ', '|']
     if separator not in valid_separators:
         raise ConfigValidationError(f"Separator must be one of {valid_separators}, got '{separator}'")

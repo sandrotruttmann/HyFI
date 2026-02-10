@@ -625,6 +625,12 @@ class DAGExecutor:
             
             # Track whether VTP files were exported (for cleanup later)
             vtp_exported = False
+            temp_to_fault_mapping = {}  # Initialize empty mapping by default
+            combined_mesh = None
+            individual_meshes = []
+            point_cloud = None
+            fault_disc_meshes = []
+            interpolation_metadata = None
             
             # Check if interpolation is enabled
             if viz_params.get('enable_plane_interpolation', False):
@@ -754,31 +760,35 @@ class DAGExecutor:
                                     logger.info("Stress parameters incomplete - skipping mesh stress calculation")
                             else:
                                 logger.info("Stress analysis not enabled - skipping mesh stress calculation")
-                    
-                    
-                    # Always export VTP files for 3D visualization (regardless of export_vtp setting)
-                    # The export_vtp setting only controls whether to export for external use (ParaView)
-                    if combined_mesh is not None:
-                        output_dir = input_params.get('out_dir', str(self.output_dir))
-                        visualisation.export_interpolated_planes_vtp(
-                            combined_mesh, individual_meshes, point_cloud, output_dir, fault_disc_meshes, df_hyfi,
-                            use_focal_constraints=input_params.get('use_focal_constraints', False),
-                            export_obj=viz_params.get('export_obj', False)
-                        )
-                        vtp_exported = True
-                    elif viz_params.get('export_vtp', False):
-                        # Export basic VTP even without interpolated meshes (only if explicitly requested)
-                        output_dir = input_params.get('out_dir', str(self.output_dir))
-                        visualisation.export_basic_vtp(
-                            df_hyfi, output_dir, fault_disc_meshes,
-                            use_focal_constraints=input_params.get('use_focal_constraints', False)
-                        )
-                        vtp_exported = True
                                         
                 except Exception as e:
                     logger.warning(f"Fault plane interpolation failed: {e}")
             else:
                 logger.info("Fault plane interpolation disabled - skipping advanced visualization")
+
+            # Export VTP files if meshes were created (moved outside try-except to ensure export happens)
+            if combined_mesh is not None:
+                output_dir = input_params.get('out_dir', str(self.output_dir))
+                try:
+                    visualisation.export_interpolated_planes_vtp(
+                        combined_mesh, individual_meshes, point_cloud, output_dir, fault_disc_meshes, df_hyfi,
+                        use_focal_constraints=input_params.get('use_focal_constraints', False),
+                        export_obj=viz_params.get('export_obj', False)
+                    )
+                    vtp_exported = True
+                except Exception as e:
+                    logger.warning(f"VTP export failed: {e}")
+            elif viz_params.get('export_vtp', False):
+                # Export basic VTP even without interpolated meshes (only if explicitly requested)
+                output_dir = input_params.get('out_dir', str(self.output_dir))
+                try:
+                    visualisation.export_basic_vtp(
+                        df_hyfi, output_dir, fault_disc_meshes,
+                        use_focal_constraints=input_params.get('use_focal_constraints', False)
+                    )
+                    vtp_exported = True
+                except Exception as e:
+                    logger.warning(f"Basic VTP export failed: {e}")
 
             # Generate standard visualizations using single dataframe approach
             try:
