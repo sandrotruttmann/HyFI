@@ -76,6 +76,16 @@ class DAGExecutor:
         # Setup output directory
         self.output_dir = Path(dag_config.output_directory)
         setup_output_directory(self.output_dir)
+        
+        # Copy config file to output directory immediately
+        if self.config_source_file and Path(self.config_source_file).exists():
+            import shutil
+            config_dest = self.output_dir / Path(self.config_source_file).name
+            try:
+                shutil.copy2(self.config_source_file, config_dest)
+                logging.info(f"Configuration file copied to: {config_dest}")
+            except Exception as e:
+                logging.warning(f"Could not copy config file to output directory: {e}")
     
     def _flatten_visualization_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """
