@@ -115,6 +115,9 @@ class ClusteringConfig:
         )
     ])
     
+    # Segmentation-only mode
+    segmentation_only: bool = False  # If True, skip fault analysis and export segmented catalog directly
+    
     # Global outlier handling
     final_outlier_handling: str = 'keep'  # 'keep', 'discard', 'merge_largest'
     max_outlier_ratio: float = 0.3  # Maximum allowed ratio of outliers to total events
@@ -379,6 +382,7 @@ class MultiSequenceConfig:
         # Create clustering configuration
         clustering_config = ClusteringConfig(
             segmentation_steps=segmentation_steps,
+            segmentation_only=clustering_dict.get('segmentation_only', False),
             final_outlier_handling=clustering_dict.get('final_outlier_handling', 'keep'),
             max_outlier_ratio=clustering_dict.get('max_outlier_ratio', 0.3)
         )
@@ -461,6 +465,7 @@ class MultiSequenceConfig:
         # Create clustering configuration
         clustering_config = ClusteringConfig(
             segmentation_steps=segmentation_steps,
+            segmentation_only=clustering_dict.get('segmentation_only', False),
             final_outlier_handling=clustering_dict.get('final_outlier_handling', 'keep'),
             max_outlier_ratio=clustering_dict.get('max_outlier_ratio', 0.3)
         )

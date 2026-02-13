@@ -467,8 +467,15 @@ class ParameterOptimizer:
                 # Merge with focal mechanism data to get active plane info
                 # Rename 'A' column in focal mechanisms to avoid conflicts during merge
                 focal_subset = self.focal_mechanisms[['ID', 'A']].rename(columns={'A': 'active_plane'})
-                merged_data = data_output.merge(
-                    focal_subset, 
+                
+                # Ensure both ID columns have the same data type for merging (fix for object/int64 merge error)
+                data_output_copy = data_output.copy()
+                focal_subset_copy = focal_subset.copy()
+                data_output_copy['ID'] = data_output_copy['ID'].astype(str)
+                focal_subset_copy['ID'] = focal_subset_copy['ID'].astype(str)
+                
+                merged_data = data_output_copy.merge(
+                    focal_subset_copy, 
                     on='ID', 
                     how='inner'
                 )

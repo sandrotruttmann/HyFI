@@ -696,7 +696,10 @@ def fault_network_with_optimization(input_params):
                 
                 # Count how many focal mechanisms match hypocenters in this dataset
                 if 'ID' in focal_mechanisms.columns and 'ID' in data_input.columns:
-                    matched_focals = focal_mechanisms[focal_mechanisms['ID'].isin(data_input['ID'])]
+                    # Ensure both ID columns have the same data type for matching
+                    focal_ids = focal_mechanisms['ID'].astype(str)
+                    data_ids = data_input['ID'].astype(str)
+                    matched_focals = focal_mechanisms[focal_ids.isin(data_ids)]
                     n_matched_focals = len(matched_focals)
                     print(f"    {n_matched_focals} focal mechanisms found in the current dataset")
                 else:

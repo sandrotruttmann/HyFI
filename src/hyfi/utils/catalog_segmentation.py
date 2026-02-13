@@ -298,10 +298,24 @@ def _prepare_clustering_features(catalog: pd.DataFrame,
             }))
         
         time_numeric = catalog['Date'].astype(np.int64) // 10**9  # Unix timestamp
-        time_normalized = (time_numeric - time_numeric.mean()) / time_numeric.std()
-        feature_arrays.append(time_normalized.values.reshape(-1, 1))
         
-        logger.info(f"Added temporal features: shape {time_normalized.values.reshape(-1, 1).shape}")
+        # Get temporal window parameter (convert days to seconds)
+        temporal_window_days = params.get('temporal_window_days', 30)
+        temporal_scale = temporal_window_days * 86400  # Convert days to seconds
+        
+        # Scale temporal feature to match spatial scale
+        # If spatial eps is in meters, scale time so temporal_window_days maps to similar distance
+        if 'spatial' in features:
+            spatial_eps = params.get('dbscan_eps', 1000.0)
+            # Scale temporal so that temporal_window_days corresponds to spatial_eps distance
+            time_scaled = (time_numeric - time_numeric.min()) / temporal_scale * spatial_eps
+        else:
+            # If no spatial features, use normalized temporal
+            time_scaled = (time_numeric - time_numeric.mean()) / time_numeric.std()
+        
+        feature_arrays.append(time_scaled.values.reshape(-1, 1))
+        
+        logger.info(f"Added temporal features: shape {time_scaled.values.reshape(-1, 1).shape}, scaled with window={temporal_window_days} days")
     
     if 'magnitude' in features:
         # Use magnitude if available
