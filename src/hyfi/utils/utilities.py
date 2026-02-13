@@ -767,11 +767,11 @@ def fault_network_with_optimization(input_params):
                 # Set up plot save path if output directory is available
                 if optimization_kwargs['plot_results']:
                     if 'out_dir' in input_params:
-                        plot_path = os.path.join(input_params['out_dir'], 'parameter_optimization_optuna.png')
+                        plot_path = os.path.join(input_params['out_dir'], 'parameter_optimization.png')
                         optimization_kwargs['save_plot_path'] = plot_path
                     else:
                         # Default plot path if no output directory specified
-                        optimization_kwargs['save_plot_path'] = 'parameter_optimization_optuna.png'
+                        optimization_kwargs['save_plot_path'] = 'parameter_optimization.png'
                         logger.info("No output directory specified, saving plot to current directory")
             
             elif optimization_method == 'pareto':
