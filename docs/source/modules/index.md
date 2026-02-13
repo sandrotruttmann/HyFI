@@ -2,19 +2,6 @@
 
 **HyFI** consists of several interconnected analysis modules that work together to reconstruct 3D fault geometry from earthquake hypocenter data.
 
-## Core Analysis Modules
-
-The following modules form the core of the **HyFI** analysis pipeline:
-
-```{toctree}
-:maxdepth: 1
-
-fault_network
-model_validation
-auto_classification
-stress_analysis
-visualization
-```
 
 ## Core Module Execution Order
 
@@ -25,6 +12,21 @@ A typical single-sequence HyFI analysis follows this sequence of module executio
 3. **Automatic Classification** (optional): Group earthquakes into clusters that likely belong to the same active fault by clustering both the rupture plane orientations as well as spatial attributes
 4. **Stress Analysis** (optional): Calculate stress parameters (e.g. slip and dilation tendencies) under the given (regional) stress field
 5. **Visualization**: Interpolate the grouped rupture planes to produce active fault meshes, generate interactive 3D models and export the results (e.g. as VTP)
+
+
+## Core Analysis Modules
+
+Please refer to the following detailed descriptions of the **HyFI** core analysis modules:
+
+```{toctree}
+:maxdepth: 1
+
+fault_network
+model_validation
+auto_classification
+stress_analysis
+visualization
+```
 
 Each module can be configured independently through the JSON configuration file. See **[HyFI Configuration](../configuration)** for details.
 
