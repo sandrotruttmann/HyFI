@@ -33,6 +33,14 @@ querying.md
 
 ```{toctree}
 :maxdepth: 2
+:caption: Examples
+
+single_examples.md
+multi_examples.md
+```
+
+```{toctree}
+:maxdepth: 2
 :caption: API Reference
 
 api/modules
@@ -42,7 +50,6 @@ api/modules
 :maxdepth: 1
 :caption: Additional Resources
 
-examples.md
 license.md
 ```
 
