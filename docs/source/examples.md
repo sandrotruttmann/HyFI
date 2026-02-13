@@ -65,16 +65,46 @@ See [Workflows](workflows.md) for detailed documentation on single-sequence vs m
 
 ### Segmentation-Only Workflow
 
-For quick catalog exploration without full fault analysis:
+For quick catalog exploration and fine-tuning of the segmentation step without full fault analysis, use the `segmentation_only` parameter:
 
-```bash
-hyfi run example_projects/segmentation_only_example.json
+**Configuration Example**:
+```json
+{
+  "workflow": "multi_sequence",
+  "data_file": "data_examples/Bohemia/HypoDD_Bohemia_MLall_reworked.csv",
+  "output_dir": "output_segmentation_test",
+  "step_2_catalog_segmentation": {
+    "enabled": true,
+    "segmentation_only": true,
+    "segmentation_steps": [
+      {
+        "step_name": "Class_A",
+        "method": "dbscan",
+        "features": ["spatial"],
+        "cluster_dimension": "3d",
+        "dbscan_eps": 350.0,
+        "dbscan_min_samples": 10,
+        "min_cluster_size": 20
+      }
+    ]
+  }
+}
 ```
 
-This is useful for:
-- Exploring catalog structure before full analysis
-- Exporting sequences for external visualization
-- Testing segmentation parameters
+**Output Files**:
+```
+output_segmentation_test/
+├── segmented_sequences_Class_A_sequence_1.vtp
+├── segmented_sequences_Class_A_sequence_2.vtp
+├── segmented_sequences_Class_A_combined.vtp
+└── segmentation_summary.json
+```
+
+Each VTP file includes:
+- Hypocenter coordinates (X, Y, Z)
+- Cluster ID assignments
+- Magnitude and temporal information
+- Ready for visualization in ParaView with color-coded clusters
 
 ## Output Files
 

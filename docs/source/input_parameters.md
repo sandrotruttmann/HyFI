@@ -424,6 +424,17 @@ To achieve hierarchical multi-scale clustering, multiple segmentation steps can 
 - Use `outlier_handling: "keep"` or `"discard"` only for the final step
 - This creates a hierarchical multi-scale segmentation where fine-scale clusters are found first, then broader clusters are identified from remaining events
 
+#### Segmentation-Only Mode
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `segmentation_only` | boolean | `false` | If `true`, skip fault analysis (step 3) and export VTP files directly after segmentation. Useful for testing and validating segmentation parameters before running full fault plane analysis. Exports individual VTP files per sequence and a combined VTP file with all sequences |
+
+**Output Files**:
+- `segmented_sequences_{step_name}_sequence_{ID}.vtp` - Individual VTP file per sequence
+- `segmented_sequences_{step_name}_combined.vtp` - Combined VTP with all sequences (different colors per cluster)
+- `segmentation_summary.json` - JSON file with statistics (cluster counts, event counts per sequence)
+
 #### Final Outlier Handling
 
 | Parameter | Type | Options | Description |

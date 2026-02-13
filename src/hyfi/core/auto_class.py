@@ -384,8 +384,29 @@ def _spatial_clustering_by_orientation(df_clustered, input_params, starting_faul
             )
             
             # Update the main dataframe with spatial cluster results
-            spatial_labels = df_cluster_spatial['spatial_cluster'].values
-            df_clustered.loc[cluster_mask, 'spatial_cluster'] = spatial_labels
+            # The returned df_cluster_spatial may have fewer rows (noise points removed)
+            # and a reset index (0, 1, 2...), so we need to handle the mapping carefully
+            
+            # First, initialize all events in this cluster as noise
+            df_clustered.loc[cluster_mask, 'spatial_cluster'] = -1
+            
+            # Then, assign spatial cluster labels to the non-noise events
+            # We need to map from the reset index in df_cluster_spatial back to original indices
+            original_cluster_indices = df_clustered[cluster_mask].index.tolist()
+            
+            # Check if indices were preserved or reset
+            if df_cluster_spatial.index.tolist() == original_cluster_indices[:len(df_cluster_spatial)]:
+                # Indices were preserved
+                for idx in df_cluster_spatial.index:
+                    df_clustered.loc[idx, 'spatial_cluster'] = df_cluster_spatial.loc[idx, 'spatial_cluster']
+            else:
+                # Indices were reset (0, 1, 2...), need to map back
+                # This happens when noise points are filtered out
+                for i, original_idx in enumerate(original_cluster_indices[:len(df_cluster_spatial)]):
+                    df_clustered.loc[original_idx, 'spatial_cluster'] = df_cluster_spatial.iloc[i]['spatial_cluster']
+            
+            # Get spatial labels from the updated dataframe
+            spatial_labels = df_clustered.loc[cluster_mask, 'spatial_cluster'].values
             
             # Print spatial clustering results for debugging
             unique_spatial = np.unique(spatial_labels)
@@ -407,7 +428,7 @@ def _spatial_clustering_by_orientation(df_clustered, input_params, starting_faul
                     spatial_to_temp_map[spatial_id] = -1  # Use -1 for noise points
             
             # Assign temporary cluster IDs
-            for i, (idx, spatial_id) in enumerate(zip(cluster_indices, spatial_labels)):
+            for idx, spatial_id in zip(cluster_indices, spatial_labels):
                 temp_id = spatial_to_temp_map[spatial_id]
                 df_clustered.loc[idx, 'final_cluster_id'] = temp_id
                 

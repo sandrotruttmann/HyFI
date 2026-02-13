@@ -111,32 +111,61 @@ class MultiSequenceWorkflow:
         
         self.start_time = time.time()
         
+        # Copy config file to main output directory
+        if self.config_source_file and Path(self.config_source_file).exists():
+            import shutil
+            output_dir = Path(self.config.output_directory)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            config_dest = output_dir / Path(self.config_source_file).name
+            try:
+                shutil.copy2(self.config_source_file, config_dest)
+                print(f"Configuration file copied to: {config_dest}")
+            except Exception as e:
+                print(f"Warning: Could not copy config file to output directory: {e}")
+        
         # Step 1: Load full catalog
         self._load_catalog()
         
         # Step 2: Apply clustering/segmentation
         self._segment_catalog()
         
-        # Step 3: Process each sequence with single-sequence workflow
-        self._process_sequences()
-        
-        # Step 4: Aggregate results across sequences
-        self._aggregate_results()
-        
-        # Step 5: Create multi-sequence visualizations
-        self._create_multi_sequence_visualizations()
-        
-        # Step 6: Create enriched CSV output
-        self._create_enriched_csv_output()
-        
-        # Step 6.5: Export fault metadata
-        self._export_fault_metadata()
-        
-        # Step 7: Merge and export combined VTP files
-        self._merge_and_export_vtp_files()
-        
-        # Step 8: Save all results
-        self._save_multi_sequence_results()
+        # Check if segmentation-only mode is enabled
+        if self.config.clustering.segmentation_only:
+            print("")
+            print("="*70)
+            print("SEGMENTATION-ONLY MODE: Skipping fault analysis")
+            print("="*70)
+            print("Exporting segmented catalog directly...")
+            
+            # Export enriched CSV with segmentation results
+            self._create_enriched_csv_output()
+            
+            # Export VTP files for each sequence
+            self._export_segmentation_vtp_files()
+            
+            # Save segmentation summary
+            self._save_segmentation_results()
+        else:
+            # Step 3: Process each sequence with single-sequence workflow
+            self._process_sequences()
+            
+            # Step 4: Aggregate results across sequences
+            self._aggregate_results()
+            
+            # Step 5: Create multi-sequence visualizations
+            self._create_multi_sequence_visualizations()
+            
+            # Step 6: Create enriched CSV output
+            self._create_enriched_csv_output()
+            
+            # Step 6.5: Export fault metadata
+            self._export_fault_metadata()
+            
+            # Step 7: Merge and export combined VTP files
+            self._merge_and_export_vtp_files()
+            
+            # Step 8: Save all results
+            self._save_multi_sequence_results()
         
         self.end_time = time.time()
         runtime = datetime.timedelta(seconds=(self.end_time - self.start_time))
@@ -246,6 +275,7 @@ class MultiSequenceWorkflow:
                 from .dag_executor import DAGExecutor
                 executor = DAGExecutor(
                     sequence_dag_config, 
+                    config_source_file=None,  # Don't copy to individual sequence folders
                     cluster_name=sequence_name,
                     global_fault_counter=self.global_fault_counter,
                     sequence_label=sequence_name,
@@ -1381,6 +1411,205 @@ class MultiSequenceWorkflow:
         
         print(f"Multi-sequence results saved to: {output_dir}")
         print(f"Segmentation summary CSV saved to: {summary_csv}")
+    
+    def _export_segmentation_vtp_files(self):
+        """Export VTP files for segmented catalog (segmentation-only mode)."""
+        print("Exporting VTP files for segmented sequences...")
+        
+        try:
+            import pyvista as pv
+        except ImportError:
+            print("Warning: PyVista not available. Skipping VTP export.")
+            return
+        
+        output_dir = Path(self.config.output_directory)
+        vtp_dir = output_dir / 'segmentation_vtp'
+        vtp_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Export each sequence as a separate VTP file
+        for sequence_name, sequence_data in self.sequences.items():
+            if sequence_name == 'noise' or len(sequence_data) == 0:
+                continue
+            
+            try:
+                # Create point cloud from hypocenter coordinates
+                points = sequence_data[['X', 'Y', 'Z']].values
+                pcd = pv.PolyData(points)
+                
+                # Add temporal attributes if Date column exists
+                if 'Date' in sequence_data.columns:
+                    try:
+                        dates = pd.to_datetime(sequence_data['Date'])
+                        min_date = dates.min()
+                        
+                        # Days since first event
+                        days_since_first = (dates - min_date).dt.days.values
+                        pcd['days_since_first'] = days_since_first.astype(float)
+                        
+                        # Unix timestamp
+                        unix_timestamps = dates.astype('int64') // 10**9
+                        pcd['unix_timestamp'] = unix_timestamps.astype(float)
+                        
+                        # Decimal year
+                        decimal_years = dates.dt.year + dates.dt.dayofyear / 365.25
+                        pcd['decimal_year'] = decimal_years.values
+                        
+                        # Month
+                        pcd['month'] = dates.dt.month.values
+                    except Exception as e:
+                        print(f"    Warning: Could not add temporal attributes: {e}")
+                
+                # Add all other available attributes
+                for col in sequence_data.columns:
+                    if col not in ['X', 'Y', 'Z', 'Date']:  # Skip Date as it's handled above
+                        try:
+                            pcd[col] = sequence_data[col].values
+                        except:
+                            pass
+                
+                # Add sequence label as attribute
+                pcd['sequence_label'] = [sequence_name] * len(sequence_data)
+                
+                # Save VTP file
+                vtp_file = vtp_dir / f'{sequence_name}_hypocenters.vtp'
+                pcd.save(str(vtp_file))
+                print(f"  Saved: {vtp_file.name} ({len(sequence_data)} events)")
+                
+            except Exception as e:
+                print(f"  Warning: Failed to export {sequence_name}: {e}")
+        
+        # Export combined VTP with all sequences
+        try:
+            all_points = []
+            all_attributes = {}
+            
+            # Calculate temporal reference for entire catalog
+            min_date = None
+            if 'Date' in self.full_catalog.columns:
+                try:
+                    dates = pd.to_datetime(self.full_catalog['Date'])
+                    min_date = dates.min()
+                except:
+                    pass
+            
+            for sequence_name, sequence_data in self.sequences.items():
+                if sequence_name == 'noise':
+                    continue
+                
+                points = sequence_data[['X', 'Y', 'Z']].values
+                all_points.append(points)
+                
+                # Track sequence labels
+                if 'sequence_labels' not in all_attributes:
+                    all_attributes['sequence_labels'] = []
+                all_attributes['sequence_labels'].extend([sequence_name] * len(sequence_data))
+                
+                # Add temporal attributes if Date column exists
+                if min_date is not None and 'Date' in sequence_data.columns:
+                    try:
+                        dates = pd.to_datetime(sequence_data['Date'])
+                        
+                        if 'days_since_first' not in all_attributes:
+                            all_attributes['days_since_first'] = []
+                            all_attributes['unix_timestamp'] = []
+                            all_attributes['decimal_year'] = []
+                            all_attributes['month'] = []
+                        
+                        # Calculate temporal attributes for this sequence
+                        days_since_first = (dates - min_date).dt.days.values
+                        unix_timestamps = (dates.astype('int64') // 10**9).astype(float)
+                        decimal_years = (dates.dt.year + dates.dt.dayofyear / 365.25).values
+                        month = dates.dt.month.values
+                        
+                        all_attributes['days_since_first'].extend(days_since_first)
+                        all_attributes['unix_timestamp'].extend(unix_timestamps)
+                        all_attributes['decimal_year'].extend(decimal_years)
+                        all_attributes['month'].extend(month)
+                    except Exception as e:
+                        print(f"    Warning: Could not add temporal attributes for {sequence_name}: {e}")
+                
+                # Add other attributes
+                for col in sequence_data.columns:
+                    if col not in ['X', 'Y', 'Z', 'Date']:  # Skip Date as it's handled above
+                        if col not in all_attributes:
+                            all_attributes[col] = []
+                        try:
+                            all_attributes[col].extend(sequence_data[col].values)
+                        except:
+                            pass
+            
+            if all_points:
+                combined_points = np.vstack(all_points)
+                combined_pcd = pv.PolyData(combined_points)
+                
+                # Add attributes
+                for attr_name, attr_values in all_attributes.items():
+                    try:
+                        combined_pcd[attr_name] = attr_values
+                    except:
+                        pass
+                
+                # Save combined VTP
+                combined_vtp = vtp_dir / 'all_hypocenters.vtp'
+                combined_pcd.save(str(combined_vtp))
+                print(f"  Saved: {combined_vtp.name} ({len(combined_points)} total events)")
+                
+        except Exception as e:
+            print(f"  Warning: Failed to create combined VTP: {e}")
+        
+        print(f"VTP files exported to: {vtp_dir}")
+    
+    def _save_segmentation_results(self):
+        """Save segmentation-only results and summary."""
+        print("Saving segmentation results...")
+        
+        output_dir = Path(self.config.output_directory)
+        
+        # Create summary with segmentation statistics
+        summary = {
+            'workflow': 'segmentation_only',
+            'total_events': len(self.full_catalog),
+            'total_sequences': self.clustering_results['total_sequences'],
+            'events_clustered': self.clustering_results['total_events_clustered'],
+            'final_outliers': self.clustering_results['final_outliers'],
+            'outlier_ratio': self.clustering_results['outlier_ratio'],
+            'segmentation_steps': len(self.config.segmentation_steps),
+            'step_details': self.clustering_results['step_results']
+        }
+        
+        # Add sequence size distribution
+        sequence_sizes = {}
+        for seq_name, seq_data in self.sequences.items():
+            sequence_sizes[seq_name] = len(seq_data)
+        summary['sequence_sizes'] = sequence_sizes
+        
+        # Save summary as JSON
+        summary_file = output_dir / 'segmentation_summary.json'
+        import json
+        with open(summary_file, 'w') as f:
+            json.dump(summary, f, indent=2)
+        
+        print(f"Segmentation summary saved to: {summary_file}")
+        
+        # Print completion message
+        self.end_time = time.time()
+        runtime = datetime.timedelta(seconds=(self.end_time - self.start_time))
+        
+        print('')
+        print('='*70)
+        print('SEGMENTATION-ONLY ANALYSIS COMPLETED!')
+        print('='*70)
+        print(f'Total runtime: {runtime}')
+        print(f'Sequences identified: {self.clustering_results["total_sequences"]}')
+        print(f'Events clustered: {self.clustering_results["total_events_clustered"]}/{len(self.full_catalog)}')
+        print(f'Outliers: {self.clustering_results["final_outliers"]} ({self.clustering_results["outlier_ratio"]:.1%})')
+        print('')
+        print('Output files:')
+        print(f'  • enriched_catalog_with_results.csv - Catalog with cluster assignments')
+        print(f'  • segmentation_vtp/*.vtp - VTP files for ParaView visualization')
+        print(f'  • segmentation_summary.json - Detailed segmentation statistics')
+        print('='*70)
+        print('')
     
     def get_multi_sequence_summary(self) -> Dict[str, Any]:
         """Get a summary of the multi-sequence analysis."""
