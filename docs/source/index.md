@@ -27,12 +27,13 @@ workflows.md
 configuration.md
 input_parameters.md
 modules/index.md
+terminology.md
 output.md
 querying.md
 ```
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 1
 :caption: Examples
 
 single_examples.md

@@ -1,20 +1,23 @@
-# Examples
+# Multi-Sequence Examples
 
 The HyFI repository includes several example datasets and configuration files to help you get started.
 
-## Multi-Sequence Example Datasets
+---
+
+## SECOS
+
+---
+
+## Bohemia?
 
 
-### Multi-Sequence Example Configurations
 
-- `multi_sequence_example.json` - Full multi-scale segmentation workflow with Class A and B clustering
-- `segmentation_only_example.json` - Catalog segmentation without full fault analysis
+---
 
-## Running Examples
+## References
 
-To run a multi-sequence workflow with catalog segmentation:
+-  Truttmann, S., Diehl, T., & Herwegh, M. (2023). Hypocenter-based 3D imaging of active faults: Method and applications in the Southwestern Swiss Alps. Journal of Geophysical Research: Solid Earth, 128, e2023JB026352. https://doi.org/10.1029/2023JB026352 
 
-```bash
-hyfi run example_projects/multi_sequence_example.json
-```
+---
 
+Happy fault imaging! 🎉

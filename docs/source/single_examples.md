@@ -1,31 +1,28 @@
-# Examples
+# Single-Sequence Examples
 
 The HyFI repository includes several example datasets and configuration files to help you get started.
 
-## Single-Sequence Example Datasets
+---
 
-The `data_examples/` directory contains example hypocenter datasets:
+## Anzière (Truttmann et al., 2023)
 
-- `A0_data.csv` - Basic example dataset
-- `A18_data.csv` - Alternative dataset
-- `A24_data.csv` - Additional example
-- `A37_data.csv` - Advanced example
-- `SECOS_20250305_HyFI.csv` - Real-world SECOS data
+---
 
-## Single-Sequence Example Configurations
+## Diemtigen (Simon et al. xxx)
 
-- `config_A0.json` - Basic single-sequence analysis
-- `config_A18.json` - Configuration for A18 dataset
-- `config_A24.json` - Configuration for A24 dataset
-- `config_A37.json` - Configuration for A37 dataset
-- `config_TEMPLATE.json` - Complete template with all available parameters
+---
+
+## St. Léonard (Truttmann et al., 2023)
 
 
-## Running Examples
+---
 
-To run a basic single-sequence analysis:
+## References
 
-```bash
-hyfi run example_projects/config_A0.json
-```
+- Simon et al., xxxx
 
+-  Truttmann, S., Diehl, T., & Herwegh, M. (2023). Hypocenter-based 3D imaging of active faults: Method and applications in the Southwestern Swiss Alps. Journal of Geophysical Research: Solid Earth, 128, e2023JB026352. https://doi.org/10.1029/2023JB026352 
+
+---
+
+Happy fault imaging! 🎉
