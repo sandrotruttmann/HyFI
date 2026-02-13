@@ -1050,8 +1050,8 @@ def faultnetwork3D(input_params):
                             'second': df_hyfi['SC']}))
         
     # Handle missing error values by providing reasonable defaults
-    # Default to 1m spatial error
-    default_error = 1.0
+    # Default to 0m spatial error (no error) when not provided
+    default_error = 0.0
     if 'EX' not in df_hyfi.columns or df_hyfi['EX'].isna().all():
         df_hyfi['EX'] = default_error
         print(f"Warning: EX column missing or empty, using default error of {default_error}m")
