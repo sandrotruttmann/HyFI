@@ -372,6 +372,12 @@ This returns the DataFrame `df_hyfi` populated with all computed parameters from
 
 ---
 
+## Main Outputs
+
+xxx Complement
+
+---
+
 ## References
 
 - Goertz-Allmann, B. P., Edwards, B., Bethmann, F., Deichmann, N., Clinton, J., Fäh, D., & Giardini, D. (2011). A new empirical magnitude scaling relation for Switzerland. Bulletin of the Seismological Society of America, 101(6), 3088–3095. https://doi.org/10.1785/0120100291 
