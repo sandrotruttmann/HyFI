@@ -319,8 +319,9 @@ class MultiSequenceWorkflow:
         sequence_dir = Path(self.config.output_directory) / sequence_name
         sequence_dir.mkdir(parents=True, exist_ok=True)
         
-        sequence_file = sequence_dir / f"{sequence_name}_data.txt"
-        
+        sequence_file = sequence_dir / f"{sequence_name}_data.csv"
+        sequence_data.to_csv(sequence_file, sep=self.config.catalog_sep, index=False)
+
         # Clone the template configuration
         sequence_config = ProjectConfig(
             project_title=f"{self.config.project_title} - {sequence_name}",
@@ -356,7 +357,8 @@ class MultiSequenceWorkflow:
         sequence_dir.mkdir(parents=True, exist_ok=True)
         
         sequence_file = sequence_dir / f"{sequence_name}_data.csv"
-        
+        sequence_data.to_csv(sequence_file, sep=self.config.catalog_sep, index=False)
+
         # Get the sequence workflow template from config
         if hasattr(self.config, 'cluster_workflow_template'):
             template = self.config.cluster_workflow_template
