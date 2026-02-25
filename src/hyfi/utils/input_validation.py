@@ -201,9 +201,11 @@ class InputFileValidator:
             # Check columns - be flexible with time format
             file_columns = list(df.columns)
             
-            # First check for the core required columns (excluding time variations)
+            # First check for the core required columns (excluding time variations and optional metadata)
+            # Type, Q, Loc are optional metadata columns not required for processing
+            optional_columns = ['HR', 'MI', 'SC', 'Type', 'Q', 'Loc']
             core_columns = [col for col in self.REQUIRED_FOCAL_COLUMNS 
-                           if col not in ['HR', 'MI', 'SC']]
+                           if col not in optional_columns]
             
             missing_core = [col for col in core_columns if col not in file_columns]
             
@@ -391,8 +393,8 @@ class InputFileValidator:
                 time_issues = self._validate_focal_time_format(df, time_format)
                 issues.extend(time_issues)
             
-            # Check integer columns
-            integer_cols = ['YR', 'MO', 'DY', 'HR', 'MI', 'SC', 'Hr', 'Mi', 'Sc']
+            # Check integer columns (SC/Sc = seconds can have decimal values for milliseconds)
+            integer_cols = ['YR', 'MO', 'DY', 'HR', 'MI', 'Hr', 'Mi']
             for col in integer_cols:
                 if col in df.columns:
                     int_issues = self._validate_integer_column(df[col], col)
