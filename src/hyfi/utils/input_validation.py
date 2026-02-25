@@ -94,17 +94,43 @@ class InputFileValidator:
             missing_columns = [col for col in self.REQUIRED_HYPO_COLUMNS if col not in file_columns]
             extra_columns = [col for col in file_columns if col not in self.REQUIRED_HYPO_COLUMNS]
             
-            # Validate data types and ranges
+            # Validate data types and ranges (only first 5 rows were read above)
             data_issues = self._validate_hypocenter_data(df)
-            
-            # Determine if valid
-            is_valid = len(missing_columns) == 0
+
+            # Full-file magnitude check — nrows=5 above may miss bad rows deeper in the file.
+            # Values > 10 (or < -3) are physically impossible and are treated as hard errors.
+            mag_fatal_errors = []
+            if 'MAG' in file_columns:
+                try:
+                    df_full_mag = pd.read_csv(file_path, sep=separator, usecols=['MAG'])
+                    _numeric_mag = pd.to_numeric(df_full_mag['MAG'], errors='coerce')
+                    _bad_mag = _numeric_mag[_numeric_mag > 10].dropna()
+                    if len(_bad_mag) > 0:
+                        mag_fatal_errors.append(
+                            f"ERROR: {len(_bad_mag)} event(s) have magnitude > 10 "
+                            f"(max={_bad_mag.max():.4g}). This is physically unrealistic "
+                            f"and is likely a data typo (e.g. '32' instead of '3.2'). "
+                            f"Please fix the input data before running HyFI."
+                        )
+                    _bad_mag_low = _numeric_mag[_numeric_mag < -3].dropna()
+                    if len(_bad_mag_low) > 0:
+                        mag_fatal_errors.append(
+                            f"ERROR: {len(_bad_mag_low)} event(s) have magnitude < -3 "
+                            f"(min={_bad_mag_low.min():.4g}). Please check the input data."
+                        )
+                except Exception:
+                    pass  # If full read fails, the 5-row check is the best fallback
+
+            # Determine if valid — missing columns OR magnitude fatal errors block processing
+            is_valid = len(missing_columns) == 0 and len(mag_fatal_errors) == 0
             
             recommendations = []
             if missing_columns:
                 recommendations.append(f"Add missing columns: {', '.join(missing_columns)}")
             if extra_columns:
                 recommendations.append(f"Extra columns found (will be ignored): {', '.join(extra_columns)}")
+            if mag_fatal_errors:
+                recommendations.extend(mag_fatal_errors)
             if data_issues:
                 recommendations.extend(data_issues)
             
@@ -696,8 +722,16 @@ class InputFileValidator:
             
             if len(valid_mags) > 0:
                 mag_range = (valid_mags.min(), valid_mags.max())
-                if mag_range[0] < -3 or mag_range[1] > 10:
-                    issues.append(f"Unusual magnitude range: {mag_range} (expected range: -3 to 10)")
+                if mag_range[1] > 10:
+                    issues.append(
+                        f"ERROR: magnitude max={mag_range[1]:.4g} exceeds 10 — "
+                        f"physically unrealistic, likely a data typo (e.g. '32' for '3.2')"
+                    )
+                elif mag_range[0] < -3:
+                    issues.append(
+                        f"ERROR: magnitude min={mag_range[0]:.4g} is below -3 — "
+                        f"please check the input data"
+                    )
                     
         except Exception as e:
             issues.append(f"Error validating magnitude column: {e}")

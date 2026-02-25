@@ -767,7 +767,7 @@ class MultiSequenceWorkflow:
         # Remove analysis_status column (internal tracking only)
         if 'analysis_status' in enriched_data.columns:
             enriched_data = enriched_data.drop(columns=['analysis_status'])
-        
+                
         # Reorder columns to place fault_id right after segmentation_level
         # Get current column order
         cols = enriched_data.columns.tolist()
@@ -783,8 +783,10 @@ class MultiSequenceWorkflow:
             enriched_data = enriched_data[cols]
         
         # Save enriched hypocenter CSV
+        # Use ISO 8601 format with 'T' separator (no space) so datetime values are
+        # never split into two columns by space-delimited viewers (e.g. ParaView).
         enriched_file = database_dir / 'HyFI_database_hypocenters.csv'
-        enriched_data.to_csv(enriched_file, index=False)
+        enriched_data.to_csv(enriched_file, index=False, date_format='%Y-%m-%dT%H:%M:%S.%f')
         
         # Store in aggregated results
         self.aggregated_results['enriched_catalog'] = enriched_data

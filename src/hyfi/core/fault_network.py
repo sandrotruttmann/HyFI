@@ -1427,6 +1427,19 @@ def faultnetwork3D(input_params):
         df_hyfi['Mw'] = df_hyfi['MAG']
     else:
         print('ERROR: no Magnitude type specified')
+
+    # Sanity-check Mw values: physically plausible range is roughly -3 to 10.
+    # Values outside this range (e.g. Mw=32 from a typo like 3.2 entered as 32)
+    # produce nonsensical rupture radii that cause downstream OOM crashes.
+    _MW_MIN, _MW_MAX = -3.0, 10.0
+    _mw_bad = ~df_hyfi['Mw'].between(_MW_MIN, _MW_MAX) & df_hyfi['Mw'].notna()
+    if _mw_bad.any():
+        _bad_vals = df_hyfi.loc[_mw_bad, 'Mw'].values
+        print(f"\n⚠ WARNING: {_mw_bad.sum()} event(s) have Mw outside plausible range "
+              f"[{_MW_MIN}, {_MW_MAX}]: {_bad_vals}")
+        print(f"  These events will have their Mw set to NaN to prevent OOM errors.")
+        print(f"  Please check the input data for magnitude typos (e.g. 32 instead of 3.2).\n")
+        df_hyfi.loc[_mw_bad, 'Mw'] = np.nan
     # Calculate the rupture area A (in km2) and the diameter r (in m) of a
     # circular rupture plane (after Leonard 2014)
     A, r = np.vectorize(faultscalingL14_Mag_A)(df_hyfi['Mw'])
