@@ -324,7 +324,7 @@ def _add_attributes_to_vtp(vtp_object, data_source, column_list=None, exclude_co
             except Exception as e:
                 pass
 
-def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_density_meters=10.0):
+def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_density_meters=10.0, max_points=100000):
     """
     Generate point clouds from circular fault plane geometries with systematic spatial coverage.
     
@@ -348,6 +348,10 @@ def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_dens
     point_density_meters : float
         Target distance in meters between points on each circle circumference (default: 12.0)
         Smaller values create denser point clouds, larger values create sparser ones
+    max_points : int
+        Maximum total points to generate. If the estimated count exceeds this limit,
+        radius_interval and point_density_meters are scaled up proportionally to stay
+        within the limit. Default: 100000.
         
     Returns
     -------
@@ -360,91 +364,139 @@ def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_dens
         - event_indices: (n_total_points,) index into df_subcluster for each point
         where n_total_points = len(df_subcluster) * actual_points_per_plane
     """
-    
-    all_points = []
-    all_normals = []
-    all_rupture_radii = []
-    all_is_hypocenter = []  # NEW: track which points are hypocenters
-    all_event_indices = []  # NEW: track which event each point belongs to
-    
-    for event_idx, (i, row) in enumerate(df_subcluster.iterrows()):
-        # Get fault plane parameters
-        p = np.array([row['X'], row['Y'], row['Z']])  # Hypocenter (center of circular plane)
-        r = row['rupt_radius']  # Rupture radius
-        nor = np.array([row['nor_x_mean'], row['nor_y_mean'], row['nor_z_mean']])  # Normal vector
-        
-        # Skip this fault plane if any parameters are NaN or invalid
-        if np.any(np.isnan(nor)) or np.isnan(r) or r <= 0:
-            print(f"    Warning: Skipping fault plane {i} with invalid parameters (NaN normal vector or invalid radius)")
+    import sys as _sys
+    import time as _time
+    _n_total = len(df_subcluster)
+    _start   = _time.time()
+    _sys.stderr.write(f"    Generating fault plane point cloud for {_n_total} events...\n")
+
+    # Extract numpy arrays upfront – much faster than iterrows
+    X_arr  = df_subcluster['X'].values.astype(np.float64)
+    Y_arr  = df_subcluster['Y'].values.astype(np.float64)
+    Z_arr  = df_subcluster['Z'].values.astype(np.float64)
+    R_arr  = df_subcluster['rupt_radius'].values.astype(np.float64)
+    NX_arr = df_subcluster['nor_x_mean'].values.astype(np.float64)
+    NY_arr = df_subcluster['nor_y_mean'].values.astype(np.float64)
+    NZ_arr = df_subcluster['nor_z_mean'].values.astype(np.float64)
+    _sys.stderr.write(f"    Arrays extracted. Computing valid mask...\n")
+
+    # Valid mask (vectorised, avoids per-row isnan checks in the loop)
+    valid_mask = (
+        np.isfinite(NX_arr) & np.isfinite(NY_arr) & np.isfinite(NZ_arr) &
+        np.isfinite(R_arr) & (R_arr > 0)
+    )
+    _sys.stderr.write(f"    Valid events: {valid_mask.sum()} / {_n_total}\n")
+
+    # --- Vectorised pre-estimation and auto-scale ---
+    valid_radii_arr = R_arr[valid_mask]
+    _r_cap = np.inf  # fallback: no cap
+    if len(valid_radii_arr) > 0:
+        # Use 99th-percentile radius for estimation – np.max picks up corrupted/outlier values
+        r_max_est = np.percentile(valid_radii_arr, 99)
+        # Hard cap: treat any radius more than 100x the 99th-percentile as a corrupt value
+        _r_cap = r_max_est * 100.0
+        _n_outliers = int(np.sum(valid_radii_arr > _r_cap))
+        _sys.stderr.write(f"    Rupture radius: median={np.median(valid_radii_arr):.1f} m, "
+                          f"99pct={r_max_est:.1f} m, max={np.max(valid_radii_arr):.3g} m, "
+                          f"radius_interval={radius_interval:.1f} m "
+                          f"(outliers >100x 99pct: {_n_outliers})\n")
+        n_rings_max = min(50, max(1, int(r_max_est / radius_interval)) + 1)  # cap rings in estimation too
+        pts_per_event_max = 1 + sum(
+            max(8, int(2 * np.pi * min(k * radius_interval, r_max_est) / point_density_meters))
+            for k in range(1, n_rings_max + 1)
+        )
+        total_estimated = int(pts_per_event_max * len(valid_radii_arr))
+        _sys.stderr.write(f"    Estimated total points: {total_estimated:,} (max {pts_per_event_max} per event)\n")
+        if total_estimated > max_points:
+            scale_factor = np.sqrt(total_estimated / max_points)
+            radius_interval = radius_interval * scale_factor
+            point_density_meters = point_density_meters * scale_factor
+            _sys.stderr.write(f"    ⚠ Auto-scaling: radius_interval={radius_interval:.1f}m, point_density={point_density_meters:.1f}m\n")
+
+    all_parts_pts  = []
+    all_parts_nor  = []
+    all_parts_rad  = []
+    all_parts_hypo = []
+    all_parts_idx  = []
+    _pts_so_far = 0  # running counter (avoids slow sum(len(p)...) on every progress print)
+    _sys.stderr.write(f"    Starting event loop...\n")
+
+    for event_idx in range(_n_total):
+        if event_idx > 0 and event_idx % 2000 == 0:
+            _elapsed = _time.time() - _start
+            _rate    = event_idx / _elapsed
+            _eta     = (_n_total - event_idx) / _rate if _rate > 0 else 0
+            _sys.stderr.write(f"    Point cloud progress: {event_idx}/{_n_total} events "
+                  f"({_rate:.0f} ev/s, ETA {_eta:.0f}s, {_pts_so_far:,} pts so far)...\n")
+
+        if not valid_mask[event_idx]:
             continue
-            
-        nor = nor / np.linalg.norm(nor)  # Ensure normalized
-        
-        # Create two orthonormal vectors in the plane
+
+        p   = np.array([X_arr[event_idx], Y_arr[event_idx], Z_arr[event_idx]])
+        r   = R_arr[event_idx]
+
+        # Skip outlier radii that would cause OOM (corrupted values)
+        if r > _r_cap:
+            _sys.stderr.write(f"      Skipping event {event_idx}: outlier radius {r:.3g} m > cap {_r_cap:.3g} m\n")
+            continue
+
+        nor = np.array([NX_arr[event_idx], NY_arr[event_idx], NZ_arr[event_idx]])
+        nor = nor / np.linalg.norm(nor)
+
+        # Orthonormal basis in the fault plane
         if abs(nor[2]) < 0.9:
-            v1 = np.cross(nor, [0, 0, 1])
+            v1 = np.cross(nor, np.array([0.0, 0.0, 1.0]))
         else:
-            v1 = np.cross(nor, [1, 0, 0])
+            v1 = np.cross(nor, np.array([1.0, 0.0, 0.0]))
         v1 = v1 / np.linalg.norm(v1)
         v2 = np.cross(nor, v1)
-        v2 = v2 / np.linalg.norm(v2)
-        
-        plane_points = []
-        plane_is_hypocenter = []
-        
-        # 1. Always include the center point (hypocenter)
-        plane_points.append(p.copy())
-        plane_is_hypocenter.append(1)  # Mark as hypocenter
-        
-        # 2. Generate full circles at fixed radius intervals
-        # radius_interval parameter controls the spacing between rings
-        
-        # Calculate radii at fixed intervals up to the fault radius
-        radii = []
-        current_radius = radius_interval
-        while current_radius <= r:
-            radii.append(current_radius)
-            current_radius += radius_interval
-        
-        # Always include the edge (full radius) if it's not already included
-        if len(radii) == 0 or radii[-1] < r:
-            radii.append(r)
-        
-        # Calculate points per circle based on circumference to maintain reasonable point density
-        # Use configurable point density (distance between points on circumference)
-        
-        # Generate complete circles at each radius
+
+        # Ring radii (vectorised arange + edge)
+        # Cap at 50 rings to prevent runaway on large-radius events
+        _MAX_RINGS = 50
+        _ri = radius_interval if r / radius_interval <= _MAX_RINGS else r / _MAX_RINGS
+        radii = np.arange(_ri, r + 1e-9, _ri)
+        if len(radii) == 0 or radii[-1] < r - 1e-9:
+            radii = np.append(radii, r)
+
+        # --- Vectorised ring generation ---
+        ring_pts_list  = [p.reshape(1, 3)]           # center point
+        ring_hypo_list = [np.ones(1, dtype=np.int8)] # center is a hypocenter
+
         for ring_radius in radii:
-            # Calculate number of points for this circle based on its circumference
-            circumference = 2 * np.pi * ring_radius
-            n_points_circle = max(8, int(circumference / point_density_meters))  # Minimum 8 points per circle
-            
-            # Generate points evenly around the complete circle
-            angles = np.linspace(0, 2*np.pi, n_points_circle, endpoint=False)
-            
-            for angle in angles:
-                # Point in local plane coordinates
-                local_point = ring_radius * (np.cos(angle) * v1 + np.sin(angle) * v2)
-                # Transform to global coordinates
-                global_point = p + local_point
-                plane_points.append(global_point)
-                plane_is_hypocenter.append(0)  # Mark as enhanced point (not hypocenter)
-        
-        # Convert to numpy array
-        plane_points = np.array(plane_points)
-        
-        # Store points and corresponding normals
-        all_points.extend(plane_points)
-        # Each point on the plane has the same normal vector
-        all_normals.extend([nor] * len(plane_points))
-        # Each point on the plane has the same rupture radius
-        all_rupture_radii.extend([r] * len(plane_points))
-        # Track which points are hypocenters vs enhanced points
-        all_is_hypocenter.extend(plane_is_hypocenter)
-        # Track which event each point belongs to
-        all_event_indices.extend([event_idx] * len(plane_points))
-    
-    return np.array(all_points), np.array(all_normals), np.array(all_rupture_radii), np.array(all_is_hypocenter), np.array(all_event_indices)
+            n_pts = max(8, int(2 * np.pi * ring_radius / point_density_meters))
+            angles = np.linspace(0, 2 * np.pi, n_pts, endpoint=False)
+            # Vectorised: (n_pts, 3) via broadcasting
+            pts = p + ring_radius * (np.cos(angles)[:, None] * v1 + np.sin(angles)[:, None] * v2)
+            ring_pts_list.append(pts)
+            ring_hypo_list.append(np.zeros(n_pts, dtype=np.int8))
+
+        plane_pts  = np.concatenate(ring_pts_list,  axis=0)  # (n_plane_pts, 3)
+        plane_hypo = np.concatenate(ring_hypo_list)          # (n_plane_pts,)
+        n_plane    = len(plane_pts)
+
+        all_parts_pts.append(plane_pts)
+        all_parts_nor.append(np.tile(nor, (n_plane, 1)))
+        all_parts_rad.append(np.full(n_plane, r))
+        all_parts_hypo.append(plane_hypo)
+        all_parts_idx.append(np.full(n_plane, event_idx, dtype=np.int32))
+        _pts_so_far += n_plane
+        _sys.stderr.write(f"      event {event_idx+1}/{_n_total}: r={r:.1f}m, {len(radii)} rings → {n_plane} pts (total: {_pts_so_far:,})\n")
+
+    if not all_parts_pts:
+        return (np.empty((0, 3)), np.empty((0, 3)), np.empty(0),
+                np.empty(0, dtype=np.int8), np.empty(0, dtype=np.int32))
+
+    out_pts = np.concatenate(all_parts_pts, axis=0)
+    _sys.stderr.write(f"    ✓ Point cloud complete: {len(out_pts):,} points from {_n_total} events "
+          f"(took {_time.time() - _start:.1f}s)\n")
+    return (
+        out_pts,
+        np.concatenate(all_parts_nor,  axis=0),
+        np.concatenate(all_parts_rad),
+        np.concatenate(all_parts_hypo),
+        np.concatenate(all_parts_idx),
+    )
 
 
 def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16):
@@ -472,136 +524,175 @@ def _create_circular_fault_disc_meshes(df_subcluster, n_radial_segments=16):
         List of PyVista PolyData meshes, one for each fault plane
     """
     
-    disc_meshes = []
-    combined_batch = None
-    batch_size = 100  # Combine every 100 meshes to keep memory constant
+    import sys as _dsys
+    import time as _dtime
+
     total_events = len(df_subcluster)
-    
-    print(f"  Generating circular disc meshes for {total_events} events (outer ring + 1 inner, {n_radial_segments} segments)...")
-    print(f"    Using numba-optimized geometric computations...")
-    
-    import time
-    start_total = time.time()
-    
-    # Pre-calculate date range ONCE (not in the loop!)
-    min_date = None
-    max_date = None
-    if 'Date' in df_subcluster.columns and df_subcluster['Date'].notna().any():
-        try:
-            all_dates = pd.to_datetime(df_subcluster['Date'].dropna())
-            min_date = all_dates.min()
-            max_date = all_dates.max()
-        except:
-            pass
-    
-    rename_map = _get_vtp_column_name_mapping()  # Calculate once outside loop
+
+    # Auto-reduce angular resolution for large clusters
+    if total_events > 2000 and n_radial_segments > 8:
+        n_radial_segments = 8
+        _dsys.stderr.write(f"  Auto-reducing disc segments to {n_radial_segments} for large cluster ({total_events} events)\n")
+    elif total_events > 1000 and n_radial_segments > 12:
+        n_radial_segments = 12
+        _dsys.stderr.write(f"  Auto-reducing disc segments to {n_radial_segments} for medium-large cluster ({total_events} events)\n")
+
+    _dsys.stderr.write(f"  Generating circular disc meshes for {total_events} events "
+                       f"({n_radial_segments} segments) — pre-allocated single-mesh mode...\n")
+    _t0 = _dtime.time()
+
+    # --- Pre-extract ALL data as numpy arrays before the loop ---
+    X_arr  = df_subcluster['X'].values.astype(np.float64)
+    Y_arr  = df_subcluster['Y'].values.astype(np.float64)
+    Z_arr  = df_subcluster['Z'].values.astype(np.float64)
+    R_arr  = df_subcluster['rupt_radius'].values.astype(np.float64)
+    NX_arr = df_subcluster['nor_x_mean'].values.astype(np.float64)
+    NY_arr = df_subcluster['nor_y_mean'].values.astype(np.float64)
+    NZ_arr = df_subcluster['nor_z_mean'].values.astype(np.float64)
+
+    # Valid mask (including outlier radius guard)
+    valid_mask_d = (
+        np.isfinite(NX_arr) & np.isfinite(NY_arr) & np.isfinite(NZ_arr) &
+        np.isfinite(R_arr)  & (R_arr > 0)
+    )
+    # Compute 99th-percentile radius cap to exclude corrupted values
+    _valid_r = R_arr[valid_mask_d]
+    if len(_valid_r) > 0:
+        _r99 = np.percentile(_valid_r, 99)
+        _disc_r_cap = _r99 * 100.0
+        _n_disc_outliers = int(np.sum(_valid_r > _disc_r_cap))
+        if _n_disc_outliers > 0:
+            _dsys.stderr.write(f"    Disc radius cap: 99pct={_r99:.1f} m, cap={_disc_r_cap:.3g} m, "
+                               f"outliers excluded: {_n_disc_outliers}\n")
+        valid_mask_d = valid_mask_d & (R_arr <= _disc_r_cap)
+    valid_indices = np.where(valid_mask_d)[0]
+    n_valid = len(valid_indices)
+    _dsys.stderr.write(f"    Valid discs: {n_valid}/{total_events}\n")
+
+    if n_valid == 0:
+        _dsys.stderr.write("    No valid disc events — returning empty.\n")
+        return []
+
+    # Per-disc geometry constants
+    n_seg      = n_radial_segments
+    n_verts_d  = 1 + 2 * n_seg   # center + inner ring + outer ring
+    n_faces_d  = 3 * n_seg        # center fan + inner→outer quads (×2 tri each)
+    total_verts = n_valid * n_verts_d
+    total_faces = n_valid * n_faces_d
+
+    # Build template faces once (local vertex indices 0..n_verts_d-1)
+    tmpl_faces = np.empty((n_faces_d, 3), dtype=np.int32)
+    for _i in range(n_seg):
+        _ni = (_i + 1) % n_seg
+        tmpl_faces[_i] = [0, 1 + _i, 1 + _ni]
+    for _i in range(n_seg):
+        _ni = (_i + 1) % n_seg
+        _p1, _p2 = 1 + _i, 1 + _ni
+        _p3, _p4 = 1 + n_seg + _i, 1 + n_seg + _ni
+        tmpl_faces[n_seg + 2*_i]     = [_p1, _p3, _p2]
+        tmpl_faces[n_seg + 2*_i + 1] = [_p2, _p3, _p4]
+
+    # Pre-allocate vertex and face buffers
+    all_verts = np.empty((total_verts, 3), dtype=np.float64)
+    all_faces = np.empty((total_faces, 3), dtype=np.int32)
+
+    # Also pre-allocate per-point attribute arrays (event-level values repeated n_verts_d times)
+    fault_id_arr = np.empty(total_verts, dtype=np.int32)
+    radius_arr   = np.empty(total_verts, dtype=np.float64)
+    area_arr     = np.empty(total_verts, dtype=np.float64)
+    nx_arr_out   = np.empty(total_verts, dtype=np.float64)
+    ny_arr_out   = np.empty(total_verts, dtype=np.float64)
+    nz_arr_out   = np.empty(total_verts, dtype=np.float64)
+    cx_arr_out   = np.empty(total_verts, dtype=np.float64)
+    cy_arr_out   = np.empty(total_verts, dtype=np.float64)
+    cz_arr_out   = np.empty(total_verts, dtype=np.float64)
+
+    # --- Per-event geometry loop (vertex/face fill only — no pv.PolyData here) ---
+    for _li, row_idx in enumerate(valid_indices):
+        if _li % 5000 == 0 and _li > 0:
+            _el = _dtime.time() - _t0
+            _dsys.stderr.write(f"    Disc geometry: {_li}/{n_valid} ({_li/_el:.0f} ev/s)...\n")
+
+        center = np.array([X_arr[row_idx], Y_arr[row_idx], Z_arr[row_idx]], dtype=np.float64)
+        radius = float(R_arr[row_idx])
+        normal = np.array([NX_arr[row_idx], NY_arr[row_idx], NZ_arr[row_idx]], dtype=np.float64)
+        normal = _normalize_vector(normal)
+
+        vertices, _ = _generate_disc_vertices_and_faces(center, normal, radius, n_seg)
+
+        _vs = _li * n_verts_d
+        _fs = _li * n_faces_d
+        all_verts[_vs:_vs + n_verts_d] = vertices
+        all_faces[_fs:_fs + n_faces_d] = tmpl_faces + _li * n_verts_d
+
+        # Scalar values (same for all vertices of this disc)
+        fault_id_arr[_vs:_vs + n_verts_d] = row_idx
+        radius_arr  [_vs:_vs + n_verts_d] = radius
+        area_arr    [_vs:_vs + n_verts_d] = np.pi * radius * radius
+        nx_arr_out  [_vs:_vs + n_verts_d] = normal[0]
+        ny_arr_out  [_vs:_vs + n_verts_d] = normal[1]
+        nz_arr_out  [_vs:_vs + n_verts_d] = normal[2]
+        cx_arr_out  [_vs:_vs + n_verts_d] = center[0]
+        cy_arr_out  [_vs:_vs + n_verts_d] = center[1]
+        cz_arr_out  [_vs:_vs + n_verts_d] = center[2]
+
+    _dsys.stderr.write(f"    Geometry loop done ({_dtime.time()-_t0:.1f}s). Building PyVista mesh...\n")
+
+    # Build ONE PolyData from pre-allocated arrays
+    faces_pv = np.hstack([np.full((total_faces, 1), 3, dtype=np.int32), all_faces])
+    combined = pv.PolyData(all_verts, faces_pv.flatten())
+
+    combined['fault_id']     = fault_id_arr
+    combined['radius']       = radius_arr
+    combined['area_m2']      = area_arr
+    combined['normal_x']     = nx_arr_out
+    combined['normal_y']     = ny_arr_out
+    combined['normal_z']     = nz_arr_out
+    combined['X']            = cx_arr_out
+    combined['Y']            = cy_arr_out
+    combined['Z']            = cz_arr_out
+    combined['hypocenter_x'] = cx_arr_out.copy()
+    combined['hypocenter_y'] = cy_arr_out.copy()
+    combined['hypocenter_z'] = cz_arr_out.copy()
+
+    # Scalar attributes from DataFrame columns (event-level → repeat to point-level)
+    rename_map = _get_vtp_column_name_mapping()
     attribute_columns = [
-        'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'Date',
+        'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z',
         'sequence_label', 'segmentation_level', 'fault_id',
         'Mw', 'rupt_area', 'rupt_radius',
         'rupt_plane_azi', 'rupt_plane_dip', 'rake',
         'Sn_eff', 'Tau', 'instab', 'sliptend', 'dilatend'
     ]
-    temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
-    all_cols = attribute_columns + temporal_columns
-    
-    batch_meshes = []
-    
-    for i, row in df_subcluster.iterrows():
-        if i % 100 == 0 and i > 0:
-            elapsed = time.time() - start_total
-            rate = i / elapsed
-            print(f"    Progress: {i}/{total_events} discs ({rate:.1f} discs/sec, {len(disc_meshes)} batches combined)...")
-        
-        # Get fault plane parameters
-        center = np.array([row['X'], row['Y'], row['Z']], dtype=np.float64)
-        radius = float(row['rupt_radius'])
-        normal = np.array([row['nor_x_mean'], row['nor_y_mean'], row['nor_z_mean']], dtype=np.float64)
-        
-        # Skip this fault plane if any parameters are NaN or invalid
-        if np.any(np.isnan(normal)) or np.isnan(radius) or radius <= 0:
-            continue
-        
-        # Normalize normal vector
-        normal = _normalize_vector(normal)
-        
-        # Use numba-optimized function to generate vertices and faces
-        vertices, faces = _generate_disc_vertices_and_faces(center, normal, radius, n_radial_segments)
-        
-        # Convert faces to PyVista format (add face size)
-        faces_pv = np.hstack([np.full((faces.shape[0], 1), 3, dtype=np.int32), faces.astype(np.int32)])
-        
-        # Create PyVista mesh
-        mesh = pv.PolyData(vertices, faces_pv.flatten())
-        
-        # Calculate mesh area
-        disc_area = mesh.area
-        
-        # Add metadata and attributes from dataframe
-        mesh['fault_id'] = np.full(mesh.n_points, i)
-        mesh['radius'] = np.full(mesh.n_points, radius)
-        mesh['area_m2'] = np.full(mesh.n_points, disc_area)
-        mesh['normal_x'] = np.full(mesh.n_points, normal[0])
-        mesh['normal_y'] = np.full(mesh.n_points, normal[1])
-        mesh['normal_z'] = np.full(mesh.n_points, normal[2])
-        
-        # Add attributes
-        for col in all_cols:
-            if col in df_subcluster.columns and not pd.isna(row[col]):
-                vtp_col_name = rename_map.get(col, col)
-                mesh[vtp_col_name] = np.full(mesh.n_points, row[col])
-        
-        # Add temporal information if Date column is available
-        if 'Date' in df_subcluster.columns and not pd.isna(row['Date']) and min_date is not None:
+    for col in attribute_columns:
+        if col in df_subcluster.columns:
             try:
-                event_date = pd.to_datetime(row['Date'])
-                
-                days_since_first = (event_date - min_date).days
-                mesh['days_since_first'] = np.full(mesh.n_points, float(days_since_first), dtype=np.float32)
-                
-                unix_timestamp = event_date.timestamp()
-                mesh['unix_timestamp'] = np.full(mesh.n_points, unix_timestamp, dtype=np.float64)
-                
-                decimal_year = event_date.year + event_date.dayofyear / 365.25
-                mesh['decimal_year'] = np.full(mesh.n_points, decimal_year, dtype=np.float32)
-                
-                mesh['month'] = np.full(mesh.n_points, event_date.month, dtype=np.int32)
-                
-            except Exception as e:
-                pass  # Silently skip date parsing errors
-        
-        # Add hypocenter coordinates
-        mesh['X'] = np.full(mesh.n_points, center[0])
-        mesh['Y'] = np.full(mesh.n_points, center[1])
-        mesh['Z'] = np.full(mesh.n_points, center[2])
-        mesh['hypocenter_x'] = np.full(mesh.n_points, center[0])
-        mesh['hypocenter_y'] = np.full(mesh.n_points, center[1])
-        mesh['hypocenter_z'] = np.full(mesh.n_points, center[2])
-        
-        # Add Date column if available
-        if 'Date' in df_subcluster.columns and not pd.isna(row['Date']):
-            try:
-                event_date = pd.to_datetime(row['Date'])
-                unix_timestamp = event_date.timestamp()
-                mesh['Date'] = np.full(mesh.n_points, unix_timestamp, dtype=np.float64)
-            except:
+                vals = df_subcluster[col].values[valid_indices]
+                combined[rename_map.get(col, col)] = np.repeat(vals, n_verts_d)
+            except Exception:
                 pass
-        
-        # Batch combine meshes instead of appending individually
-        batch_meshes.append(mesh)
-        
-        if len(batch_meshes) >= batch_size:
-            # Combine batch and store
-            combined = pv.merge(batch_meshes)
-            disc_meshes.append(combined)
-            batch_meshes = []
-    
-    # Combine remaining meshes
-    if len(batch_meshes) > 0:
-        combined = pv.merge(batch_meshes)
-        disc_meshes.append(combined)
-    
-    return disc_meshes
+
+    # Temporal attributes
+    if 'Date' in df_subcluster.columns and df_subcluster['Date'].notna().any():
+        try:
+            all_dates = pd.to_datetime(df_subcluster['Date'])
+            min_date  = all_dates.min()
+            unix_ts   = all_dates.apply(lambda d: d.timestamp() if pd.notna(d) else np.nan).values.astype(np.float64)
+            days_arr  = (all_dates - min_date).dt.days.values.astype(np.float32)
+            dy_arr    = (all_dates.dt.year + all_dates.dt.dayofyear / 365.25).values.astype(np.float32)
+            mo_arr    = all_dates.dt.month.values.astype(np.int32)
+
+            combined['unix_timestamp']   = np.repeat(unix_ts [valid_indices], n_verts_d)
+            combined['days_since_first'] = np.repeat(days_arr[valid_indices], n_verts_d)
+            combined['decimal_year']     = np.repeat(dy_arr  [valid_indices], n_verts_d)
+            combined['month']            = np.repeat(mo_arr  [valid_indices], n_verts_d)
+            combined['Date']             = np.repeat(unix_ts [valid_indices], n_verts_d)
+        except Exception:
+            pass
+
+    _dsys.stderr.write(f"  ✓ Disc mesh done: {total_verts:,} vertices, {total_faces:,} faces "
+                       f"(took {_dtime.time()-_t0:.1f}s)\n")
+    return [combined]
 
 
 def _calculate_max_magnitude_from_area(area_m2, scaling_law='leonard2014'):
@@ -684,8 +775,25 @@ def _poisson_reconstruction(points, normals, depth=3, density_threshold=0.4, max
         pcd.points = o3d.utility.Vector3dVector(points.astype(np.float64))
         pcd.normals = o3d.utility.Vector3dVector(normals.astype(np.float64))
         
-        # Ensure normal consistency
-        pcd.orient_normals_consistent_tangent_plane(10)
+        # Ensure normal consistency.
+        # orient_normals_consistent_tangent_plane() is known to segfault for
+        # nearly-coplanar point clouds (e.g. a single fault cluster where all
+        # normals point in roughly the same direction).  Since HyFI normals
+        # are already derived from rupture-plane fitting, they are already
+        # well-oriented; we only need to fix sign flips.
+        # Strategy: majority-vote — flip any normal whose dot-product with
+        # the mean normal is negative.  This is safe and cannot segfault.
+        n_arr = np.asarray(pcd.normals)  # (N, 3) copy
+        if len(n_arr) > 0:
+            mean_n = n_arr.mean(axis=0)
+            mean_n_norm = np.linalg.norm(mean_n)
+            # Only apply when the mean is well-defined (not zero)
+            if mean_n_norm > 1e-9:
+                mean_n /= mean_n_norm
+                dots = n_arr @ mean_n           # (N,)
+                flip_mask = dots < 0.0
+                n_arr[flip_mask] *= -1.0
+                pcd.normals = o3d.utility.Vector3dVector(n_arr)
         
         # Perform Poisson reconstruction
         mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
@@ -834,6 +942,10 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     point_density_meters = interpolation_params.get('fault_plane_point_density_meters',
                                                     interpolation_params.get('circle_point_density_meters', 10.0))
     min_points = interpolation_params.get('min_fault_planes_for_interpolation', 10)
+    # Safety limit: maximum input points for Poisson reconstruction (prevents OOM on large clusters)
+    max_poisson_input_points = interpolation_params.get('max_poisson_input_points', 100000)
+    # Safety limit: maximum events for disc mesh generation (set to 0 to disable limiting)
+    max_events_for_discs = interpolation_params.get('max_events_for_disc_meshes', 0)
     
     print(f"Interpolation parameters:")
     print(f"  Poisson depth: {depth}")
@@ -842,6 +954,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     print(f"  Radius interval for circles: {radius_interval} m")
     print(f"  Point density on circles: {point_density_meters} m")
     print(f"  Minimum points per cluster: {min_points}")
+    print(f"  Max Poisson input points: {max_poisson_input_points:,} (OOM guard)")
     
     df = df_hyfi
     
@@ -900,7 +1013,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     
     # Get unique final clusters
     unique_clusters = df[cluster_column].dropna().unique()
-    print(f"Processing {len(unique_clusters)} fault clusters...")
+    print(f"Processing {len(unique_clusters)} fault clusters...", flush=True)
     
     # Initialize results containers
     combined_mesh = pv.PolyData()
@@ -908,27 +1021,53 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     combined_pcd = pv.PolyData()
     fault_disc_meshes = []
     
+    import sys as _sys_vis
+
     # Process each final cluster (already optimally clustered by auto_class)
     for i, cluster_id in enumerate(unique_clusters):
         df_cluster = df[df[cluster_column] == cluster_id].reset_index(drop=True)
         
         if len(df_cluster) < min_points:
-            print(f"  Skipping cluster {cluster_id}: too few points ({len(df_cluster)} < {min_points})")
+            _sys_vis.stderr.write(f"  Skipping cluster {cluster_id}: too few points ({len(df_cluster)} < {min_points})\n")
             continue
         
-        print(f"  Processing cluster {cluster_id} ({len(df_cluster)} fault planes)...")
+        _sys_vis.stderr.write(f"  Processing cluster {cluster_id} ({len(df_cluster)} fault planes)...\n")
+        
+        # For disc mesh generation, use full cluster (or spatially subsampled if max set)
+        _sys_vis.stderr.write(f"    [step 1/4] setting up disc cluster...\n")
+        df_cluster_discs = df_cluster
+        if max_events_for_discs > 0 and len(df_cluster) > max_events_for_discs:
+            rng = np.random.default_rng(42)
+            idx = rng.choice(len(df_cluster), size=max_events_for_discs, replace=False)
+            idx.sort()
+            df_cluster_discs = df_cluster.iloc[idx].reset_index(drop=True)
+            _sys_vis.stderr.write(f"    Disc meshes: spatially subsampled to {max_events_for_discs} events\n")
+        
+        # For Poisson reconstruction, subsample to keep point cloud manageable.
+        _sys_vis.stderr.write(f"    [step 2/4] setting up Poisson cluster...\n")
+        df_cluster_poisson = df_cluster
+        poisson_event_limit = interpolation_params.get('max_events_for_poisson', 0)
+        if poisson_event_limit > 0 and len(df_cluster) > poisson_event_limit:
+            rng = np.random.default_rng(42)
+            idx = rng.choice(len(df_cluster), size=poisson_event_limit, replace=False)
+            idx.sort()
+            df_cluster_poisson = df_cluster.iloc[idx].reset_index(drop=True)
+            _sys_vis.stderr.write(f"    Poisson input: subsampled to {poisson_event_limit} events (from {len(df_cluster)})\n")
         
         # Generate points from circular fault plane geometries
+        _sys_vis.stderr.write(f"    [step 3/4] calling _generate_fault_plane_points ({len(df_cluster_poisson)} events)...\n")
         try:
-            points, normals, rupture_radii, is_hypocenter, event_indices = _generate_fault_plane_points(df_cluster, radius_interval, point_density_meters)
+            points, normals, rupture_radii, is_hypocenter, event_indices = _generate_fault_plane_points(
+                df_cluster_poisson, radius_interval, point_density_meters,
+                max_points=max_poisson_input_points
+            )
             
             # Check if we actually got valid points
             if len(points) == 0:
-                print(f"    Warning: No valid points generated for cluster {cluster_id} (all fault planes had invalid parameters)")
+                _sys_vis.stderr.write(f"    Warning: No valid points generated for cluster {cluster_id}\n")
                 continue
                 
-            print(f"    Generated {len(points)} points from {len(df_cluster)} fault planes")
-            
+            _sys_vis.stderr.write(f"    Generated {len(points)} points from {len(df_cluster_poisson)} fault planes\n")
             # Create point cloud for this cluster
             pcd = pv.PolyData(points)
             pcd['normals'] = normals
@@ -949,10 +1088,10 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
             
             for col in specified_columns + temporal_columns:
-                if col in df_cluster.columns:
+                if col in df_cluster_poisson.columns:
                     try:
                         # Get values for each point's source event
-                        values = df_cluster.iloc[event_indices][col].values
+                        values = df_cluster_poisson.iloc[event_indices][col].values
                         # Use renamed column name for VTP attribute
                         vtp_col_name = rename_map.get(col, col)
                         pcd[vtp_col_name] = values
@@ -1014,7 +1153,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             combined_pcd = combined_pcd.merge(pcd)
         
         # Create circular disc meshes for visualization
-        disc_meshes = _create_circular_fault_disc_meshes(df_cluster)
+        disc_meshes = _create_circular_fault_disc_meshes(df_cluster_discs)
         if len(disc_meshes) > 0:
             # Batch combine disc meshes more efficiently - combine every N meshes to avoid memory spike
             if len(fault_disc_meshes) > 0:
@@ -2336,216 +2475,212 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
 
 def _create_focal_mechanism_disc_meshes(df_focal_events, n_radial_segments=16, n_rings=5, default_radius=100.0):
     """
-    Create circular disc meshes for focal mechanism planes.
-    
-    This function creates triangular mesh representations of the focal mechanism fault planes
-    as discs, similar to rupture plane meshes but using focal mechanism orientations.
-    
-    Parameters
-    ----------
-    df_focal_events : DataFrame
-        DataFrame containing focal mechanism data with columns:
-        'X', 'Y', 'Z' (hypocenter coordinates), 'Strike1', 'Dip1', 'Strike2', 'Dip2', 'pref_foc'
-    n_radial_segments : int
-        Number of angular segments around each ring (default: 16)
-    n_rings : int
-        Number of concentric rings for mesh density (default: 5)
-    default_radius : float
-        Default radius in meters for focal mechanism planes (default: 100.0)
-        
+    Create a single combined disc mesh for all focal mechanism planes.
+
+    Uses pre-allocated numpy arrays to avoid per-event pv.PolyData() calls,
+    giving orders-of-magnitude speedup over the old iterrows approach.
+
     Returns
     -------
-    list
-        List of PyVista PolyData meshes, one for each focal mechanism plane
+    pv.PolyData or None
+        A single combined mesh with all valid focal discs, or None if no valid events.
     """
-    
-    focal_meshes = []
-    
-    for i, row in df_focal_events.iterrows():
-        # Get hypocenter coordinates
-        center = np.array([row['X'], row['Y'], row['Z']])
-        
-        # Get preferred focal plane orientation (uses pref_foc instead of A)
-        # pref_foc is determined in model_validation: A=1/2 uses specified, A=0 uses best-fitting
-        if row['pref_foc'] == 1:
-            strike, dip = row['Strike1'], row['Dip1']
-            rake = row.get('Rake1', np.nan)
-        else:  # row['pref_foc'] == 2
-            strike, dip = row['Strike2'], row['Dip2']
-            rake = row.get('Rake2', np.nan)
-            
-        # Skip if orientation data is invalid
-        if pd.isna(strike) or pd.isna(dip):
-            print(f"    Warning: Skipping focal mechanism {i} with invalid orientation data")
-            continue
-            
-        # Use rupture radius
-        radius = row['rupt_radius']
-            
-        # Convert strike/dip to normal vector using the same convention as rupture planes
-        # Strike to dip azimuth: dip direction is 90° clockwise from strike line
-        # Dip azimuth = strike + 90°
-        dip_azimuth = (strike + 90) % 360  # Convert strike to dip direction azimuth
-        azi_rad = np.radians(dip_azimuth)  # Use dip direction azimuth
-        dip_rad = np.radians(dip)  # Dip is the same
-        
-        # Calculate normal vector using same formula as rupture planes
-        normal_x = np.sin(dip_rad) * np.sin(azi_rad)
-        normal_y = np.sin(dip_rad) * np.cos(azi_rad) 
-        normal_z = np.cos(dip_rad)
-        normal = np.array([normal_x, normal_y, normal_z])
-        normal = normal / np.linalg.norm(normal)  # Ensure normalized
-        
-        # Create two orthonormal vectors in the plane (same as rupture planes)
-        if abs(normal[2]) < 0.9:
-            v1 = np.cross(normal, [0, 0, 1])
-        else:
-            v1 = np.cross(normal, [1, 0, 0])
-        v1 = v1 / np.linalg.norm(v1)
-        v2 = np.cross(normal, v1)
-        v2 = v2 / np.linalg.norm(v2)
-        
-        # Create disc mesh vertices
-        vertices = [center]  # Start with center point
-        
-        # Create concentric rings
-        for ring_idx in range(1, n_rings + 1):
-            ring_radius = radius * (ring_idx / n_rings)
-            
-            for seg_idx in range(n_radial_segments):
-                angle = 2 * np.pi * seg_idx / n_radial_segments
-                # Point in local plane coordinates
-                local_point = ring_radius * (np.cos(angle) * v1 + np.sin(angle) * v2)
-                # Transform to global coordinates
-                global_point = center + local_point
-                vertices.append(global_point)
-        
-        vertices = np.array(vertices)
-        
-        # Create triangular faces (same logic as rupture plane meshes)
-        faces = []
-        
-        # Triangles from center to first ring
-        for seg_idx in range(n_radial_segments):
-            next_seg = (seg_idx + 1) % n_radial_segments
-            faces.append([0, 1 + seg_idx, 1 + next_seg])
-        
-        # Triangles between rings
-        for ring_idx in range(n_rings - 1):
-            ring_start = 1 + ring_idx * n_radial_segments
-            next_ring_start = 1 + (ring_idx + 1) * n_radial_segments
-            
-            for seg_idx in range(n_radial_segments):
-                next_seg = (seg_idx + 1) % n_radial_segments
-                
-                # Current ring points
-                p1 = ring_start + seg_idx
-                p2 = ring_start + next_seg
-                
-                # Next ring points
-                p3 = next_ring_start + seg_idx
-                p4 = next_ring_start + next_seg
-                
-                # Two triangles to form a quad
-                faces.append([p1, p3, p2])
-                faces.append([p2, p3, p4])
-        
-        # Convert faces to PyVista format
-        faces = np.array(faces)
-        faces_pv = np.hstack([np.full((faces.shape[0], 1), 3), faces])
-        
-        # Create PyVista mesh
-        mesh = pv.PolyData(vertices, faces_pv.flatten())
-        
-        # Calculate mesh area
-        focal_area = mesh.area
-        
-        # Add metadata and attributes
-        # Core location attributes
-        mesh['ID'] = np.full(mesh.n_points, str(row['ID']))
-        mesh['ID_num'] = np.full(mesh.n_points, i)
-        
-        # Specified columns for focals
-        specified_columns = ['LAT', 'LON', 'DEPTH']
-        for col in specified_columns:
-            if col in df_focal_events.columns:
-                mesh[col] = np.full(mesh.n_points, row.get(col, np.nan))
-        
-        # X, Y, Z coordinates
-        mesh['X'] = np.full(mesh.n_points, center[0])
-        mesh['Y'] = np.full(mesh.n_points, center[1])
-        mesh['Z'] = np.full(mesh.n_points, center[2])
-        
-        # Date attribute
-        if 'Date' in df_focal_events.columns and not pd.isna(row['Date']):
-            try:
-                event_date = pd.to_datetime(row['Date'])
-                unix_timestamp = event_date.timestamp()
-                mesh['Date'] = np.full(mesh.n_points, unix_timestamp, dtype=np.float64)
-            except:
-                pass
-        
-        # Temporal attributes (always include if available)
-        temporal_columns = ['unix_timestamp', 'days_since_first', 'decimal_year']
-        for col in temporal_columns:
-            if col in df_focal_events.columns:
-                mesh[col] = np.full(mesh.n_points, row.get(col, np.nan))
-        
-        # Sequence/cluster information
-        if 'sequence_label' in df_focal_events.columns:
-            seq_label = row.get('sequence_label', '')
-            mesh['sequence_label'] = np.full(mesh.n_points, str(seq_label))
-        
-        if 'segmentation_level' in df_focal_events.columns:
-            mesh['segmentation_level'] = np.full(mesh.n_points, row.get('segmentation_level', np.nan))
-        
-        if 'fault_id' in df_focal_events.columns:
-            fs_id = row.get('fault_id', '')
-            mesh['fault_id'] = np.full(mesh.n_points, str(fs_id))
-        
-        # Magnitude attribute
-        mesh['Mw'] = np.full(mesh.n_points, row.get('Mw', np.nan))
-        
-        # Focal mechanism parameters (using original column names from dataframe)
-        mesh['Strike1'] = np.full(mesh.n_points, row.get('Strike1', np.nan))
-        mesh['Dip1'] = np.full(mesh.n_points, row.get('Dip1', np.nan))
-        mesh['Rake1'] = np.full(mesh.n_points, row.get('Rake1', np.nan))
-        mesh['Strike2'] = np.full(mesh.n_points, row.get('Strike2', np.nan))
-        mesh['Dip2'] = np.full(mesh.n_points, row.get('Dip2', np.nan))
-        mesh['Rake2'] = np.full(mesh.n_points, row.get('Rake2', np.nan))
-        mesh['A'] = np.full(mesh.n_points, row.get('A', np.nan))
-        mesh['epsilon'] = np.full(mesh.n_points, row.get('epsilon', np.nan))
-        mesh['pref_foc'] = np.full(mesh.n_points, row['pref_foc'])
-        
-        # Active plane attributes (for convenience)
-        mesh['Strike'] = np.full(mesh.n_points, strike)
-        mesh['Dip'] = np.full(mesh.n_points, dip)
-        mesh['Rake'] = np.full(mesh.n_points, rake)
-        mesh['radius'] = np.full(mesh.n_points, radius)
-        mesh['area_m2'] = np.full(mesh.n_points, focal_area)
-        
-        # Handle final_cluster_id - convert None string to np.nan
-        cluster_id = row.get('final_cluster_id', np.nan)
-        if cluster_id == 'None' or cluster_id is None:
-            cluster_id = np.nan
-        mesh['final_cluster_id'] = np.full(mesh.n_points, cluster_id)
-        
-        # Add hypocenter coordinates (alternative names)
-        mesh['hypocenter_x'] = np.full(mesh.n_points, center[0])
-        mesh['hypocenter_y'] = np.full(mesh.n_points, center[1])
-        mesh['hypocenter_z'] = np.full(mesh.n_points, center[2])
-        
-        focal_meshes.append({
-            'mesh': mesh,
-            'event_id': row['ID'],
-            'pref_foc': row['pref_foc'],  # Use pref_foc instead of A
-            'original_A': row.get('A', np.nan),  # Keep original A for reference
-            'strike': strike,
-            'dip': dip,
-            'area_m2': focal_area
-        })
-    
-    return focal_meshes
+    import sys as _sys_foc
+    n = len(df_focal_events)
+    _sys_foc.stderr.write(f"[focal_disc] Building combined disc mesh for {n} focal events...\n")
+    _sys_foc.stderr.flush()
+
+    # --- geometry constants -------------------------------------------
+    n_seg   = n_radial_segments
+    n_verts_d = 1 + n_rings * n_seg          # center + ring vertices
+    # faces: center→ring1 (n_seg tris) + (n_rings-1) pairs * n_seg * 2 tris
+    n_faces_d = n_seg + (n_rings - 1) * n_seg * 2
+
+    # --- build template face array (offsets applied per event later) --
+    _template_faces = np.empty((n_faces_d, 3), dtype=np.int64)
+    fidx = 0
+    # center to first ring
+    for s in range(n_seg):
+        _template_faces[fidx] = [0, 1 + s, 1 + (s + 1) % n_seg]
+        fidx += 1
+    # between rings
+    for ri in range(n_rings - 1):
+        rs  = 1 + ri * n_seg
+        nrs = 1 + (ri + 1) * n_seg
+        for s in range(n_seg):
+            ns = (s + 1) % n_seg
+            _template_faces[fidx]     = [rs + s, nrs + s, rs + ns]
+            _template_faces[fidx + 1] = [rs + ns, nrs + s, nrs + ns]
+            fidx += 2
+
+    # ring-radius fractions for vertex generation
+    _ring_fracs = np.array([(ri + 1) / n_rings for ri in range(n_rings)])
+    _angles = np.array([2 * np.pi * s / n_seg for s in range(n_seg)])
+    _cos_a  = np.cos(_angles)
+    _sin_a  = np.sin(_angles)
+
+    # --- extract columns -----------------------------------------------
+    df = df_focal_events.reset_index(drop=True)
+
+    X_arr = pd.to_numeric(df['X'],  errors='coerce').values
+    Y_arr = pd.to_numeric(df['Y'],  errors='coerce').values
+    Z_arr = pd.to_numeric(df['Z'],  errors='coerce').values
+    pf_arr = pd.to_numeric(df['pref_foc'], errors='coerce').values
+
+    S1_arr = pd.to_numeric(df['Strike1'], errors='coerce').values
+    D1_arr = pd.to_numeric(df['Dip1'],    errors='coerce').values
+    S2_arr = pd.to_numeric(df['Strike2'], errors='coerce').values
+    D2_arr = pd.to_numeric(df['Dip2'],    errors='coerce').values
+
+    R1_arr = pd.to_numeric(df.get('Rake1', pd.Series(np.nan, index=df.index)), errors='coerce').values if 'Rake1' in df.columns else np.full(n, np.nan)
+    R2_arr = pd.to_numeric(df.get('Rake2', pd.Series(np.nan, index=df.index)), errors='coerce').values if 'Rake2' in df.columns else np.full(n, np.nan)
+
+    # Select strike/dip/rake by pref_foc
+    strike_arr = np.where(pf_arr == 1, S1_arr, S2_arr)
+    dip_arr    = np.where(pf_arr == 1, D1_arr, D2_arr)
+    rake_arr   = np.where(pf_arr == 1, R1_arr, R2_arr)
+
+    R_arr = pd.to_numeric(df['rupt_radius'], errors='coerce').values
+
+    # --- valid mask ----------------------------------------------------
+    valid_mask = (
+        np.isfinite(X_arr) & np.isfinite(Y_arr) & np.isfinite(Z_arr) &
+        np.isfinite(strike_arr) & np.isfinite(dip_arr) &
+        np.isfinite(R_arr) & (R_arr > 0)
+    )
+
+    # Outlier radius cap: skip discs whose radius exceeds 100× the 99th percentile
+    _r_valid = R_arr[valid_mask & np.isfinite(R_arr)]
+    if len(_r_valid) > 0:
+        _r99 = float(np.percentile(_r_valid, 99))
+        _r_cap = _r99 * 100.0
+        n_capped = int(np.sum(valid_mask & (R_arr > _r_cap)))
+        if n_capped:
+            _sys_foc.stderr.write(f"[focal_disc] Skipping {n_capped} events with radius > {_r_cap:.1f}m\n")
+            _sys_foc.stderr.flush()
+        valid_mask = valid_mask & (R_arr <= _r_cap)
+
+    valid_indices = np.where(valid_mask)[0]
+    n_valid = len(valid_indices)
+
+    if n_valid == 0:
+        _sys_foc.stderr.write("[focal_disc] No valid focal disc events found.\n")
+        _sys_foc.stderr.flush()
+        return None
+
+    _sys_foc.stderr.write(f"[focal_disc] Building {n_valid} discs ({n - n_valid} skipped)...\n")
+    _sys_foc.stderr.flush()
+
+    # --- pre-allocate combined arrays ---------------------------------
+    all_verts = np.empty((n_valid * n_verts_d, 3), dtype=np.float64)
+    all_faces = np.empty((n_valid * n_faces_d, 3), dtype=np.int64)
+
+    # per-point scalar arrays (numeric)
+    _s_X  = np.empty(n_valid * n_verts_d, dtype=np.float64)
+    _s_Y  = np.empty(n_valid * n_verts_d, dtype=np.float64)
+    _s_Z  = np.empty(n_valid * n_verts_d, dtype=np.float64)
+    _s_R  = np.empty(n_valid * n_verts_d, dtype=np.float64)
+    _s_area = np.empty(n_valid * n_verts_d, dtype=np.float64)
+    _s_strike = np.empty(n_valid * n_verts_d, dtype=np.float64)
+    _s_dip    = np.empty(n_valid * n_verts_d, dtype=np.float64)
+    _s_rake   = np.empty(n_valid * n_verts_d, dtype=np.float64)
+    _s_pf     = np.empty(n_valid * n_verts_d, dtype=np.float64)
+
+    # Optional numeric columns collected at the end
+    _opt_num_cols = {}
+    for _col in ['LAT', 'LON', 'DEPTH', 'Mw', 'A', 'epsilon', 'Strike1', 'Dip1', 'Rake1',
+                 'Strike2', 'Dip2', 'Rake2', 'unix_timestamp', 'days_since_first', 'decimal_year',
+                 'segmentation_level']:
+        if _col in df.columns:
+            _opt_num_cols[_col] = np.empty(n_valid * n_verts_d, dtype=np.float64)
+
+    # --- fill arrays event by event (geometry only in loop) -----------
+    for _li, _ei in enumerate(valid_indices):
+        _voff = _li * n_verts_d
+        _foff = _li * n_faces_d
+
+        cx, cy, cz = X_arr[_ei], Y_arr[_ei], Z_arr[_ei]
+        r  = R_arr[_ei]
+        st = strike_arr[_ei]
+        dp = dip_arr[_ei]
+
+        # Normal vector
+        _dip_azi = np.radians((st + 90.0) % 360.0)
+        _dip_rad = np.radians(dp)
+        _nx = np.sin(_dip_rad) * np.sin(_dip_azi)
+        _ny = np.sin(_dip_rad) * np.cos(_dip_azi)
+        _nz = np.cos(_dip_rad)
+        _n  = np.array([_nx, _ny, _nz])
+        _n /= np.linalg.norm(_n)
+
+        # In-plane orthonormal basis
+        _ref = np.array([0.0, 0.0, 1.0]) if abs(_n[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
+        _v1 = np.cross(_n, _ref); _v1 /= np.linalg.norm(_v1)
+        _v2 = np.cross(_n, _v1); _v2 /= np.linalg.norm(_v2)
+
+        # Center vertex
+        all_verts[_voff] = [cx, cy, cz]
+
+        # Ring vertices (vectorized per ring)
+        for _ri, _rf in enumerate(_ring_fracs):
+            _rr = r * _rf
+            _base = _voff + 1 + _ri * n_seg
+            # shape (n_seg, 3)
+            _pts = (_rr * (_cos_a[:, None] * _v1 + _sin_a[:, None] * _v2)
+                    + np.array([cx, cy, cz]))
+            all_verts[_base:_base + n_seg] = _pts
+
+        # Faces (template + per-event vertex offset)
+        all_faces[_foff:_foff + n_faces_d] = _template_faces + _li * n_verts_d
+
+        # Scalars (filled via np.repeat below is cleaner — just store per-event values)
+        _area = np.pi * r * r
+        _sl = slice(_voff, _voff + n_verts_d)
+        _s_X[_sl]      = cx
+        _s_Y[_sl]      = cy
+        _s_Z[_sl]      = cz
+        _s_R[_sl]      = r
+        _s_area[_sl]   = _area
+        _s_strike[_sl] = st
+        _s_dip[_sl]    = dp
+        _s_rake[_sl]   = rake_arr[_ei]
+        _s_pf[_sl]     = pf_arr[_ei]
+        for _col, _arr in _opt_num_cols.items():
+            _arr[_sl] = pd.to_numeric(df.loc[_ei, _col], errors='coerce') if _col in df.columns else np.nan
+
+    # --- build single PolyData ----------------------------------------
+    # PyVista faces format: [3, i0, i1, i2, 3, ...]
+    faces_pv = np.hstack([np.full((n_valid * n_faces_d, 1), 3, dtype=np.int64), all_faces])
+    combined = pv.PolyData(all_verts, faces_pv.flatten())
+
+    combined['X']      = _s_X
+    combined['Y']      = _s_Y
+    combined['Z']      = _s_Z
+    combined['hypocenter_x'] = _s_X
+    combined['hypocenter_y'] = _s_Y
+    combined['hypocenter_z'] = _s_Z
+    combined['radius'] = _s_R
+    combined['area_m2'] = _s_area
+    combined['Strike'] = _s_strike
+    combined['Dip']    = _s_dip
+    combined['Rake']   = _s_rake
+    combined['pref_foc'] = _s_pf
+
+    for _col, _arr in _opt_num_cols.items():
+        combined[_col] = _arr
+
+    # Date / temporal
+    if 'Date' in df.columns:
+        _dates = pd.to_datetime(df['Date'].iloc[valid_indices], errors='coerce')
+        _ts    = _dates.apply(lambda d: d.timestamp() if not pd.isna(d) else np.nan).values
+        combined['Date'] = np.repeat(_ts, n_verts_d)
+
+    # String columns (VTK requires uniform dtype per array — store as float ID_num)
+    combined['ID_num'] = np.repeat(valid_indices.astype(np.float64), n_verts_d)
+
+    _sys_foc.stderr.write(f"[focal_disc] Done — combined mesh: {combined.n_points} pts, {combined.n_cells} faces\n")
+    _sys_foc.stderr.flush()
+    return combined
 
 
 def export_enhanced_focal_planes_vtp(df_hyfi, output_dir, use_focal_constraints=False):
@@ -2605,94 +2740,18 @@ def export_enhanced_focal_planes_vtp(df_hyfi, output_dir, use_focal_constraints=
     focal_dir = os.path.join(output_dir, 'vtp_export')
     os.makedirs(focal_dir, exist_ok=True)
     
-    # Generate focal mechanism disc meshes
-    focal_meshes = _create_focal_mechanism_disc_meshes(focal_events)
-    
-    if len(focal_meshes) == 0:
+    # Generate focal mechanism disc meshes (returns single combined PolyData)
+    combined_focal_mesh = _create_focal_mechanism_disc_meshes(focal_events)
+
+    if combined_focal_mesh is None or combined_focal_mesh.n_points == 0:
         print("No focal mechanism meshes generated")
         return
-    
-    # Create combined focal mechanism mesh
-    print(f"  Creating combined focal mechanism mesh from {len(focal_meshes)} individual meshes...")
-    combined_focal_mesh = None
-    valid_combined_meshes = 0
-    
-    for mesh_info in focal_meshes:
-        try:
-            mesh = mesh_info['mesh']
-            
-            if mesh is not None and hasattr(mesh, 'n_points') and mesh.n_points > 0:
-                if combined_focal_mesh is None:
-                    combined_focal_mesh = mesh.copy()
-                else:
-                    # Use merge method to combine meshes while preserving attributes
-                    try:
-                        combined_focal_mesh = combined_focal_mesh.merge(mesh)
-                    except Exception as merge_error:
-                        print(f"        Merge failed ({merge_error}), trying manual combination...")
-                        # Fallback to manual combination (same logic as rupture planes)
-                        points1 = combined_focal_mesh.points
-                        points2 = mesh.points
-                        faces1 = combined_focal_mesh.faces
-                        faces2 = mesh.faces
-                        
-                        # Offset face indices for second mesh
-                        n_points1 = len(points1)
-                        faces2_offset = faces2.copy()
-                        for j in range(1, len(faces2_offset)):
-                            if j % 4 != 0:  # Skip count elements
-                                faces2_offset[j] += n_points1
-                        
-                        combined_points = np.vstack([points1, points2])
-                        combined_faces = np.hstack([faces1, faces2_offset])
-                        new_combined_mesh = pv.PolyData(combined_points, combined_faces)
-                        
-                        # Manually combine attribute arrays
-                        for key in combined_focal_mesh.point_data.keys():
-                            if key in mesh.point_data.keys():
-                                combined_attr = np.hstack([
-                                    combined_focal_mesh.point_data[key],
-                                    mesh.point_data[key]
-                                ])
-                                new_combined_mesh[key] = combined_attr
-                        
-                        combined_focal_mesh = new_combined_mesh
-                
-                valid_combined_meshes += 1
-        except Exception as e:
-            print(f"    Warning: Failed to add focal mesh {mesh_info.get('event_id', 'unknown')} to combined mesh: {e}")
-            continue
-    
+
     # Export combined focal mechanism mesh
-    if combined_focal_mesh is not None and combined_focal_mesh.n_points > 0:
-        combined_focal_file = os.path.join(focal_dir, 'focals_compiled.vtp')
-        combined_focal_mesh.save(combined_focal_file)
-        print(f"  Saved combined focal mechanism mesh: {combined_focal_file} ({valid_combined_meshes} focal planes)")
-    else:
-        print(f"  Warning: No valid focal mechanism meshes to combine")
-    
-    # Export individual focal mechanism meshes
-    print("  Exporting individual focal mechanism meshes by event...")
-    individual_count = 0
-    
-    for mesh_info in focal_meshes:
-        try:
-            mesh = mesh_info['mesh']
-            event_id = mesh_info['event_id']
-            pref_foc = mesh_info.get('pref_foc', 'unknown')
-            area_m2 = mesh_info.get('area_m2', 0)
-            
-            if mesh is not None and mesh.n_points > 0:
-                # Save individual file
-                individual_file = os.path.join(focal_dir, f'focal_{event_id}.vtp')
-                mesh.save(individual_file)
-                individual_count += 1
-                print(f"    Saved focal mesh: focal_{event_id}.vtp (plane {pref_foc}, {area_m2:.1f} m² area)")
-        except Exception as e:
-            print(f"    Warning: Failed to save individual focal mesh for event {mesh_info.get('event_id', 'unknown')}: {e}")
-            continue
-    
-    print(f"  Saved {individual_count} individual focal mechanism mesh files")
+    combined_focal_file = os.path.join(focal_dir, 'focals_compiled.vtp')
+    combined_focal_mesh.save(combined_focal_file)
+    print(f"  Saved combined focal mechanism mesh: {combined_focal_file} "
+          f"({combined_focal_mesh.n_cells} faces for {len(focal_events)} events)")
     print(f"Enhanced focal planes VTP export complete. Files saved to: {focal_dir}")
 
 
