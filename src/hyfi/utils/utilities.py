@@ -505,7 +505,7 @@ def save_data(input_params, data_input, data_output, per_X, per_Y, per_Z, config
         data_output_clean = data_output
     
     df_merge = pd.merge(data_input, data_output_clean, on='ID', how='left')
-    df_merge.to_csv(out_path + '/HyFI_results.csv', sep=';')
+    df_merge.to_csv(out_path + '/HyFI_results.csv', sep=';', date_format='%Y-%m-%dT%H:%M:%S.%f')
     
     # Save the input data outliers if they exist
     if 'DBSCAN_outliers' in input_params:

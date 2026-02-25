@@ -260,7 +260,17 @@ class MultiSequenceWorkflow:
         for sequence_name, sequence_data in self.sequences.items():
             if sequence_name == 'noise':
                 continue  # Skip noise sequence
-            
+
+            # Skip already-processed sequences (resume support)
+            sequence_results_file = Path(self.config.output_directory) / sequence_name / 'HyFI_results.csv'
+            if sequence_results_file.exists():
+                print(f"Skipping {sequence_name}: HyFI_results.csv already exists (already processed).")
+                self.sequence_results[sequence_name] = {
+                    'skipped': True,
+                    'input_events': len(sequence_data)
+                }
+                continue
+
             print('\n')
             print("=" * 60)
             print(f"Processing {sequence_name} ({len(sequence_data)} events)...")
@@ -676,7 +686,7 @@ class MultiSequenceWorkflow:
         output_dir = Path(self.config.output_directory)
         
         for sequence_name, sequence_result in self.sequence_results.items():
-            if 'workflow_results' not in sequence_result:
+            if 'workflow_results' not in sequence_result and not sequence_result.get('skipped'):
                 continue
             
             # Check if this sequence has a HyFI_results.csv file
@@ -1389,7 +1399,8 @@ class MultiSequenceWorkflow:
                 'sequence_number': sequence_number,
                 'n_events': len(sequence_data),
                 'analysis_status': 'success' if 'workflow_results' in sequence_result else 
-                                 ('error' if 'error' in sequence_result else 'not_processed'),
+                                 ('skipped' if sequence_result.get('skipped') else
+                                 ('error' if 'error' in sequence_result else 'not_processed')),
                 'centroid_x': center_lon,
                 'centroid_y': center_lat,
                 'centroid_z': center_depth

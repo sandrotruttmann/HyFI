@@ -1020,8 +1020,10 @@ class DAGExecutor:
             df_hyfi = df_hyfi[ordered_columns]
             
             # Save the single dataframe as CSV
+            # Use ISO 8601 'T' separator so datetime values are never
+            # split into two columns by space-delimited viewers.
             output_file = f"{output_dir}/HyFI_results.csv"
-            df_hyfi.to_csv(output_file, index=False)
+            df_hyfi.to_csv(output_file, index=False, date_format='%Y-%m-%dT%H:%M:%S.%f')
             
             # Create execution summary
             summary = {
