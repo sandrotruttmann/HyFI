@@ -265,6 +265,17 @@ class MultiSequenceWorkflow:
             sequence_results_file = Path(self.config.output_directory) / sequence_name / 'HyFI_results.csv'
             if sequence_results_file.exists():
                 print(f"Skipping {sequence_name}: HyFI_results.csv already exists (already processed).")
+                # Load previously saved fault metadata so it is included in the database
+                sequence_meta_file = Path(self.config.output_directory) / sequence_name / 'sequence_fault_metadata.csv'
+                if sequence_meta_file.exists():
+                    try:
+                        _seq_meta = pd.read_csv(sequence_meta_file)
+                        self.fault_metadata.extend(_seq_meta.to_dict('records'))
+                        print(f"  Loaded {len(_seq_meta)} fault metadata entries from {sequence_name}")
+                    except Exception as _e:
+                        print(f"  Warning: Could not load fault metadata for {sequence_name}: {_e}")
+                else:
+                    print(f"  Warning: No sequence_fault_metadata.csv found for {sequence_name} — metadata will be missing")
                 self.sequence_results[sequence_name] = {
                     'skipped': True,
                     'input_events': len(sequence_data)
@@ -825,10 +836,6 @@ class MultiSequenceWorkflow:
         """
         print("Exporting fault metadata...")
         
-        if not self.fault_metadata:
-            print("  No fault metadata available to export")
-            return
-        
         output_dir = Path(self.config.output_directory)
         
         # Create HyFI_Database directory
@@ -836,16 +843,37 @@ class MultiSequenceWorkflow:
         database_dir.mkdir(exist_ok=True)
         
         metadata_file = database_dir / 'HyFI_database_metadata.csv'
+
+        if not self.fault_metadata and not metadata_file.exists():
+            print("  No fault metadata available to export")
+            return
+
+        # Merge with any previously exported metadata (covers skipped sequences whose
+        # per-sequence file was not yet available, e.g. from an older run).
+        existing_records = []
+        if metadata_file.exists():
+            try:
+                df_existing = pd.read_csv(metadata_file)
+                existing_records = df_existing.to_dict('records')
+                print(f"  Loaded {len(existing_records)} existing entries from previous database export")
+            except Exception as _e:
+                print(f"  Warning: Could not load existing metadata file: {_e}")
+
+        # Build combined dataframe: existing entries first, then newly collected ones.
+        # The duplicate-removal step below (keep='last') will prefer new data for
+        # fault_ids that appear in both sources.
+        all_records = existing_records + self.fault_metadata
         
         # Convert to DataFrame
-        df_metadata = pd.DataFrame(self.fault_metadata)
+        df_metadata = pd.DataFrame(all_records)
         
-        print(f"  Collected {len(df_metadata)} fault metadata entries")
+        print(f"  Collected {len(self.fault_metadata)} new fault metadata entries (total incl. existing: {len(df_metadata)})")
         
-        # Remove duplicates based on fault_id (keep first occurrence)
+        # Remove duplicates based on fault_id (keep='last' so freshly-collected data
+        # from the current run takes precedence over previously-exported entries)
         # This can happen if metadata is collected from multiple sources
         before_dedup = len(df_metadata)
-        df_metadata = df_metadata.drop_duplicates(subset=['fault_id'], keep='first')
+        df_metadata = df_metadata.drop_duplicates(subset=['fault_id'], keep='last')
         after_dedup = len(df_metadata)
         if before_dedup > after_dedup:
             print(f"  Removed {before_dedup - after_dedup} duplicate entries")

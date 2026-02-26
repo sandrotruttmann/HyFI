@@ -143,7 +143,16 @@ class DAGExecutor:
             
             # Automatically save all results at workflow completion
             self._save_workflow_results()
-            
+
+            # Save per-sequence fault metadata so resume runs can reload it
+            if self.fault_metadata:
+                try:
+                    import pandas as _pd_meta
+                    _meta_file = self.output_dir / 'sequence_fault_metadata.csv'
+                    _pd_meta.DataFrame(self.fault_metadata).to_csv(_meta_file, index=False)
+                except Exception as _me:
+                    logger.warning(f"Could not save per-sequence fault metadata: {_me}")
+
             self.end_time = datetime.now()
             duration = self.end_time - self.start_time
             
