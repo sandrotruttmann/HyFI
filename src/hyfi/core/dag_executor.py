@@ -133,6 +133,26 @@ class DAGExecutor:
         """
         self.start_time = datetime.now()
         
+        # Print header banner only for standalone single-sequence runs
+        if self.cluster_name is None:
+            print('')
+            print('  ╔══════════════════════════════════════════════════════════════╗')
+            print('  ║                                                              ║')
+            print('  ║    ██╗  ██╗██╗   ██╗███████╗██╗                              ║')
+            print('  ║    ██║  ██║╚██╗ ██╔╝██╔════╝██║                              ║')
+            print('  ║    ███████║ ╚████╔╝ █████╗  ██║                              ║')
+            print('  ║    ██╔══██║  ╚██╔╝  ██╔══╝  ██║                              ║')
+            print('  ║    ██║  ██║   ██║   ██║     ██║                              ║')
+            print('  ║    ╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝                              ║')
+            print('  ║                                                              ║')
+            print('  ║      Hypocenter-based 3D Fault Imaging                       ║')
+            print('  ║      Single-Sequence Workflow                                ║')
+            print('  ║                                                              ║')
+            print('  ║      Truttmann et al. (2023)                                 ║')
+            print('  ║                                                              ║')
+            print('  ╚══════════════════════════════════════════════════════════════╝')
+            print('')
+        
         try:
             # Get execution order
             execution_order = self.dag.get_enabled_nodes()

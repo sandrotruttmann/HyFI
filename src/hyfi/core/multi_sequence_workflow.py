@@ -105,8 +105,21 @@ class MultiSequenceWorkflow:
             Dictionary containing results from all sequences and aggregated analysis
         """
         print('')
-        print('###   MULTI-SEQUENCE HYPOCENTER-BASED 3D FAULT IMAGING   ###')
-        print('Processing full earthquake catalog with clustering...')
+        print('  ╔══════════════════════════════════════════════════════════════╗')
+        print('  ║                                                              ║')
+        print('  ║    ██╗  ██╗██╗   ██╗███████╗██╗                              ║')
+        print('  ║    ██║  ██║╚██╗ ██╔╝██╔════╝██║                              ║')
+        print('  ║    ███████║ ╚████╔╝ █████╗  ██║                              ║')
+        print('  ║    ██╔══██║  ╚██╔╝  ██╔══╝  ██║                              ║')
+        print('  ║    ██║  ██║   ██║   ██║     ██║                              ║')
+        print('  ║    ╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝                              ║')
+        print('  ║                                                              ║')
+        print('  ║      Hypocenter-based 3D Fault Imaging                       ║')
+        print('  ║      Multi-Sequence Workflow                                 ║')
+        print('  ║                                                              ║')
+        print('  ║      Truttmann et al. (2023)                                 ║')
+        print('  ║                                                              ║')
+        print('  ╚══════════════════════════════════════════════════════════════╝')
         print('')
         
         self.start_time = time.time()
@@ -225,6 +238,10 @@ class MultiSequenceWorkflow:
         
     def _segment_catalog(self):
         """Segment the catalog into sequences using multi-step clustering."""
+        print('')
+        print('=' * 60)
+        print('STEP 2 — CATALOG SEGMENTATION')
+        print('=' * 60)
         print(f"Segmenting catalog using multi-step clustering...")
         print(f"Number of segmentation steps: {len(self.config.segmentation_steps)}")
         
@@ -255,6 +272,10 @@ class MultiSequenceWorkflow:
     
     def _process_sequences(self):
         """Process each sequence through the DAG-based workflow."""
+        print('')
+        print('=' * 60)
+        print('STEP 3 — PER-SEQUENCE FAULT ANALYSIS')
+        print('=' * 60)
         print("Processing individual sequences...")
         
         for sequence_name, sequence_data in self.sequences.items():
@@ -264,7 +285,11 @@ class MultiSequenceWorkflow:
             # Skip already-processed sequences (resume support)
             sequence_results_file = Path(self.config.output_directory) / sequence_name / 'HyFI_results.csv'
             if sequence_results_file.exists():
-                print(f"Skipping {sequence_name}: HyFI_results.csv already exists (already processed).")
+                print('')
+                print('=' * 60)
+                print(f'Processing {sequence_name} ({len(sequence_data)} events)...')
+                print('=' * 60)
+                print(f"  Skipping: HyFI_results.csv already exists (already processed).")
                 # Load previously saved fault metadata so it is included in the database
                 sequence_meta_file = Path(self.config.output_directory) / sequence_name / 'sequence_fault_metadata.csv'
                 if sequence_meta_file.exists():
@@ -282,11 +307,11 @@ class MultiSequenceWorkflow:
                 }
                 continue
 
-            print('\n')
-            print("=" * 60)
-            print(f"Processing {sequence_name} ({len(sequence_data)} events)...")
-            print("=" * 60)
-            print('\n')
+            print('')
+            print('=' * 60)
+            print(f'Processing {sequence_name} ({len(sequence_data)} events)...')
+            print('=' * 60)
+            print('')
 
             try:
                 # Create sequence-specific DAG configuration
@@ -1104,6 +1129,10 @@ class MultiSequenceWorkflow:
     
     def _merge_and_export_vtp_files(self):
         """Merge VTP files from all clusters and export combined versions."""
+        print('')
+        print('=' * 60)
+        print('FINAL STEP — BUILDING HyFI DATABASE')
+        print('=' * 60)
         print("Merging and exporting combined VTP files...")
         
         output_dir = Path(self.config.output_directory)
