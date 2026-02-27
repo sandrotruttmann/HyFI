@@ -149,7 +149,24 @@ class DAGExecutor:
                 try:
                     import pandas as _pd_meta
                     _meta_file = self.output_dir / 'sequence_fault_metadata.csv'
-                    _pd_meta.DataFrame(self.fault_metadata).to_csv(_meta_file, index=False)
+                    _meta_df = _pd_meta.DataFrame(self.fault_metadata)
+                    _round_3 = ['centroid_x', 'centroid_y', 'centroid_z',
+                                'rupture_mean_azimuth', 'rupture_mean_dip',
+                                'mesh_mean_azimuth', 'mesh_mean_dip']
+                    _round_2 = ['max_magnitude_leonard2014',
+                                'rupture_mean_instability', 'rupture_mean_sliptend', 'rupture_mean_dilatend',
+                                'mesh_mean_instability', 'mesh_mean_sliptend', 'mesh_mean_dilatend']
+                    _round_1 = ['interpolated_mesh_area_m2']
+                    for _col in _round_3:
+                        if _col in _meta_df.columns:
+                            _meta_df[_col] = _meta_df[_col].round(3)
+                    for _col in _round_2:
+                        if _col in _meta_df.columns:
+                            _meta_df[_col] = _meta_df[_col].round(2)
+                    for _col in _round_1:
+                        if _col in _meta_df.columns:
+                            _meta_df[_col] = _meta_df[_col].round(1)
+                    _meta_df.to_csv(_meta_file, index=False)
                 except Exception as _me:
                     logger.warning(f"Could not save per-sequence fault metadata: {_me}")
 
@@ -572,6 +589,21 @@ class DAGExecutor:
             # Run stress analysis using the single dataframe function
             result_df_hyfi, S2_trend, S2_plunge = fault_stress(df_hyfi, stress_params)
             
+            # If shapefile-based stress was used, resolve the actual numeric stress
+            # parameters at the cluster centroid so they can be used for mesh stress later.
+            if stress_params.get('use_shapefile_stress') and stress_params.get('stress_field_shapefile'):
+                try:
+                    from hyfi.core.stress_analysis import (load_stress_field_from_shapefile,
+                                                            get_stress_field_for_point)
+                    stress_gdf = load_stress_field_from_shapefile(stress_params['stress_field_shapefile'])
+                    cx = float(result_df_hyfi['X'].mean())
+                    cy = float(result_df_hyfi['Y'].mean())
+                    resolved = get_stress_field_for_point(cx, cy, stress_gdf)
+                    if resolved:
+                        stress_params.update(resolved)  # adds/overwrites S1_trend etc. with real values
+                except Exception as _se:
+                    logger.warning(f"Could not resolve shapefile stress params for mesh stress: {_se}")
+            
             return {
                 'stress_analysis_results': (result_df_hyfi, S2_trend, S2_plunge),
                 'df_hyfi': result_df_hyfi,
@@ -630,6 +662,13 @@ class DAGExecutor:
         # Get all required data for visualization
         fault_network_results = self.results.get('fault_network', {})
         input_params = fault_network_results.get('legacy_params', {}) if isinstance(fault_network_results, dict) else {}
+        
+        # Merge stress analysis parameters so mesh stress can be applied during visualization
+        stress_analysis_results = self.results.get('stress_analysis', {})
+        if isinstance(stress_analysis_results, dict):
+            stress_legacy = stress_analysis_results.get('legacy_params', {})
+            if stress_legacy:
+                input_params = {**input_params, **stress_legacy}
         
         # Run visualization using the updated single dataframe functions
         try:

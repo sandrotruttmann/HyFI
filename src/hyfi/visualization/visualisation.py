@@ -2304,6 +2304,10 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
                 })
             
             summary_df = pd.DataFrame(summary_data)
+            if 'area_m2' in summary_df.columns:
+                summary_df['area_m2'] = summary_df['area_m2'].round(1)
+            if 'max_Mw' in summary_df.columns:
+                summary_df['max_Mw'] = summary_df['max_Mw'].round(2)
             summary_file = os.path.join(output_dir, 'interpolated_faults_summary.csv')
             summary_df.to_csv(summary_file, index=False)
             print(f"    Area and magnitude summary saved to: {summary_file}")

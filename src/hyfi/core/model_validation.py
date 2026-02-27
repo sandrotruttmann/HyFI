@@ -13,6 +13,7 @@ Please cite: Truttmann et al. (2023). Hypocenter-based 3D Imaging of Active Faul
 """
 
 # Import modules
+import csv
 import numpy as np
 import pandas as pd
 from ..utils import utilities
@@ -694,10 +695,13 @@ def export_active_plane_summary(df_hyfi, out_dir):
     summary_df['_sort_order'] = summary_df['plane_determination_method'].map(sort_order)
     summary_df = summary_df.sort_values(['_sort_order', 'epsilon'])
     summary_df = summary_df.drop(columns=['_sort_order'])
+    summary_df['epsilon'] = summary_df['epsilon'].round(1)
     
-    # Export to CSV
+    # Export to CSV — use ISO 8601 'T' separator so datetime values are never
+    # split into two columns by space-delimited viewers.
     output_file = os.path.join(out_dir, 'active_plane_determination_summary.csv')
-    summary_df.to_csv(output_file, index=False)
+    summary_df.to_csv(output_file, index=False, date_format='%Y-%m-%dT%H:%M:%S.%f',
+                       quoting=csv.QUOTE_NONNUMERIC)
     
     print(f'\n  📄 Active plane determination summary exported to: {output_file}')
     

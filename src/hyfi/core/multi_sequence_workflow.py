@@ -928,18 +928,27 @@ class MultiSequenceWorkflow:
         available_columns = [col for col in requested_columns if col in df_metadata.columns]
         df_metadata = df_metadata[available_columns]
         
-        # Round numeric columns to 3 decimal places
-        columns_to_round = [
+        # Round numeric columns with per-column precision
+        round_3 = [
             'centroid_x', 'centroid_y', 'centroid_z',
             'rupture_mean_azimuth', 'rupture_mean_dip',
             'mesh_mean_azimuth', 'mesh_mean_dip',
-            'mesh_area_m2', 'max_mag',
+        ]
+        round_2 = [
+            'max_mag',
             'rupture_mean_instability', 'rupture_mean_sliptend', 'rupture_mean_dilatend',
             'mesh_mean_instability', 'mesh_mean_sliptend', 'mesh_mean_dilatend'
         ]
-        for col in columns_to_round:
+        round_1 = ['mesh_area_m2']
+        for col in round_3:
             if col in df_metadata.columns:
                 df_metadata[col] = df_metadata[col].round(3)
+        for col in round_2:
+            if col in df_metadata.columns:
+                df_metadata[col] = df_metadata[col].round(2)
+        for col in round_1:
+            if col in df_metadata.columns:
+                df_metadata[col] = df_metadata[col].round(1)
         
         # Export to CSV
         df_metadata.to_csv(metadata_file, index=False)
