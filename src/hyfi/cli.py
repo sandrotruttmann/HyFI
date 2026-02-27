@@ -110,6 +110,15 @@ def run(config_file, output_dir, interpolate_planes):
                             foc_path = Path(input_node['focal_mechanism_file'])
                             if not foc_path.is_absolute():
                                 input_node['focal_mechanism_file'] = str((config_dir / foc_path).resolve())
+
+                # Resolve shapefile_path inside step_3_per_sequence_analysis > stress_analysis
+                step3 = workflow_dag.get('step_3_per_sequence_analysis', {})
+                stress_node = step3.get('stress_analysis', {})
+                stress_field = stress_node.get('parameters', {}).get('stress_field', {})
+                if stress_field.get('shapefile_path'):
+                    shp_path = Path(stress_field['shapefile_path'])
+                    if not shp_path.is_absolute():
+                        stress_field['shapefile_path'] = str((config_dir / shp_path).resolve())
         
         # Validate configuration
         if hasattr(config, 'validate_dag'):
@@ -120,6 +129,16 @@ def run(config_file, output_dir, interpolate_planes):
             config.validate()
         
         if isinstance(config, HyFIWorkflowDAG):
+            # Resolve relative shapefile paths in stress_analysis node
+            config_dir = Path(config_file).parent.resolve()
+            stress_node = config.nodes.get('stress_analysis')
+            if stress_node and stress_node.parameters:
+                shp_path_str = stress_node.parameters.get('stress_field', {}).get('shapefile_path')
+                if shp_path_str:
+                    shp_path = Path(shp_path_str)
+                    if not shp_path.is_absolute():
+                        stress_node.parameters['stress_field']['shapefile_path'] = str((config_dir / shp_path).resolve())
+
             # Run DAG-based workflow
             from .core.dag_executor import DAGExecutor
             executor = DAGExecutor(config, config_source_file=config_file)

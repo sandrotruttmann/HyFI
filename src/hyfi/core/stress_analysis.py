@@ -56,18 +56,21 @@ def load_stress_field_from_shapefile(shapefile_path):
         raise RuntimeError(f"Failed to load stress field shapefile: {e}")
 
 
-def get_stress_field_for_point(x, y, stress_gdf):
+def get_stress_field_for_point(x, y, stress_gdf, source_crs=None):
     """
     Query stress field parameters for a given point coordinate.
     
     Parameters
     ----------
     x : float
-        X coordinate (e.g., CH1903+ easting)
+        X coordinate in source_crs
     y : float
-        Y coordinate (e.g., CH1903+ northing)
+        Y coordinate in source_crs
     stress_gdf : GeoDataFrame
         GeoDataFrame containing stress field polygons
+    source_crs : str, optional
+        CRS of the input coordinates (e.g. 'EPSG:21781'). If the shapefile
+        has a different CRS the point is reprojected automatically.
         
     Returns
     -------
@@ -77,15 +80,25 @@ def get_stress_field_for_point(x, y, stress_gdf):
     """
     try:
         from shapely.geometry import Point
+        import geopandas as gpd
     except ImportError:
         raise ImportError(
-            "shapely is required for spatial queries. "
-            "Install it with: pip install shapely"
+            "shapely and geopandas are required for spatial queries."
         )
     
     # Create point geometry
     point = Point(x, y)
-    
+
+    # Reproject query point to shapefile CRS if CRS info is available and differs
+    if source_crs and stress_gdf.crs is not None:
+        try:
+            point_gdf = gpd.GeoDataFrame(geometry=[point], crs=source_crs)
+            point_gdf = point_gdf.to_crs(stress_gdf.crs)
+            point = point_gdf.geometry.iloc[0]
+            print(f"  Reprojected query point from {source_crs} to {stress_gdf.crs}")
+        except Exception as _e:
+            print(f"  Warning: Could not reproject point ({_e}), using raw coordinates.")
+
     # Find which polygon contains this point
     mask = stress_gdf.contains(point)
     
@@ -441,11 +454,15 @@ def fault_stress(df_hyfi, input_params):
                 print(f"Hypocenter center coordinates: X={center_x:.1f}m, Y={center_y:.1f}m")
                 
                 # Query stress field for the center point
-                stress_params = get_stress_field_for_point(center_x, center_y, stress_gdf)
-                
+                # Pass source CRS so the point can be reprojected to the shapefile CRS if needed
+                source_crs = input_params.get('coordinate_system', 'EPSG:21781')
+                stress_params = get_stress_field_for_point(center_x, center_y, stress_gdf,
+                                                           source_crs=source_crs)
+
                 if stress_params is None:
-                    print("WARNING: Center point not within any stress field polygon.")
-                    print("Falling back to fixed stress field parameters from config.")
+                    print(f"  ⚠️  WARNING: Center point (X={center_x:.1f}, Y={center_y:.1f}) not within any stress field polygon.")
+                    print(f"  ⚠️  Source CRS: {source_crs} | Shapefile CRS: {stress_gdf.crs}")
+                    print("  ⚠️  Falling back to fixed stress field parameters from config.")
                     use_shapefile = False
                 else:
                     S1_trend = stress_params['S1_trend']
@@ -460,8 +477,9 @@ def fault_stress(df_hyfi, input_params):
                     print(f"  R={stress_R}")
                     
             except Exception as e:
-                print(f"WARNING: Failed to load stress field from shapefile: {e}")
-                print("Falling back to fixed stress field parameters from config.")
+                print(f"\n  ⚠️  WARNING: Failed to load stress field from shapefile: {e}")
+                print(f"  ⚠️  Shapefile path used: {stress_field_shapefile}")
+                print("  ⚠️  Falling back to fixed stress field parameters from config.")
                 use_shapefile = False
         
         # Display stress parameters being used

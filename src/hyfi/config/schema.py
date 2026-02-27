@@ -204,6 +204,7 @@ class HyFIWorkflowDAG:
     
     # Global settings
     output_directory: str = "./hyfi_output"
+    coordinate_system: str = "EPSG:21781"
     random_seed: Optional[int] = None
     parallel_processing: bool = True
     log_level: str = "INFO"
@@ -278,6 +279,7 @@ class HyFIWorkflowDAG:
             created_date=metadata.get("created_date", ""),
             description=metadata.get("description", "Hypocenter-based 3D fault imaging workflow"),
             output_directory=global_settings.get("output_directory", "./hyfi_output"),
+            coordinate_system=global_settings.get("coordinate_system", "EPSG:21781"),
             random_seed=global_settings.get("random_seed"),
             parallel_processing=global_settings.get("parallel_processing", True),
             log_level=global_settings.get("log_level", "INFO")

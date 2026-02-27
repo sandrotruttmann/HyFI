@@ -3992,7 +3992,73 @@ def model_3d(input_params, data_input, data_output):
             visible='legendonly',
             )
         fig.add_traces(trace)
-        
+
+        # ── Slip Tendency ────────────────────────────────────────────────────
+        if 'sliptend' in df.columns:
+            colormap = 'plasma'
+            column = np.array(df['sliptend'])
+            minval = 0
+            maxval = 1
+            colorsteps = 50
+            colors = utilities_plot.colorscale(column, colormap, minval, maxval, colorsteps)
+
+            for i in range(len(df)):
+                p = [df['X'][i], df['Y'][i], df['Z'][i]]
+                r = df['rupt_radius'][i]
+                nor = np.array([df['nor_x_mean'][i], df['nor_y_mean'][i], df['nor_z_mean'][i]])
+                X, Y, Z = utilities_plot.circleplane(p, r, nor)
+                faults = go.Scatter3d(
+                    x=X, y=Y, z=Z,
+                    mode='lines',
+                    line=dict(color=colors[i], width=6),
+                    hoverinfo='none',
+                    legendgroup='Slip Tendency',
+                    name='Slip Tendency',
+                    showlegend=legend_show[i],
+                    visible='legendonly')
+                fig.add_traces(faults)
+
+            df_k = df[df['rupt_plane_dip'].isna()].reset_index(drop=True)
+            fig.add_traces(go.Scatter3d(
+                x=df_k['X'], y=df_k['Y'], z=df_k['Z'],
+                mode='markers',
+                marker=dict(color='rgba(0,0,0,0.2)', size=2, showscale=False),
+                legendgroup='Slip Tendency', name='Slip Tendency',
+                hoverinfo='none', showlegend=False, visible='legendonly'))
+
+        # ── Dilation Tendency ─────────────────────────────────────────────────
+        if 'dilatend' in df.columns:
+            colormap = 'viridis'
+            column = np.array(df['dilatend'])
+            minval = 0
+            maxval = 1
+            colorsteps = 50
+            colors = utilities_plot.colorscale(column, colormap, minval, maxval, colorsteps)
+
+            for i in range(len(df)):
+                p = [df['X'][i], df['Y'][i], df['Z'][i]]
+                r = df['rupt_radius'][i]
+                nor = np.array([df['nor_x_mean'][i], df['nor_y_mean'][i], df['nor_z_mean'][i]])
+                X, Y, Z = utilities_plot.circleplane(p, r, nor)
+                faults = go.Scatter3d(
+                    x=X, y=Y, z=Z,
+                    mode='lines',
+                    line=dict(color=colors[i], width=6),
+                    hoverinfo='none',
+                    legendgroup='Dilation Tendency',
+                    name='Dilation Tendency',
+                    showlegend=legend_show[i],
+                    visible='legendonly')
+                fig.add_traces(faults)
+
+            df_k = df[df['rupt_plane_dip'].isna()].reset_index(drop=True)
+            fig.add_traces(go.Scatter3d(
+                x=df_k['X'], y=df_k['Y'], z=df_k['Z'],
+                mode='markers',
+                marker=dict(color='rgba(0,0,0,0.2)', size=2, showscale=False),
+                legendgroup='Dilation Tendency', name='Dilation Tendency',
+                hoverinfo='none', showlegend=False, visible='legendonly'))
+
     else:
         pass
 
@@ -5050,7 +5116,73 @@ def model_3d_single_df(df_hyfi, input_params):
             visible='legendonly',
             )
         fig.add_traces(trace)
-        
+
+        # ── Slip Tendency ────────────────────────────────────────────────────
+        if 'sliptend' in df.columns:
+            colormap = 'plasma'
+            column = np.array(df['sliptend'])
+            minval = 0
+            maxval = 1
+            colorsteps = 50
+            colors = utilities_plot.colorscale(column, colormap, minval, maxval, colorsteps)
+
+            for i in range(len(df)):
+                p = [df.iloc[i]['X'], df.iloc[i]['Y'], df.iloc[i]['Z']]
+                r = df.iloc[i]['rupt_radius']
+                nor = np.array([df.iloc[i]['nor_x_mean'], df.iloc[i]['nor_y_mean'], df.iloc[i]['nor_z_mean']])
+                X, Y, Z = utilities_plot.circleplane(p, r, nor)
+                faults = go.Scatter3d(
+                    x=X, y=Y, z=Z,
+                    mode='lines',
+                    line=dict(color=colors[i], width=6),
+                    hoverinfo='none',
+                    legendgroup='Slip Tendency',
+                    name='Slip Tendency',
+                    showlegend=legend_show[i],
+                    visible='legendonly')
+                fig.add_traces(faults)
+
+            df_k = df[df['rupt_plane_dip'].isna()].reset_index(drop=True)
+            fig.add_traces(go.Scatter3d(
+                x=df_k['X'], y=df_k['Y'], z=df_k['Z'],
+                mode='markers',
+                marker=dict(color='rgba(0,0,0,0.2)', size=2, showscale=False),
+                legendgroup='Slip Tendency', name='Slip Tendency',
+                hoverinfo='none', showlegend=False, visible='legendonly'))
+
+        # ── Dilation Tendency ─────────────────────────────────────────────────
+        if 'dilatend' in df.columns:
+            colormap = 'viridis'
+            column = np.array(df['dilatend'])
+            minval = 0
+            maxval = 1
+            colorsteps = 50
+            colors = utilities_plot.colorscale(column, colormap, minval, maxval, colorsteps)
+
+            for i in range(len(df)):
+                p = [df.iloc[i]['X'], df.iloc[i]['Y'], df.iloc[i]['Z']]
+                r = df.iloc[i]['rupt_radius']
+                nor = np.array([df.iloc[i]['nor_x_mean'], df.iloc[i]['nor_y_mean'], df.iloc[i]['nor_z_mean']])
+                X, Y, Z = utilities_plot.circleplane(p, r, nor)
+                faults = go.Scatter3d(
+                    x=X, y=Y, z=Z,
+                    mode='lines',
+                    line=dict(color=colors[i], width=6),
+                    hoverinfo='none',
+                    legendgroup='Dilation Tendency',
+                    name='Dilation Tendency',
+                    showlegend=legend_show[i],
+                    visible='legendonly')
+                fig.add_traces(faults)
+
+            df_k = df[df['rupt_plane_dip'].isna()].reset_index(drop=True)
+            fig.add_traces(go.Scatter3d(
+                x=df_k['X'], y=df_k['Y'], z=df_k['Z'],
+                mode='markers',
+                marker=dict(color='rgba(0,0,0,0.2)', size=2, showscale=False),
+                legendgroup='Dilation Tendency', name='Dilation Tendency',
+                hoverinfo='none', showlegend=False, visible='legendonly'))
+
     else:
         pass
 
