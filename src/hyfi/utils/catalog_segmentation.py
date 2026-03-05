@@ -181,7 +181,9 @@ def _step_to_clustering_params(step) -> Dict[str, Any]:
         'temporal_window_days': step.temporal_window_days,
         'spatial_weight': step.spatial_weight,
         'min_cluster_size': step.min_cluster_size,
-        'cluster_dimension': step.cluster_dimension
+        'cluster_dimension': step.cluster_dimension,
+        'filter_by_aspect_ratio': step.filter_by_aspect_ratio,
+        'min_aspect_ratio': step.min_aspect_ratio
     }
 
 
@@ -251,6 +253,24 @@ def advanced_catalog_segmentation(catalog: pd.DataFrame,
         cluster_labels = _apply_spatial_temporal_clustering(feature_matrix, clustering_params)
     else:
         raise ValueError(f"Unknown clustering method: {method}")
+    
+    # Apply aspect ratio filtering if enabled (for elongated feature extraction)
+    filter_by_aspect_ratio = clustering_params.get('filter_by_aspect_ratio', False)
+    if filter_by_aspect_ratio and feature_matrix.shape[1] >= 2:
+        min_aspect_ratio = clustering_params.get('min_aspect_ratio', 1.5)
+        logger.info(f"Applying aspect ratio filtering (min_ratio={min_aspect_ratio})...")
+        
+        # Compute aspect ratio for each cluster
+        aspect_ratios = _compute_cluster_aspect_ratio(feature_matrix, cluster_labels)
+        
+        # Log aspect ratios for debugging
+        if aspect_ratios:
+            valid_ratios = [r for r in aspect_ratios.values() if r >= 0]
+            if valid_ratios:
+                logger.info(f"Aspect ratio statistics: min={min(valid_ratios):.2f}, max={max(valid_ratios):.2f}, mean={np.mean(valid_ratios):.2f}")
+        
+        # Filter non-elongated clusters
+        cluster_labels = _filter_clusters_by_aspect_ratio(cluster_labels, aspect_ratios, min_aspect_ratio)
     
     # Organize results into sequences
     sequences = _organize_sequences(catalog, cluster_labels, clustering_params.get('min_cluster_size', 20))
@@ -345,6 +365,105 @@ def _prepare_clustering_features(catalog: pd.DataFrame,
     logger.info(f"Final feature matrix shape: {feature_matrix.shape}")
     
     return feature_matrix
+
+
+def _compute_cluster_aspect_ratio(features: np.ndarray, cluster_labels: np.ndarray) -> Dict[int, float]:
+    """
+    Compute aspect ratio (elongation) for each cluster using PCA.
+    
+    Aspect ratio = max_eigenvalue / min_eigenvalue
+    - Ratio > 1: elongated (linear features)
+    - Ratio close to 1: circular/blobby (compact clusters)
+    
+    Parameters
+    ----------
+    features : np.ndarray
+        Feature matrix (typically 2D coordinates for elongation check)
+    cluster_labels : np.ndarray
+        Cluster assignments from clustering algorithm
+        
+    Returns
+    -------
+    Dict[int, float]
+        Dictionary mapping cluster_id -> aspect_ratio
+    """
+    aspect_ratios = {}
+    unique_clusters = set(cluster_labels)
+    unique_clusters.discard(-1)  # Ignore noise label (-1)
+    
+    for cluster_id in unique_clusters:
+        cluster_mask = cluster_labels == cluster_id
+        cluster_points = features[cluster_mask]
+        
+        if len(cluster_points) < 2:
+            # Not enough points to compute PCA
+            aspect_ratios[cluster_id] = 1.0
+            continue
+        
+        # Center the points
+        cluster_centered = cluster_points - cluster_points.mean(axis=0)
+        
+        # Compute covariance matrix
+        cov_matrix = np.cov(cluster_centered.T)
+        
+        # Compute eigenvalues
+        if cov_matrix.ndim == 1:
+            # Single feature case
+            eigenvals = [cov_matrix[0]]
+        else:
+            eigenvals = np.linalg.eigvals(cov_matrix)
+        
+        eigenvals = np.sort(np.abs(eigenvals))[::-1]  # Sort descending
+        
+        # Aspect ratio = largest eigenvalue / smallest eigenvalue
+        if eigenvals[-1] > 1e-10:  # Avoid division by zero
+            aspect_ratio = eigenvals[0] / (eigenvals[-1] + 1e-10)
+        else:
+            aspect_ratio = 1.0
+        
+        aspect_ratios[cluster_id] = float(aspect_ratio)
+    
+    return aspect_ratios
+
+
+def _filter_clusters_by_aspect_ratio(cluster_labels: np.ndarray, 
+                                     aspect_ratios: Dict[int, float],
+                                     min_aspect_ratio: float = 1.5) -> np.ndarray:
+    """
+    Filter clusters based on aspect ratio, marking non-elongated ones as noise.
+    
+    Parameters
+    ----------
+    cluster_labels : np.ndarray
+        Original cluster assignments
+    aspect_ratios : Dict[int, float]
+        Aspect ratio for each cluster
+    min_aspect_ratio : float
+        Minimum aspect ratio for cluster to be kept (default: 1.5)
+        - 1.5 = length/width at least 1.5:1
+        - 2.0 = length/width at least 2:1
+        - 3.0 = length/width at least 3:1
+        
+    Returns
+    -------
+    np.ndarray
+        Modified cluster labels with non-elongated clusters marked as -1 (noise)
+    """
+    filtered_labels = cluster_labels.copy()
+    
+    filtered_count = 0
+    for cluster_id, ratio in aspect_ratios.items():
+        if ratio < min_aspect_ratio:
+            # Mark this cluster as noise (-1)
+            mask = filtered_labels == cluster_id
+            filtered_labels[mask] = -1
+            filtered_count += 1
+            logger.debug(f"Filtered cluster {cluster_id}: aspect_ratio={ratio:.2f} < {min_aspect_ratio}")
+    
+    if filtered_count > 0:
+        logger.info(f"Aspect ratio filtering: removed {filtered_count} non-elongated clusters")
+    
+    return filtered_labels
 
 
 def _apply_dbscan_clustering(features: np.ndarray, params: Dict[str, Any]) -> np.ndarray:

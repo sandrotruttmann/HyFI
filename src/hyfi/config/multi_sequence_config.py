@@ -63,6 +63,10 @@ class SegmentationStep:
     use_raw_coordinates: bool = False  # Use raw coordinates without normalization (old implementation style)
     cluster_dimension: str = '3d'  # '2d' (XY only) or '3d' (XYZ) for spatial clustering
     
+    # Aspect ratio filtering for elongated features (Class C analysis)
+    filter_by_aspect_ratio: bool = False  # Enable filtering of non-elongated clusters
+    min_aspect_ratio: float = 1.5  # Minimum aspect ratio to keep cluster (1.5=length:width ratio of 1.5:1, 2.0=2:1, 3.0=3:1)
+    
     # Minimum cluster size to process
     min_cluster_size: int = 20
     
@@ -93,6 +97,10 @@ class SegmentationStep:
         validate_range(self.spatial_weight, 0, 1, f"{self.step_name}_spatial_weight")
         validate_positive_number(self.min_cluster_size, f"{self.step_name}_min_cluster_size")
         validate_choice(self.cluster_dimension, ['2d', '3d'], f"{self.step_name}_cluster_dimension")
+        
+        # Aspect ratio filtering parameters
+        if self.filter_by_aspect_ratio:
+            validate_positive_number(self.min_aspect_ratio, f"{self.step_name}_min_aspect_ratio")
         
         validate_choice(self.outlier_handling, ['next_step', 'merge_smallest', 'discard'], f"{self.step_name}_outlier_handling")
 

@@ -396,6 +396,14 @@ To achieve hierarchical multi-scale clustering, multiple segmentation steps can 
 | `hdbscan_min_cluster_size` | integer | `15` | Minimum number of samples in a cluster. Range: 5-50. Lower values = more clusters but potential noise. Higher values = fewer, larger clusters. Only used with `method: "hdbscan"` |
 | `hdbscan_min_samples` | integer or null | `null` | Minimum number of samples in a neighborhood for a point to be considered a core point. `null` = same as `hdbscan_min_cluster_size`. Use integer 3-20 for custom values. Only used with `method: "hdbscan"` |
 
+#### Cluster Geometry Filtering
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `filter_by_aspect_ratio` | boolean | `false` | Enable filtering of clusters based on their geometric aspect ratio (shape). When `true`, clusters are evaluated by elongation: aspect_ratio = max_eigenvalue / min_eigenvalue. Clusters with aspect ratio below `min_aspect_ratio` threshold (blob-shaped or compact) are reclassified as noise (-1) |
+| `min_aspect_ratio` | float | `1.5` | Minimum aspect ratio threshold for keeping a cluster. Range: 1.0-5.0+. When `filter_by_aspect_ratio: true`, clusters with aspect_ratio < min_aspect_ratio are discarded. |
+
+
 #### Temporal Clustering Parameters
 
 | Parameter | Type | Default | Description |
