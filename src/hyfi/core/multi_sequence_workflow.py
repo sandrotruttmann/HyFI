@@ -945,6 +945,7 @@ class MultiSequenceWorkflow:
             'mesh_mean_azimuth', 'mesh_mean_dip',
             'mesh_area_m2', 'max_mag', 
             'mesh_vertices', 'mesh_faces',
+            'mesh_planarity',
             'fault_length_m', 
             'trace_start_x', 'trace_start_y', 'trace_end_x', 'trace_end_y',
             'rupture_mean_instability', 'rupture_mean_sliptend', 'rupture_mean_dilatend',
@@ -961,6 +962,7 @@ class MultiSequenceWorkflow:
             'rupture_mean_azimuth', 'rupture_mean_dip',
             'mesh_mean_azimuth', 'mesh_mean_dip',
             'trace_start_x', 'trace_start_y', 'trace_end_x', 'trace_end_y',
+            'mesh_planarity',
         ]
         round_2 = [
             'max_mag',

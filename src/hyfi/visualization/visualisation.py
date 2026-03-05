@@ -325,6 +325,87 @@ def _add_attributes_to_vtp(vtp_object, data_source, column_list=None, exclude_co
                 pass
 
 
+def _calculate_mesh_planarity(mesh):
+    """
+    Calculate a planarity/reliability score for the interpolated fault mesh.
+    
+    Based on the distribution of triangle normal vectors. A perfectly planar mesh
+    has all normals pointing in the same direction (score ~1.0). A strongly bent
+    or non-planar mesh has normals scattered in many directions (score ~0.0).
+    
+    Parameters
+    ----------
+    mesh : pyvista.PolyData
+        The interpolated fault plane mesh
+        
+    Returns
+    -------
+    float
+        Planarity score between 0.0 (non-planar/bent) and 1.0 (perfectly planar)
+    """
+    try:
+        if mesh.n_cells < 3:
+            # Not enough cells to assess planarity
+            return None
+        
+        # Compute face normals if not present
+        if 'Normals' not in mesh.cell_data:
+            mesh = mesh.copy()
+            mesh = mesh.compute_normals(cell_normals=True, point_normals=False)
+        
+        # Get all face normals
+        normals = mesh.cell_data['Normals']
+        
+        if len(normals) < 3:
+            return None
+        
+        # Normalize all normals to unit vectors (should already be normalized, but ensure)
+        normals_normalized = normals / np.linalg.norm(normals, axis=1, keepdims=True)
+        
+        # Flip normals to consistent hemisphere
+        # Ensure all normals point to same side by checking against first normal
+        v0 = normals_normalized[0]
+        for i in range(1, len(normals_normalized)):
+            if np.dot(normals_normalized[i], v0) < 0:
+                normals_normalized[i] = -normals_normalized[i]
+        
+        # Calculate the mean normal direction
+        mean_normal = np.mean(normals_normalized, axis=0)
+        mean_normal = mean_normal / np.linalg.norm(mean_normal)
+        
+        # Calculate angular deviations of each normal from the mean
+        # Using dot product: cos(angle) = dot product of unit vectors
+        cos_angles = np.dot(normals_normalized, mean_normal)
+        # Clip to [-1, 1] to handle numerical errors
+        cos_angles = np.clip(cos_angles, -1.0, 1.0)
+        angles_rad = np.arccos(cos_angles)
+        angles_deg = np.degrees(angles_rad)
+        
+        # Calculate planarity as the inverse of the mean angular deviation
+        # Scoring:
+        # - mean_angle = 0° → score = 1.0 (perfectly planar)
+        # - mean_angle = 45° → score ≈ 0.29
+        # - mean_angle = 90° → score = 0.0 (completely random)
+        
+        mean_angle_deg = np.mean(angles_deg)
+        
+        # Use exponential decay: exp(-k * mean_angle) where k controls sensitivity
+        # With k=0.05, at 45° we get exp(-2.25) ≈ 0.10, at 20° we get exp(-1) ≈ 0.37
+        # With k=0.08, at 45° we get exp(-3.6) ≈ 0.027, at 15° we get exp(-1.2) ≈ 0.30
+        # With k=0.04, at 45° we get exp(-1.8) ≈ 0.17, at 20° we get exp(-0.8) ≈ 0.45
+        k = 0.06  # Sensitivity parameter: controls how quickly score decreases with angle spread
+        planarity_score = float(np.exp(-k * mean_angle_deg))
+        
+        # Clamp to [0, 1]
+        planarity_score = max(0.0, min(1.0, planarity_score))
+        
+        return planarity_score
+    
+    except Exception as e:
+        print(f"    Warning: Could not calculate mesh planarity: {e}")
+        return None
+
+
 def _calculate_fault_length_and_endpoints(mesh):
     """
     Calculate the overall fault length and extract start/end coordinates for 2D plotting.
@@ -1581,6 +1662,9 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             # Calculate fault length and start/end coordinates from interpolated mesh
             fault_geometry = _calculate_fault_length_and_endpoints(mesh_info['mesh'])
             
+            # Calculate mesh planarity/reliability score
+            mesh_planarity = _calculate_mesh_planarity(mesh_info['mesh'])
+            
             metadata = {
                 'fault_id': str(fs_id) if not pd.isna(fs_id) else None,
                 'segmentation_level': segmentation_level,
@@ -1605,6 +1689,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 'max_magnitude_leonard2014': mesh_info.get('max_Mw'),
                 'mesh_vertices': mesh_info['mesh'].n_points,
                 'mesh_faces': mesh_info['mesh'].n_cells,
+                'mesh_planarity': mesh_planarity,
                 # Fault trace properties: length and endpoints for 2D plotting
                 'fault_length_m': fault_geometry['length_m'],
                 'trace_start_x': fault_geometry['start_x'],
@@ -1634,6 +1719,7 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 'rupture_mean_dip': rupture_mean_dip,
                 'mesh_mean_azimuth': mesh_mean_azimuth,
                 'mesh_mean_dip': mesh_mean_dip,
+                'mesh_planarity': mesh_planarity,
                 'fault_length_m': fault_geometry['length_m'],
                 'trace_start_x': fault_geometry['start_x'],
                 'trace_start_y': fault_geometry['start_y'],
