@@ -67,6 +67,16 @@ def _execute_sequence_worker(worker_args: dict) -> dict:
     log_file_path = worker_args.get('log_file_path')
     input_events = worker_args.get('input_events', 0)
 
+    # Signal to the main process that this worker has actually started
+    # executing (as opposed to being queued waiting for a pool slot).
+    # Done here, before any heavy setup, so the status is accurate immediately.
+    _start_queue = worker_args.get('start_queue')
+    if _start_queue is not None:
+        try:
+            _start_queue.put(sequence_name)
+        except Exception:
+            pass
+
     # ---------------------------------------------------------------
     # 1. Silence all loggers BEFORE importing heavy libraries so that
     #    optuna / numba / matplotlib never write to the terminal.
@@ -635,19 +645,37 @@ class MultiSequenceWorkflow:
         # -----------------------------------------------------------------------
         completed_count = 0
         total_count = len(worker_args_list)
-        in_flight = set()   # sequences currently running in the pool
+
+        # Manager queue used by workers to signal the moment they actually
+        # start executing (as opposed to waiting in the pool's queue).
+        manager = mp_context.Manager()
+        start_queue = manager.Queue()
+        for args in worker_args_list:
+            args['start_queue'] = start_queue
+
+        import queue as _queue
+        active_sequences: set = set()  # sequences confirmed running right now
+
+        def _drain_start_queue():
+            """Pull all pending start signals from the queue."""
+            while True:
+                try:
+                    active_sequences.add(start_queue.get_nowait())
+                except _queue.Empty:
+                    break
 
         with ProcessPoolExecutor(max_workers=max_workers, mp_context=mp_context) as pool:
-            # Submit one future at a time so we can track in_flight state
-            future_to_name = {}
-            for args in worker_args_list:
-                future = pool.submit(_execute_sequence_worker, args)
-                future_to_name[future] = args['sequence_name']
-                in_flight.add(args['sequence_name'])
+            future_to_name = {
+                pool.submit(_execute_sequence_worker, args): args['sequence_name']
+                for args in worker_args_list
+            }
 
             for future in as_completed(future_to_name):
                 sequence_name = future_to_name[future]
-                in_flight.discard(sequence_name)
+                # Drain start signals before updating active set so the
+                # final printout reflects reality as closely as possible.
+                _drain_start_queue()
+                active_sequences.discard(sequence_name)
                 completed_count += 1
 
                 try:
@@ -660,7 +688,7 @@ class MultiSequenceWorkflow:
                         'error': str(exc),
                         'input_events': 0,
                     }
-                    status_str = f"active: {', '.join(sorted(in_flight))}" if in_flight else "none active"
+                    status_str = f"running: {', '.join(sorted(active_sequences))}" if active_sequences else "none running"
                     print(f"  [{completed_count}/{total_count}] ERROR  {sequence_name} — {exc}  ({status_str})")
                     continue
 
@@ -681,7 +709,7 @@ class MultiSequenceWorkflow:
 
                     duration = result['summary'].get('total_duration')
                     duration_str = f"{duration:.1f}s" if isinstance(duration, (int, float)) else "?s"
-                    status_str = f"active: {', '.join(sorted(in_flight))}" if in_flight else "none active"
+                    status_str = f"running: {', '.join(sorted(active_sequences))}" if active_sequences else "none running"
                     print(
                         f"  [{completed_count}/{total_count}] DONE   {sequence_name} "
                         f"({duration_str})  →  {status_str}"
@@ -696,8 +724,10 @@ class MultiSequenceWorkflow:
                         'error': error_msg,
                         'input_events': result.get('input_events', 0),
                     }
-                    status_str = f"active: {', '.join(sorted(in_flight))}" if in_flight else "none active"
+                    status_str = f"running: {', '.join(sorted(active_sequences))}" if active_sequences else "none running"
                     print(f"  [{completed_count}/{total_count}] FAILED {sequence_name} — {error_msg}  ({status_str})")
+
+        manager.shutdown()
 
         print('')
         success_count = sum(
