@@ -1262,6 +1262,15 @@ class MultiSequenceWorkflow:
         if metadata_file.exists():
             try:
                 df_existing = pd.read_csv(metadata_file)
+                # Reverse-map already-renamed columns back to their original names so that
+                # merging with self.fault_metadata (which uses original names) does not
+                # create duplicate columns (e.g. both 'mesh_area_m2' AND
+                # 'interpolated_mesh_area_m2' appearing in the combined DataFrame).
+                reverse_column_mapping = {
+                    'mesh_area_m2': 'interpolated_mesh_area_m2',
+                    'max_mag': 'max_magnitude_leonard2014',
+                }
+                df_existing = df_existing.rename(columns=reverse_column_mapping)
                 existing_records = df_existing.to_dict('records')
                 print(f"  Loaded {len(existing_records)} existing entries from previous database export")
             except Exception as _e:

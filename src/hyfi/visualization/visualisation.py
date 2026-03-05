@@ -2252,6 +2252,14 @@ def export_basic_vtp(df_hyfi, output_dir, fault_disc_meshes=None, use_focal_cons
             except Exception as e:
                 print(f"    Warning: Could not add Date column to VTP: {e}")
         
+        # Add multi-sequence attributes if present
+        for col in ['sequence_label', 'segmentation_level', 'fault_id']:
+            if col in df_hyfi.columns:
+                try:
+                    hypocenter_pcd[col] = df_hyfi[col].fillna('').astype(str).values
+                except Exception as e:
+                    pass
+        
         hypocenter_file = os.path.join(vtp_dir, 'hypocenters.vtp')
         hypocenter_pcd.save(hypocenter_file)
         print(f"  Saved hypocenter point cloud: {hypocenter_file} ({len(df_hyfi)} points)")
@@ -2573,6 +2581,14 @@ def export_interpolated_planes_vtp(combined_mesh, individual_meshes, point_cloud
                     hypocenter_pcd[col] = values
                 except Exception as e:
                     print(f"    Warning: Could not add {col} column to VTP: {e}")
+        
+        # Add multi-sequence attributes if present
+        for col in ['sequence_label', 'segmentation_level', 'fault_id']:
+            if col in df_hyfi.columns:
+                try:
+                    hypocenter_pcd[col] = df_hyfi[col].fillna('').astype(str).values
+                except Exception as e:
+                    pass
         
         hypocenter_file = os.path.join(vtp_dir, 'hypocenters.vtp')
         hypocenter_pcd.save(hypocenter_file)
