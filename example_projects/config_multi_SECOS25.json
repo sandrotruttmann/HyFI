@@ -8,7 +8,7 @@
   "global_settings": {
     "output_directory": "../hyfi_secos25",
     "parallel_processing": true,
-    "max_workers": 8,
+    "max_workers": 6,
     "save_individual_results": true,
     "coordinate_system": "EPSG:21781",
     "log_level": "INFO"
@@ -130,12 +130,12 @@
             "fault_plane_clustering_eps_meters": 100,
             "fault_plane_clustering_min_samples": 5,
             "use_fault_plane_points_for_clustering": true,
-            "fault_plane_point_density_meters": 50.0,
-            "fault_plane_radius_interval_meters": 50.0,
+            "fault_plane_point_density_meters": 20.0,
+            "fault_plane_radius_interval_meters": 20.0,
             "use_anisotropic_eps": true,
             "in_plane_eps_meters": 500,
-            "out_of_plane_eps_meters": 10,
-            "anisotropic_min_samples": 10
+            "out_of_plane_eps_meters": 50,
+            "anisotropic_min_samples": 20
           }
         }
       },
@@ -168,7 +168,7 @@
             "max_distance_factor": 2.5,
             "spatial_clustering_method": "adaptive",
             "min_events_per_cluster": 10,
-            "min_fault_planes_for_interpolation": 5
+            "min_fault_planes_for_interpolation": 10
           },
           "3d_export": {
             "export_vtp": true,
