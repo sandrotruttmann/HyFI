@@ -324,6 +324,101 @@ def _add_attributes_to_vtp(vtp_object, data_source, column_list=None, exclude_co
             except Exception as e:
                 pass
 
+
+def _calculate_fault_length_and_endpoints(mesh):
+    """
+    Calculate the overall fault length and extract start/end coordinates for 2D plotting.
+    
+    Projects the interpolated mesh onto the XY plane and computes:
+    - Fault length: maximum distance along the projected fault trace
+    - Start and end coordinates: the two points in the projection that are furthest apart
+    
+    Parameters
+    ----------
+    mesh : pyvista.PolyData
+        The interpolated fault plane mesh
+        
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'length_m': Fault length in meters (float)
+        - 'start_x': X coordinate of fault start (float)
+        - 'start_y': Y coordinate of fault start (float)
+        - 'end_x': X coordinate of fault end (float)
+        - 'end_y': Y coordinate of fault end (float)
+        - 'bearing': Strike/bearing of fault in degrees (float, 0-360)
+    """
+    try:
+        # Get all points from the mesh
+        points = mesh.points
+        
+        if len(points) < 2:
+            return {
+                'length_m': None,
+                'start_x': None,
+                'start_y': None,
+                'end_x': None,
+                'end_y': None,
+                'bearing': None
+            }
+        
+        # Project points to XY plane (ignore Z coordinate)
+        xy_points = points[:, :2]
+        
+        # Find convex hull of the projected points to get the boundary
+        try:
+            from scipy.spatial import ConvexHull
+            hull = ConvexHull(xy_points)
+            hull_points = xy_points[hull.vertices]
+        except:
+            # Fallback if ConvexHull fails: use all points
+            hull_points = xy_points
+        
+        # Find the two points that are furthest apart (longest chord)
+        max_distance = 0
+        start_idx = 0
+        end_idx = 1
+        
+        n_hull = len(hull_points)
+        for i in range(n_hull):
+            for j in range(i + 1, n_hull):
+                dist = np.sqrt((hull_points[i, 0] - hull_points[j, 0])**2 + 
+                              (hull_points[i, 1] - hull_points[j, 1])**2)
+                if dist > max_distance:
+                    max_distance = dist
+                    start_idx = i
+                    end_idx = j
+        
+        start_point = hull_points[start_idx]
+        end_point = hull_points[end_idx]
+        
+        # Calculate bearing (strike) from start to end point
+        dx = end_point[0] - start_point[0]
+        dy = end_point[1] - start_point[1]
+        bearing = np.degrees(np.arctan2(dx, dy)) % 360
+        
+        return {
+            'length_m': float(max_distance),
+            'start_x': float(start_point[0]),
+            'start_y': float(start_point[1]),
+            'end_x': float(end_point[0]),
+            'end_y': float(end_point[1]),
+            'bearing': float(bearing)
+        }
+    
+    except Exception as e:
+        print(f"    Warning: Could not calculate fault length from mesh: {e}")
+        return {
+            'length_m': None,
+            'start_x': None,
+            'start_y': None,
+            'end_x': None,
+            'end_y': None,
+            'bearing': None
+        }
+
+
 def _generate_fault_plane_points(df_subcluster, radius_interval=10.0, point_density_meters=10.0, max_points=100000):
     """
     Generate point clouds from circular fault plane geometries with systematic spatial coverage.
@@ -1483,6 +1578,9 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                     cluster_data['rupt_plane_dip'].values
                 )
             
+            # Calculate fault length and start/end coordinates from interpolated mesh
+            fault_geometry = _calculate_fault_length_and_endpoints(mesh_info['mesh'])
+            
             metadata = {
                 'fault_id': str(fs_id) if not pd.isna(fs_id) else None,
                 'segmentation_level': segmentation_level,
@@ -1507,6 +1605,12 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 'max_magnitude_leonard2014': mesh_info.get('max_Mw'),
                 'mesh_vertices': mesh_info['mesh'].n_points,
                 'mesh_faces': mesh_info['mesh'].n_cells,
+                # Fault trace properties: length and endpoints for 2D plotting
+                'fault_length_m': fault_geometry['length_m'],
+                'trace_start_x': fault_geometry['start_x'],
+                'trace_start_y': fault_geometry['start_y'],
+                'trace_end_x': fault_geometry['end_x'],
+                'trace_end_y': fault_geometry['end_y'],
                 # Stress properties from rupture planes: mean values from original rupture planes
                 'rupture_mean_instability': rupture_mean_instability,
                 'rupture_mean_sliptend': rupture_mean_sliptend,
@@ -1530,6 +1634,11 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 'rupture_mean_dip': rupture_mean_dip,
                 'mesh_mean_azimuth': mesh_mean_azimuth,
                 'mesh_mean_dip': mesh_mean_dip,
+                'fault_length_m': fault_geometry['length_m'],
+                'trace_start_x': fault_geometry['start_x'],
+                'trace_start_y': fault_geometry['start_y'],
+                'trace_end_x': fault_geometry['end_x'],
+                'trace_end_y': fault_geometry['end_y'],
                 'rupture_mean_instability': rupture_mean_instability,
                 'rupture_mean_sliptend': rupture_mean_sliptend,
                 'rupture_mean_dilatend': rupture_mean_dilatend,

@@ -945,6 +945,8 @@ class MultiSequenceWorkflow:
             'mesh_mean_azimuth', 'mesh_mean_dip',
             'mesh_area_m2', 'max_mag', 
             'mesh_vertices', 'mesh_faces',
+            'fault_length_m', 
+            'trace_start_x', 'trace_start_y', 'trace_end_x', 'trace_end_y',
             'rupture_mean_instability', 'rupture_mean_sliptend', 'rupture_mean_dilatend',
             'mesh_mean_instability', 'mesh_mean_sliptend', 'mesh_mean_dilatend'
         ]
@@ -958,13 +960,14 @@ class MultiSequenceWorkflow:
             'centroid_x', 'centroid_y', 'centroid_z',
             'rupture_mean_azimuth', 'rupture_mean_dip',
             'mesh_mean_azimuth', 'mesh_mean_dip',
+            'trace_start_x', 'trace_start_y', 'trace_end_x', 'trace_end_y',
         ]
         round_2 = [
             'max_mag',
             'rupture_mean_instability', 'rupture_mean_sliptend', 'rupture_mean_dilatend',
             'mesh_mean_instability', 'mesh_mean_sliptend', 'mesh_mean_dilatend'
         ]
-        round_1 = ['mesh_area_m2']
+        round_1 = ['mesh_area_m2', 'fault_length_m']
         for col in round_3:
             if col in df_metadata.columns:
                 df_metadata[col] = df_metadata[col].round(3)
