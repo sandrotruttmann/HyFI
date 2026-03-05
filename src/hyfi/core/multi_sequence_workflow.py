@@ -8,6 +8,7 @@ and process each sequence through the standard HyFI workflow.
 """
 
 import datetime
+import sys
 import time
 import logging
 from typing import Dict, List, Tuple, Optional, Any
@@ -26,6 +27,146 @@ from ..visualization import visualisation
 
 
 logger = logging.getLogger(__name__)
+
+# Number of fault-ID slots reserved for each sequence when running in parallel.
+# With 10 000 slots per sequence, up to 10 000 individual fault planes can be
+# produced by a single sequence before IDs from adjacent sequences collide.
+_PARALLEL_COUNTER_BLOCK = 10_000
+
+
+def _execute_sequence_worker(worker_args: dict) -> dict:
+    """
+    Module-level worker function for parallel sequence processing.
+
+    Must be defined at module level (not inside a class) so that
+    ``concurrent.futures.ProcessPoolExecutor`` can pickle and dispatch it to
+    worker processes.
+
+    Parameters
+    ----------
+    worker_args : dict
+        Keys:
+        - ``sequence_name``   : str
+        - ``dag_config_dict`` : dict  (serialised HyFIWorkflowDAG)
+        - ``global_fault_counter`` : int  (starting fault-ID for this sequence)
+        - ``log_file_path``   : str | None  (redirect stdout here if given)
+        - ``input_events``    : int
+
+    Returns
+    -------
+    dict
+        Always returned (never raises) so that the main process can handle
+        errors gracefully.  Keys include ``success``, ``sequence_name``,
+        ``workflow_results``, ``summary``, ``fault_metadata``,
+        ``next_fault_counter``, ``temp_to_fault_mapping``, and on failure
+        ``error`` / ``traceback``.
+    """
+    sequence_name = worker_args['sequence_name']
+    dag_config_dict = worker_args['dag_config_dict']
+    global_fault_counter = worker_args['global_fault_counter']
+    log_file_path = worker_args.get('log_file_path')
+    input_events = worker_args.get('input_events', 0)
+
+    # ---------------------------------------------------------------
+    # 1. Silence all loggers BEFORE importing heavy libraries so that
+    #    optuna / numba / matplotlib never write to the terminal.
+    # ---------------------------------------------------------------
+    import logging as _logging
+    import os as _os
+
+    _logging.root.setLevel(_logging.CRITICAL)
+    # Also silence the root logger's handlers to stop any pre-existing
+    # handlers (e.g. from the parent process) from firing.
+    for _h in _logging.root.handlers[:]:
+        _logging.root.removeHandler(_h)
+    _logging.root.addHandler(_logging.NullHandler())
+
+    # Ensure matplotlib uses a non-interactive backend in worker processes
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+    except Exception:
+        pass
+
+    # ---------------------------------------------------------------
+    # 2. Redirect BOTH stdout and stderr at Python AND OS (fd) level.
+    #    Python-level redirection (sys.stdout/stderr) catches Python
+    #    output; os.dup2() on the raw file descriptors catches C-level
+    #    output from libraries like open3d, numba, and LLVM that write
+    #    directly to fd 1 / fd 2, bypassing Python entirely.
+    # ---------------------------------------------------------------
+    log_file_handle = None
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+    # Save copies of the original OS-level file descriptors
+    saved_stdout_fd = _os.dup(1)
+    saved_stderr_fd = _os.dup(2)
+    if log_file_path:
+        try:
+            log_file_handle = open(log_file_path, 'w', buffering=1)
+            log_fd = log_file_handle.fileno()
+            # Redirect Python-level streams
+            sys.stdout = log_file_handle
+            sys.stderr = log_file_handle
+            # Redirect OS-level file descriptors
+            _os.dup2(log_fd, 1)
+            _os.dup2(log_fd, 2)
+        except Exception:
+            pass  # Fall back to normal stdout/stderr if file can't be opened
+
+    try:
+
+        # Absolute imports are required in worker processes
+        from hyfi.config.schema import HyFIWorkflowDAG
+        from hyfi.core.dag_executor import DAGExecutor
+
+        dag_config = HyFIWorkflowDAG.from_dict(dag_config_dict)
+        executor = DAGExecutor(
+            dag_config,
+            config_source_file=None,
+            cluster_name=sequence_name,
+            global_fault_counter=global_fault_counter,
+            sequence_label=sequence_name,
+            segmentation_level=sequence_name[0] if sequence_name else None,
+        )
+        sequence_results = executor.execute()
+        summary = executor.get_execution_summary()
+
+        return {
+            'sequence_name': sequence_name,
+            'success': True,
+            'workflow_results': sequence_results,
+            'summary': summary,
+            'fault_metadata': sequence_results.get('fault_metadata', []),
+            'next_fault_counter': sequence_results.get('next_fault_counter', global_fault_counter),
+            'temp_to_fault_mapping': sequence_results.get('temp_to_fault_mapping', {}),
+            'input_events': input_events,
+        }
+
+    except Exception as exc:
+        import traceback as _tb
+        return {
+            'sequence_name': sequence_name,
+            'success': False,
+            'error': str(exc),
+            'traceback': _tb.format_exc(),
+            'input_events': input_events,
+        }
+
+    finally:
+        # Restore OS-level file descriptors first (before closing the log file)
+        _os.dup2(saved_stdout_fd, 1)
+        _os.dup2(saved_stderr_fd, 2)
+        _os.close(saved_stdout_fd)
+        _os.close(saved_stderr_fd)
+        # Restore Python-level streams
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
+        if log_file_handle is not None:
+            try:
+                log_file_handle.close()
+            except Exception:
+                pass
 
 
 class MultiSequenceWorkflow:
@@ -271,13 +412,26 @@ class MultiSequenceWorkflow:
         self.aggregated_results['clustering_details'] = self.clustering_results
     
     def _process_sequences(self):
-        """Process each sequence through the DAG-based workflow."""
+        """Process each sequence through the DAG-based workflow.
+
+        Dispatches to :meth:`_process_sequences_parallel` when
+        ``config.parallel_processing`` is ``True``, otherwise falls back to the
+        sequential implementation in :meth:`_process_sequences_sequential`.
+        """
         print('')
         print('=' * 60)
         print('STEP 3 — PER-SEQUENCE FAULT ANALYSIS')
         print('=' * 60)
-        print("Processing individual sequences...")
-        
+
+        if self.config.parallel_processing:
+            self._process_sequences_parallel()
+        else:
+            self._process_sequences_sequential()
+
+    def _process_sequences_sequential(self):
+        """Process each sequence one-by-one (original sequential implementation)."""
+        print("Processing individual sequences (sequential)...")
+
         for sequence_name, sequence_data in self.sequences.items():
             if sequence_name == 'noise':
                 continue  # Skip noise sequence
@@ -316,11 +470,11 @@ class MultiSequenceWorkflow:
             try:
                 # Create sequence-specific DAG configuration
                 sequence_dag_config = self._create_sequence_dag_config(sequence_name, sequence_data)
-                
+
                 # Run DAG-based workflow
                 from .dag_executor import DAGExecutor
                 executor = DAGExecutor(
-                    sequence_dag_config, 
+                    sequence_dag_config,
                     config_source_file=None,  # Don't copy to individual sequence folders
                     cluster_name=sequence_name,
                     global_fault_counter=self.global_fault_counter,
@@ -328,20 +482,20 @@ class MultiSequenceWorkflow:
                     segmentation_level=sequence_name[0] if sequence_name and len(sequence_name) > 0 else None
                 )
                 sequence_results = executor.execute()
-                
+
                 # Collect metadata (will be renumbered later for continuous IDs)
                 if 'fault_metadata' in sequence_results:
                     self.fault_metadata.extend(sequence_results['fault_metadata'])
                 if 'next_fault_counter' in sequence_results:
                     self.global_fault_counter = sequence_results['next_fault_counter']
-                
+
                 # Collect TEMP→FS mappings from this sequence
                 if 'temp_to_fault_mapping' in sequence_results:
                     temp_mapping = sequence_results['temp_to_fault_mapping']
                     if temp_mapping:
                         self.temp_to_fault_mappings.update(temp_mapping)
                         print(f"  Collected {len(temp_mapping)} TEMP→FS mappings from {sequence_name}")
-                
+
                 # Store results
                 self.sequence_results[sequence_name] = {
                     'workflow_results': sequence_results,
@@ -349,16 +503,215 @@ class MultiSequenceWorkflow:
                     'input_events': len(sequence_data),
                     'config': sequence_dag_config
                 }
-                
+
                 print(f"Completed {sequence_name}: {executor.get_execution_summary()}")
-                
+
             except Exception as e:
                 logger.error(f"Failed to process {sequence_name}: {e}")
                 self.sequence_results[sequence_name] = {
                     'error': str(e),
                     'input_events': len(sequence_data)
                 }
-    
+
+    def _process_sequences_parallel(self):
+        """Process sequences concurrently using :class:`~concurrent.futures.ProcessPoolExecutor`.
+
+        Each sequence is executed in an isolated worker process so that
+        CPU-bound analysis (numba JIT, NumPy, PCA, …) can truly run in
+        parallel.  Verbose per-sequence output is redirected to a
+        ``<sequence>_processing.log`` file inside each sequence directory so
+        the main terminal remains readable.
+
+        **Fault-ID allocation in parallel mode**
+        -----------------------------------------
+        In sequential mode the global fault counter simply increments across
+        sequences.  In parallel mode we cannot know ahead of time how many
+        faults each sequence will produce.  Instead, each worker receives a
+        pre-allocated *block* of ``_PARALLEL_COUNTER_BLOCK`` IDs:
+
+        ``starting_counter = sorted_sequence_index * _PARALLEL_COUNTER_BLOCK + 1``
+
+        This guarantees uniqueness across concurrent workers.  The resulting
+        IDs are non-contiguous but are still sorted deterministically (A0 →
+        1, A1 → 10 001, A2 → 20 001, …).  All downstream steps that read
+        fault IDs from CSV files are unaffected by the gaps.
+        """
+        import multiprocessing
+        from concurrent.futures import ProcessPoolExecutor, as_completed
+
+        n_cpu = multiprocessing.cpu_count()
+        max_workers = max(1, min(self.config.max_workers, n_cpu))
+
+        # Use 'spawn' instead of the Linux default 'fork' to avoid numba/LLVM
+        # state corruption in child processes, which causes abrupt worker kills.
+        mp_context = multiprocessing.get_context('spawn')
+
+        print(f"Processing individual sequences in PARALLEL "
+              f"(max_workers={max_workers}, cpu_count={n_cpu}, start_method=spawn)...")
+        print(f"  Per-sequence verbose output → <sequence>/<sequence>_processing.log")
+
+        # -----------------------------------------------------------------------
+        # Phase 1: partition sequences into already-done (skipped) and to-do.
+        # -----------------------------------------------------------------------
+        work_items: List[tuple] = []   # (sequence_name, sequence_data)
+
+        for sequence_name, sequence_data in self.sequences.items():
+            if sequence_name == 'noise':
+                continue
+
+            sequence_results_file = (
+                Path(self.config.output_directory) / sequence_name / 'HyFI_results.csv'
+            )
+            if sequence_results_file.exists():
+                print(f"  Skipping {sequence_name}: HyFI_results.csv already exists.")
+                sequence_meta_file = (
+                    Path(self.config.output_directory) / sequence_name / 'sequence_fault_metadata.csv'
+                )
+                if sequence_meta_file.exists():
+                    try:
+                        _seq_meta = pd.read_csv(sequence_meta_file)
+                        self.fault_metadata.extend(_seq_meta.to_dict('records'))
+                        print(f"    Loaded {len(_seq_meta)} fault metadata entries from {sequence_name}")
+                    except Exception as _e:
+                        print(f"    Warning: Could not load fault metadata for {sequence_name}: {_e}")
+                else:
+                    print(f"    Warning: No sequence_fault_metadata.csv found for {sequence_name} — metadata will be missing")
+                self.sequence_results[sequence_name] = {
+                    'skipped': True,
+                    'input_events': len(sequence_data)
+                }
+                continue
+
+            work_items.append((sequence_name, sequence_data))
+
+        if not work_items:
+            print("  All sequences already processed — nothing to do.")
+            return
+
+        # Sort for deterministic counter-block assignment
+        work_items.sort(key=lambda x: x[0])
+        print(f"  Queuing {len(work_items)} sequence(s) for parallel execution…")
+        print('')
+
+        # -----------------------------------------------------------------------
+        # Phase 2: build serialisable worker-argument dicts in the main process.
+        # This also saves the per-sequence CSV data files on disk.
+        # -----------------------------------------------------------------------
+        worker_args_list: List[dict] = []
+        for i, (sequence_name, sequence_data) in enumerate(work_items):
+            try:
+                dag_config = self._create_sequence_dag_config(sequence_name, sequence_data)
+                dag_config_dict = dag_config.to_dict()
+            except Exception as exc:
+                logger.error(f"Failed to prepare DAG config for {sequence_name}: {exc}")
+                self.sequence_results[sequence_name] = {
+                    'error': f"Config preparation failed: {exc}",
+                    'input_events': len(sequence_data),
+                }
+                continue
+
+            # Assign a unique counter block; see docstring for rationale.
+            starting_counter = i * _PARALLEL_COUNTER_BLOCK + 1
+
+            log_file = (
+                Path(self.config.output_directory) / sequence_name
+                / f'{sequence_name}_processing.log'
+            )
+
+            worker_args_list.append({
+                'sequence_name': sequence_name,
+                'dag_config_dict': dag_config_dict,
+                'global_fault_counter': starting_counter,
+                'log_file_path': str(log_file),
+                'input_events': len(sequence_data),
+            })
+
+        if not worker_args_list:
+            print("  No valid worker arguments could be prepared.")
+            return
+
+        # -----------------------------------------------------------------------
+        # Phase 3: submit all workers to the process pool and collect results.
+        # -----------------------------------------------------------------------
+        completed_count = 0
+        total_count = len(worker_args_list)
+        in_flight = set()   # sequences currently running in the pool
+
+        with ProcessPoolExecutor(max_workers=max_workers, mp_context=mp_context) as pool:
+            # Submit one future at a time so we can track in_flight state
+            future_to_name = {}
+            for args in worker_args_list:
+                future = pool.submit(_execute_sequence_worker, args)
+                future_to_name[future] = args['sequence_name']
+                in_flight.add(args['sequence_name'])
+
+            for future in as_completed(future_to_name):
+                sequence_name = future_to_name[future]
+                in_flight.discard(sequence_name)
+                completed_count += 1
+
+                try:
+                    result = future.result()
+                except Exception as exc:
+                    logger.error(
+                        f"Worker for {sequence_name} raised an unexpected exception: {exc}"
+                    )
+                    self.sequence_results[sequence_name] = {
+                        'error': str(exc),
+                        'input_events': 0,
+                    }
+                    status_str = f"active: {', '.join(sorted(in_flight))}" if in_flight else "none active"
+                    print(f"  [{completed_count}/{total_count}] ERROR  {sequence_name} — {exc}  ({status_str})")
+                    continue
+
+                if result['success']:
+                    sequence_results = result['workflow_results']
+
+                    # Collect fault metadata and TEMP→FS mappings
+                    if result.get('fault_metadata'):
+                        self.fault_metadata.extend(result['fault_metadata'])
+                    if result.get('temp_to_fault_mapping'):
+                        self.temp_to_fault_mappings.update(result['temp_to_fault_mapping'])
+
+                    self.sequence_results[sequence_name] = {
+                        'workflow_results': sequence_results,
+                        'summary': result['summary'],
+                        'input_events': result['input_events'],
+                    }
+
+                    duration = result['summary'].get('total_duration')
+                    duration_str = f"{duration:.1f}s" if isinstance(duration, (int, float)) else "?s"
+                    status_str = f"active: {', '.join(sorted(in_flight))}" if in_flight else "none active"
+                    print(
+                        f"  [{completed_count}/{total_count}] DONE   {sequence_name} "
+                        f"({duration_str})  →  {status_str}"
+                    )
+                else:
+                    error_msg = result.get('error', 'Unknown error')
+                    logger.error(f"Worker for {sequence_name} failed: {error_msg}")
+                    if result.get('traceback'):
+                        logger.debug(f"Traceback:\n{result['traceback']}")
+
+                    self.sequence_results[sequence_name] = {
+                        'error': error_msg,
+                        'input_events': result.get('input_events', 0),
+                    }
+                    status_str = f"active: {', '.join(sorted(in_flight))}" if in_flight else "none active"
+                    print(f"  [{completed_count}/{total_count}] FAILED {sequence_name} — {error_msg}  ({status_str})")
+
+        print('')
+        success_count = sum(
+            1 for r in self.sequence_results.values() if 'workflow_results' in r
+        )
+        fail_count = sum(
+            1 for r in self.sequence_results.values() if 'error' in r
+        )
+        print(
+            f"  Parallel processing finished: "
+            f"{success_count} succeeded, {fail_count} failed, "
+            f"{len(self.sequence_results) - success_count - fail_count} skipped."
+        )
+
     def _create_sequence_config(self, sequence_name: str, sequence_data: pd.DataFrame) -> ProjectConfig:
         """Create a configuration for processing a single sequence."""
         # Create a temporary file for this sequence

@@ -214,8 +214,8 @@ class MultiSequenceConfig:
     cluster_workflow_template: Optional[dict] = None
     
     # Multi-sequence specific options
-    parallel_processing: bool = False  # Future feature
-    max_workers: int = 4  # For parallel processing
+    parallel_processing: bool = False  # Set to True to enable parallel sequence processing
+    max_workers: int = 4  # Maximum parallel worker processes (capped at cpu_count)
     save_individual_results: bool = True
     
     # Coordinate system for KML export

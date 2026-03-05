@@ -45,7 +45,7 @@ Settings that apply to the entire workflow.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `parallel_processing` | boolean | `false` | Enable parallel processing of segmentation steps and per-sequence analysis. **Note**: Currently single-threaded (future feature). Set to `true` for future compatibility, but sequential execution will be used |
+| `parallel_processing` | boolean | `false` | Enable parallel processing of per-sequence analysis using multiple CPU cores. When `true`, sequences are dispatched to a `ProcessPoolExecutor` with up to `max_workers` workers. Per-sequence verbose output is written to `<sequence>/<sequence>_processing.log` instead of the terminal. Fault IDs are non-continuous in parallel mode (each sequence reserves a block of 10 000 IDs) but are always unique. |
 | `max_workers` | integer | `4` | Maximum number of parallel worker processes for multi-sequence processing. Used when `parallel_processing: true` is implemented. Range: 1-16 depending on system CPU cores. Recommended: 4-8 for typical systems |
 | `save_individual_results` | boolean | `true` | Save intermediate and individual sequence analysis results to disk. When `true`, creates subdirectories for each sequence with full analysis outputs; when `false`, only final merged results are kept (saves disk space but loses per-sequence details) |
 

@@ -126,11 +126,27 @@ Next, automatic parameter optimization can be used to define optimal nearest-nei
      2. Count the number of recovered fault planes.
      3. If focal mechanisms are available: calculate angular differences with focal solutions.
      4. If focal mechanisms are available: compute fit-quality metrics (λ₂/λ₃ ratio).
-     5. Combine the individual metrics into a single objective score.
-   - Score composition:
-     - **Plane recovery rate**: weight typically in the 0.5–0.9 range.
-     - **Focal mechanism fit**: weight typically in the 0.1–0.5 range (used only when focal data exist).
-   - Weights adapt automatically based on the number of matched focal mechanisms (adaptive weighting).
+     5. Combine the individual metrics into a single objective score (lower = better, range 0–1).
+
+   **Objective function components** (all converted to minimisation):
+
+   | Component | Description | Lower score = |
+   |---|---|---|
+   | **Focal angular difference** | Mean angular difference ε between recovered fault plane and best-matching focal nodal plane | Smaller ε (better focal fit) |
+   | **Active plane match rate** | Fraction of pre-specified focal planes (A=1 or A=2) where the correct nodal plane is selected | Higher match rate |
+   | **Plane recovery rate** | Fraction of events for which a fault plane could be recovered | Higher recovery |
+   | **λ₂/λ₃ planarity ratio** | Mean eigenvalue-ratio quality of recovered planes; scaled non-linearly (ratio < 5 → 0, ratio = 5 → 0.7, ratio ≥ 20 → 1.0, capped to avoid domination) | Higher planarity |
+
+   **Adaptive weighting** (`optimization_use_adaptive_weights: true`, default): weights shift automatically based on the number of matched focal mechanisms, since statistical confidence in the focal fit increases with sample size:
+
+   | # matched focals | Angular diff | Active plane | Recovery | Planarity (λ₂/λ₃) |
+   |---|---|---|---|---|
+   | 0 (no focals) | 0% | 0% | **70%** | 30% |
+   | ≤ 5 | 35% | 3% | **50%** | 15% |
+   | ≤ 20 | 50% | 4% | 35% | 13% |
+   | > 20 | **65%** | 5% | 25% | 10% |
+
+   **Fixed weighting** (`optimization_use_adaptive_weights: false`): uses the "> 20 focals" column above regardless of actual focal count.
 
 5. **Results processing**:
    - Extract best parameters (minimum objective score)

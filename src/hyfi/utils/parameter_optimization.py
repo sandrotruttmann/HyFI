@@ -544,9 +544,9 @@ class ParameterOptimizer:
         Calculate combined objective score (lower is better).
         
         The objective function balances (optimized for single MC runs):
-        1. Focal mechanism fit (60% weight - lower angular differences are better) - MOST IMPORTANT
+        1. Focal mechanism fit (65% weight - lower angular differences are better) - MOST IMPORTANT
         2. Plane recovery rate (25% weight - higher is better) - number of planes found
-        3. Quality metrics: lambda2/3 ratio (15% weight - higher is better)
+        3. Quality metrics: lambda2/3 ratio (10% weight - higher is better)
         
         Lambda2/3 ratio scaling:
         - < 5: Below acceptance threshold (fault network module rejects these) → score = 0
@@ -566,9 +566,9 @@ class ParameterOptimizer:
         if has_focal_data:
             # Full 3-component objective function with focal mechanisms prioritized
             
-            # Focal mechanism component (weight: 0.6) - MOST IMPORTANT
+            # Focal mechanism component (weight: 0.65) - MOST IMPORTANT
             angular_score = min(focal_metrics['mean_angular_diff'] / 90.0, 1.0)
-            score += 0.6 * angular_score
+            score += 0.65 * angular_score
 
             # Bonus for active plane matching (additional 5% weight)
             if 'active_plane_match_rate' in focal_metrics:
@@ -582,7 +582,7 @@ class ParameterOptimizer:
             recovery_score = 1 - plane_recovery_rate  # Convert to minimization
             score += 0.25 * recovery_score
             
-            # Quality component based on lambda2/3 ratio (weight: 0.15) - Least important when focals available
+            # Quality component based on lambda2/3 ratio (weight: 0.10) - Least important when focals available
             if 'mean_lambda23_ratio' in quality_metrics:
                 lambda23_ratio = quality_metrics['mean_lambda23_ratio']
                 if lambda23_ratio >= 5.0:  # Accepted ratios
@@ -592,10 +592,10 @@ class ParameterOptimizer:
                 else:
                     lambda23_normalized = 0.0  # Below acceptance threshold
                 lambda23_score = 1 - lambda23_normalized  # Convert to minimization
-                score += 0.15 * lambda23_score
+                score += 0.10 * lambda23_score
             else:
                 # Penalize missing quality metrics
-                score += 0.15 * 1.0
+                score += 0.10 * 1.0
                 
         else:
             # No focal mechanism data - plane recovery becomes most important
@@ -654,30 +654,30 @@ class ParameterOptimizer:
             # Few focals: reduce confidence in focal fit, increase recovery importance
             # Statistical uncertainty is high with few samples
             return {
-                'angular': 0.30,  # Reduced from 0.60
-                'active': 0.03,   # Reduced from 0.05
-                'recovery': 0.50, # Increased from 0.25
-                'quality': 0.20   # Increased from 0.15
+                'angular': 0.35,  # +0.05 vs original
+                'active': 0.03,
+                'recovery': 0.50,
+                'quality': 0.15   # -0.05 vs original
             }
         
         elif n_focals <= 20:
             # Moderate focals: balanced approach
             # Transitional regime between low and high confidence
             return {
-                'angular': 0.45,
+                'angular': 0.50,  # +0.05 vs original
                 'active': 0.04,
                 'recovery': 0.35,
-                'quality': 0.18
+                'quality': 0.13   # -0.05 vs original
             }
         
         else:
             # Many focals (>20): trust focal data more
-            # High statistical confidence, use original weights
+            # High statistical confidence
             return {
-                'angular': 0.60,  # Original weights
+                'angular': 0.65,  # +0.05 vs original
                 'active': 0.05,
                 'recovery': 0.25,
-                'quality': 0.15
+                'quality': 0.10   # -0.05 vs original
             }
     
     def _calculate_confidence_weighted_focal_score(self, focal_metrics, n_focals):
