@@ -7,8 +7,8 @@
   },
   "global_settings": {
     "output_directory": "../hyfi_secos25",
-    "parallel_processing": false,
-    "max_workers": 4,
+    "parallel_processing": true,
+    "max_workers": 8,
     "save_individual_results": true,
     "coordinate_system": "EPSG:21781",
     "log_level": "INFO"
@@ -22,7 +22,7 @@
     },
     "step_2_catalog_segmentation": {
       "enabled": true,
-      "segmentation_only": true,
+      "segmentation_only": false,
       "segmentation_steps": [
         {
           "step_name": "Class A",
@@ -34,7 +34,7 @@
           "dbscan_eps": 350.0,
           "dbscan_min_samples": 10,
           "dbscan_metric": "euclidean",
-          "min_cluster_size": 20,
+          "min_cluster_size": 25,
           "process_outliers": true,
           "outlier_handling": "next_step"
         },
@@ -48,7 +48,23 @@
           "dbscan_eps": 500.0,
           "dbscan_min_samples": 10,
           "dbscan_metric": "euclidean",
-          "min_cluster_size": 10,
+          "min_cluster_size": 15,
+          "process_outliers": true,
+          "outlier_handling": "next_step"
+        },
+        {
+          "step_name": "Class C",
+          "method": "dbscan",
+          "features": [
+            "spatial"
+          ],
+          "cluster_dimension": "2d",
+          "dbscan_eps": 1100.0,
+          "dbscan_min_samples": 5,
+          "dbscan_metric": "euclidean",
+          "min_cluster_size": 25,
+          "filter_by_aspect_ratio": true,
+          "min_aspect_ratio": 8.0,
           "process_outliers": true,
           "outlier_handling": "next_step"
         }
@@ -67,13 +83,7 @@
           },
           "outlier_detection": {
             "remove_outliers": true,
-            "outlier_method": "dbscan",
-            "lof_n_neighbors": null,
-            "lof_contamination": "auto",
-            "if_n_estimators": 100,
-            "if_max_samples": "auto",
-            "if_contamination": 0.05,
-            "if_random_state": 42
+            "outlier_method": "dbscan"
           },
           "focal_mechanism_constraints": {
             "use_focal_constraints": true
@@ -88,8 +98,8 @@
             "optimization_early_stopping_rounds": 10,
             "optimization_early_stopping_threshold": 0.0001,
             "optimization_plot_results": true,
-            "optimization_r_nn_range": [50, 1000],
-            "optimization_dt_nn_range": [100, 50000]
+            "optimization_r_nn_range": [50, 2000],
+            "optimization_dt_nn_range": [999999, 999999]
           }
         }
       },
@@ -108,7 +118,6 @@
           "orientation_clustering": {
             "auto_determine_clusters": true,
             "max_clusters": 3,
-            "number_of_clusters": 2,
             "clustering_algorithm": "vmf_soft",
             "rotate_poles_before_analysis": true,
             "convergence_tolerance": 1e-6,
@@ -121,6 +130,8 @@
             "fault_plane_clustering_eps_meters": 100,
             "fault_plane_clustering_min_samples": 5,
             "use_fault_plane_points_for_clustering": true,
+            "fault_plane_point_density_meters": 50.0,
+            "fault_plane_radius_interval_meters": 50.0,
             "use_anisotropic_eps": true,
             "in_plane_eps_meters": 500,
             "out_of_plane_eps_meters": 10,
@@ -133,12 +144,7 @@
         "parameters": {
           "stress_field": {
             "use_shapefile": true,
-            "shapefile_path": "data_examples/Stressfield/CH_stressfield_Kastrup.shp",
-            "sigma1_trend_degrees": null,
-            "sigma1_plunge_degrees": null,
-            "sigma3_trend_degrees": null,
-            "sigma3_plunge_degrees": null,
-            "stress_shape_ratio": null
+            "shapefile_path": "../data_examples/Stressfield/CH_stressfield.shp"
           },
           "mechanical_properties": {
             "pore_pressure_mpa": 0.0,
@@ -162,23 +168,13 @@
             "max_distance_factor": 2.5,
             "spatial_clustering_method": "adaptive",
             "min_events_per_cluster": 10,
-            "min_fault_planes_for_interpolation": 1
+            "min_fault_planes_for_interpolation": 5
           },
           "3d_export": {
             "export_vtp": true,
             "export_obj": false
           }
         }
-      }
-    },
-    "step_4_merge_and_export": {
-      "enabled": true,
-      "description": "Merge VTP files from individual sequences and save to database",
-      "merge_vtp_files": true,
-      "merged_output": {
-        "merged_vtp_path": "./hyfi_multi_output/HyFI_Database/HyFI_Database_vtp/merged_sequences.vtp",
-        "export_merged_csv": true,
-        "export_summary_statistics": true
       }
     }
   }
