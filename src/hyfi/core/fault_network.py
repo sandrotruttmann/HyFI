@@ -619,10 +619,14 @@ def faultplanes3D(ID, date, X, Y, Z, EX, EY, EZ, r_nn, dt_nn, df_focal=None, use
     # Minimum number of points to allow for best fit plane calculation
     p_threshold = 5
     # Collinearity (λ₂) (according to Jones et al. 2015)
-    # Use the squared mean XYZ relocation error
-    lam2_threshold = np.array([EX.mean(), EY.mean(), EZ.mean()]
-                              ).mean().round(0)
-    lam2_threshold = lam2_threshold**2
+    # Use the squared mean horizontal (EX, EY) relocation error, but cap it at
+    # (r_nn/3)² so the threshold never exceeds what is physically achievable
+    # within the search radius. When location errors are large relative to r_nn
+    # (e.g. large EZ from sparse networks), an uncapped error-based threshold
+    # would be larger than any possible λ₂ value and reject every plane.
+    lam2_error_based = np.array([EX.mean(), EY.mean()]).mean() ** 2
+    lam2_rnn_cap = (r_nn / 5.0) ** 2
+    lam2_threshold = min(lam2_error_based, lam2_rnn_cap)
 
     # Planarity (λ₂ / λ₃) (according to Jones et al. 2015)
     rat_lam23_threshold = 5
