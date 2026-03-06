@@ -1199,6 +1199,10 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
     
     import sys as _sys_vis
 
+    # Global counter for assigning unique fault_idx across all sub-meshes
+    # (incremented per mesh, including spatially-split sub-components)
+    mesh_global_counter = 0
+
     # Process each final cluster (already optimally clustered by auto_class)
     for i, cluster_id in enumerate(unique_clusters):
         df_cluster = df[df[cluster_column] == cluster_id].reset_index(drop=True)
@@ -1353,35 +1357,60 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
             mesh = None
         
         if mesh is not None:
-            # Calculate mesh area AFTER filtering (area is already computed in _poisson_reconstruction)
-            # The mesh.area property gives us the final filtered surface area
-            mesh_area = mesh.area
-            
-            # Calculate maximum magnitude from FILTERED area using Leonard (2014) scaling law as default
-            max_Mw = _calculate_max_magnitude_from_area(mesh_area, 'leonard2014')
-            
-            # Ensure mesh is fully triangulated immediately after creation (before any other operations)
+            # Ensure mesh is fully triangulated before any further processing
             if not mesh.is_all_triangles:
                 print(f"    Note: Mesh for cluster {cluster_id} contains non-triangular faces, triangulating...")
                 mesh = mesh.triangulate()
-            
-            # Add cluster metadata attributes to mesh
-            mesh['fault_idx'] = np.full(mesh.n_points, i)
-            mesh['cluster_id'] = np.full(mesh.n_points, str(cluster_id))
-            mesh['area_m2'] = np.full(mesh.n_points, mesh_area)  # Add filtered area as point data
-            mesh['max_Mw'] = np.full(mesh.n_points, max_Mw)  # Add maximum magnitude based on filtered area
 
-            # Make fault_idx default
-            mesh.active_scalars_name = 'fault_idx'
-            
-            # Optionally add other scaling laws (not shown in DAG but available in VTP)
-            if include_multiple_scaling_laws:
-                max_Mw_WC94 = _calculate_max_magnitude_from_area(mesh_area, 'wells_coppersmith1994')
-                max_Mw_T17 = _calculate_max_magnitude_from_area(mesh_area, 'thingbaijam2017')
-                mesh['max_Mw_wells_coppersmith1994'] = np.full(mesh.n_points, max_Mw_WC94)
-                mesh['max_Mw_thingbaijam2017'] = np.full(mesh.n_points, max_Mw_T17)
-            
+            # ------------------------------------------------------------------
+            # Split mesh into spatially connected components.
+            # A single seismic fault cluster can produce a Poisson-reconstructed
+            # mesh that consists of multiple disconnected patches (e.g. when two
+            # rupture clouds sit far apart). Each disconnected patch represents a
+            # distinct fault surface and must be treated as a separate fault.
+            # ------------------------------------------------------------------
+            try:
+                labeled = mesh.connectivity(largest=False)
+                # RegionId is stored as point data in PyVista
+                if 'RegionId' in labeled.point_data:
+                    region_ids = np.unique(labeled.point_data['RegionId'])
+                elif 'RegionId' in labeled.cell_data:
+                    region_ids = np.unique(labeled.cell_data['RegionId'])
+                else:
+                    region_ids = np.array([0])
+                n_components = len(region_ids)
+            except Exception as _conn_err:
+                _sys_vis.stderr.write(f"    Warning: connectivity analysis failed ({_conn_err}), treating as single component\n")
+                labeled = mesh
+                region_ids = np.array([0])
+                n_components = 1
+
+            if n_components > 1:
+                _sys_vis.stderr.write(
+                    f"    Mesh for cluster {cluster_id} has {n_components} disconnected components "
+                    f"- splitting into {n_components} separate faults\n"
+                )
+                submesh_list = []
+                for rid in region_ids:
+                    try:
+                        sub = labeled.threshold(
+                            [float(rid) - 0.5, float(rid) + 0.5],
+                            scalars='RegionId'
+                        )
+                        if hasattr(sub, 'extract_surface'):
+                            sub = sub.extract_surface()
+                        sub = sub.triangulate()
+                        if sub.n_cells > 0:
+                            submesh_list.append(sub)
+                    except Exception as _sub_err:
+                        _sys_vis.stderr.write(f"    Warning: failed to extract component {rid}: {_sub_err}\n")
+                if len(submesh_list) == 0:
+                    submesh_list = [mesh]  # Fallback: use unsplit mesh
+            else:
+                submesh_list = [mesh]
+
             # Determine orientation and spatial cluster info for export naming
+            # (same for all sub-components of this cluster)
             if cluster_column == 'final_cluster_id_local':
                 # Local numeric format (1, 2, 3) for individual sequences
                 ori_cluster = str(cluster_id)
@@ -1390,66 +1419,135 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 # Parse cluster format: FS0001, FS0002 (global) or legacy formats
                 cluster_str = str(cluster_id)
                 if pd.isna(cluster_id) or cluster_str == 'nan':
-                    # Handle NaN noise points (should not reach here due to dropna() but safety check)
                     ori_cluster = 'noise'
                     spatial_cluster = '0'
                 elif cluster_str.startswith('FS'):
-                    # Global FS format - use full ID
-                    ori_cluster = cluster_str  # FS0001, FS0002, etc.
+                    ori_cluster = cluster_str
                     spatial_cluster = '0'
                 elif cluster_str.isdigit():
-                    # Local numeric format (for individual sequences) - use directly
                     ori_cluster = cluster_str
                     spatial_cluster = '0'
                 elif cluster_str.startswith('F'):
-                    # Legacy F1, F2, F3 format - use directly
                     ori_cluster = cluster_str
                     spatial_cluster = '0'
                 elif '_spatial_' in cluster_str:
-                    # Legacy format: "ori_X_spatial_Y" 
                     parts = cluster_str.split('_spatial_')
                     ori_cluster = parts[0].replace('ori_', '')
                     spatial_cluster = parts[1]
                 else:
-                    # Handle cases where cluster_id might just be the orientation cluster
                     ori_cluster = cluster_str
                     spatial_cluster = '0'
             elif cluster_column == 'orient_cluster':
-                # Only orientation clustering
                 ori_cluster = str(cluster_id)
                 spatial_cluster = '0'
             else:
-                # Fallback case
                 ori_cluster = str(cluster_id)
                 spatial_cluster = '0'
-            
-            # Add to combined mesh and individual list
-            if combined_mesh.n_points == 0:
-                # First mesh - just assign it
-                combined_mesh = mesh.copy()
+
+            # ------------------------------------------------------------------
+            # Partition parent-cluster events to sub-meshes by nearest vertex.
+            # Each event (hypocenter) is assigned to whichever sub-mesh has the
+            # closest vertex, so per-component statistics (event counts, rupture-
+            # plane orientations, stress) are computed from the correct subset.
+            # For a single-component mesh the full cluster is used unchanged.
+            # ------------------------------------------------------------------
+            if len(submesh_list) > 1 and 'X' in df_cluster.columns:
+                from scipy.spatial import cKDTree as _cKDTree
+                event_coords = df_cluster[['X', 'Y', 'Z']].values.astype(np.float64)
+                min_dists = np.full(len(df_cluster), np.inf)
+                assignments = np.zeros(len(df_cluster), dtype=int)
+                for _s_i, _s_mesh in enumerate(submesh_list):
+                    if _s_mesh.n_points == 0:
+                        continue
+                    _tree = _cKDTree(_s_mesh.points)
+                    _dists, _ = _tree.query(event_coords, k=1)
+                    _closer = _dists < min_dists
+                    min_dists[_closer] = _dists[_closer]
+                    assignments[_closer] = _s_i
+                cluster_data_per_sub = [
+                    df_cluster[assignments == _s_i].reset_index(drop=True)
+                    for _s_i in range(len(submesh_list))
+                ]
             else:
-                # Add to existing combined mesh
-                combined_mesh = combined_mesh + mesh
-            
-            individual_meshes.append({
-                'mesh': mesh,
-                'cluster_id': str(cluster_id),
-                'original_cluster_id': str(cluster_id),  # Store original ID for dataframe lookup
-                'orientation_cluster': ori_cluster,
-                'spatial_cluster': spatial_cluster,
-                'fault_idx': i,
-                'n_fault_planes': len(df_cluster),
-                'n_input_points': len(points),
-                'area_m2': mesh_area,  # Store mesh area
-                'max_Mw': max_Mw,  # Store maximum magnitude (Leonard 2014)
-                # Store cluster statistics for metadata (computed from df_cluster for this specific cluster)
-                'cluster_centroid_x': float(df_cluster['X'].mean()) if 'X' in df_cluster.columns else None,
-                'cluster_centroid_y': float(df_cluster['Y'].mean()) if 'Y' in df_cluster.columns else None,
-                'cluster_centroid_z': float(df_cluster['Z'].mean()) if 'Z' in df_cluster.columns else None,
-                'cluster_data': df_cluster.copy()  # Store actual cluster data for metadata generation
-            })
-            
-            print(f"    ✓ Successfully created mesh with {mesh.n_points} vertices, {mesh.n_cells} faces, area {mesh_area:.1f} m², and max Mw {max_Mw:.2f}")
+                cluster_data_per_sub = [df_cluster] * len(submesh_list)
+
+            # Process each sub-mesh (1 if no split, N if spatially separated)
+            for sub_idx, sub_mesh in enumerate(submesh_list):
+                sub_area = sub_mesh.area
+                sub_max_Mw = _calculate_max_magnitude_from_area(sub_area, 'leonard2014')
+
+                # Events belonging to this specific component
+                sub_cluster_data = cluster_data_per_sub[sub_idx]
+                # Fall back to full cluster if partitioning left this component empty
+                if len(sub_cluster_data) == 0:
+                    sub_cluster_data = df_cluster
+
+                # Give split components a distinct cluster ID suffix
+                if len(submesh_list) > 1:
+                    sub_cluster_id = f"{cluster_id}_part{sub_idx + 1}"
+                else:
+                    sub_cluster_id = str(cluster_id)
+
+                # Add metadata attributes to the sub-mesh
+                sub_mesh['fault_idx'] = np.full(sub_mesh.n_points, mesh_global_counter)
+                sub_mesh['cluster_id'] = np.full(sub_mesh.n_points, sub_cluster_id)
+                sub_mesh['area_m2'] = np.full(sub_mesh.n_points, sub_area)
+                sub_mesh['max_Mw'] = np.full(sub_mesh.n_points, sub_max_Mw)
+                sub_mesh.active_scalars_name = 'fault_idx'
+
+                if include_multiple_scaling_laws:
+                    max_Mw_WC94 = _calculate_max_magnitude_from_area(sub_area, 'wells_coppersmith1994')
+                    max_Mw_T17 = _calculate_max_magnitude_from_area(sub_area, 'thingbaijam2017')
+                    sub_mesh['max_Mw_wells_coppersmith1994'] = np.full(sub_mesh.n_points, max_Mw_WC94)
+                    sub_mesh['max_Mw_thingbaijam2017'] = np.full(sub_mesh.n_points, max_Mw_T17)
+
+                # Add to combined mesh and individual list
+                if combined_mesh.n_points == 0:
+                    combined_mesh = sub_mesh.copy()
+                else:
+                    combined_mesh = combined_mesh + sub_mesh
+
+                # Centroid from sub-mesh vertices (accurate per split component)
+                sub_centroid_x = float(np.mean(sub_mesh.points[:, 0])) if sub_mesh.n_points > 0 else (
+                    float(sub_cluster_data['X'].mean()) if 'X' in sub_cluster_data.columns else None
+                )
+                sub_centroid_y = float(np.mean(sub_mesh.points[:, 1])) if sub_mesh.n_points > 0 else (
+                    float(sub_cluster_data['Y'].mean()) if 'Y' in sub_cluster_data.columns else None
+                )
+                sub_centroid_z = float(np.mean(sub_mesh.points[:, 2])) if sub_mesh.n_points > 0 else (
+                    float(sub_cluster_data['Z'].mean()) if 'Z' in sub_cluster_data.columns else None
+                )
+
+                individual_meshes.append({
+                    'mesh': sub_mesh,
+                    'cluster_id': sub_cluster_id,
+                    'original_cluster_id': str(cluster_id),  # Parent cluster ID
+                    'orientation_cluster': ori_cluster,
+                    'spatial_cluster': spatial_cluster,
+                    'fault_idx': mesh_global_counter,
+                    'n_fault_planes': len(sub_cluster_data),
+                    'n_input_points': len(points),
+                    'area_m2': sub_area,
+                    'max_Mw': sub_max_Mw,
+                    'cluster_centroid_x': sub_centroid_x,
+                    'cluster_centroid_y': sub_centroid_y,
+                    'cluster_centroid_z': sub_centroid_z,
+                    'cluster_data': sub_cluster_data  # Per-component event subset
+                })
+
+                if len(submesh_list) > 1:
+                    print(
+                        f"    ✓ Component {sub_idx + 1}/{len(submesh_list)} of cluster {cluster_id}: "
+                        f"{sub_mesh.n_points} vertices, {sub_mesh.n_cells} faces, "
+                        f"area {sub_area:.1f} m², max Mw {sub_max_Mw:.2f}"
+                    )
+                else:
+                    print(
+                        f"    ✓ Successfully created mesh with {sub_mesh.n_points} vertices, "
+                        f"{sub_mesh.n_cells} faces, area {sub_area:.1f} m², and max Mw {sub_max_Mw:.2f}"
+                    )
+
+                mesh_global_counter += 1
         else:
             print(f"    × Failed to create mesh for cluster {cluster_id}")
     
@@ -1674,10 +1772,10 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 'spatial_cluster': int(cluster_data['spatial_cluster'].iloc[0]) if 'spatial_cluster' in cluster_data.columns and not pd.isna(cluster_data['spatial_cluster'].iloc[0]) else None,
                 'n_rupture_planes': len(cluster_data),
                 'n_events': int(cluster_data['N'].sum()) if 'N' in cluster_data.columns else len(cluster_data),
-                # Geometric properties from original rupture planes: mean values
-                'centroid_x': float(cluster_data['X'].mean()) if 'X' in cluster_data.columns else None,
-                'centroid_y': float(cluster_data['Y'].mean()) if 'Y' in cluster_data.columns else None,
-                'centroid_z': float(cluster_data['Z'].mean()) if 'Z' in cluster_data.columns else None,
+                # Geometric properties: centroid from sub-mesh vertices (accurate per split component)
+                'centroid_x': mesh_info.get('cluster_centroid_x') if mesh_info.get('cluster_centroid_x') is not None else (float(cluster_data['X'].mean()) if 'X' in cluster_data.columns else None),
+                'centroid_y': mesh_info.get('cluster_centroid_y') if mesh_info.get('cluster_centroid_y') is not None else (float(cluster_data['Y'].mean()) if 'Y' in cluster_data.columns else None),
+                'centroid_z': mesh_info.get('cluster_centroid_z') if mesh_info.get('cluster_centroid_z') is not None else (float(cluster_data['Z'].mean()) if 'Z' in cluster_data.columns else None),
                 # Geometric properties from rupture planes: mean orientation using circular statistics
                 'rupture_mean_azimuth': rupture_mean_azimuth,
                 'rupture_mean_dip': rupture_mean_dip,
