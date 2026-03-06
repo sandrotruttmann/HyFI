@@ -7,7 +7,7 @@
   "global_settings": {
     "output_directory": "../hyfi_bohemia",
     "parallel_processing": true,
-    "max_workers": 4,
+    "max_workers": 8,
     "save_individual_results": true,
     "coordinate_system": "EPSG:32633",
     "log_level": "INFO"
@@ -68,7 +68,7 @@
             "optimization_early_stopping_rounds": 10,
             "optimization_early_stopping_threshold": 0.0001,
             "optimization_plot_results": true,
-            "optimization_r_nn_range": [100, 2000],
+            "optimization_r_nn_range": [100, 1000],
             "optimization_dt_nn_range": [8760, 525600]
           }
         }
@@ -102,7 +102,7 @@
             "fault_plane_radius_interval_meters": 50.0,
             "use_anisotropic_eps": true,
             "in_plane_eps_meters": 500,
-            "out_of_plane_eps_meters": 10,
+            "out_of_plane_eps_meters": 50,
             "anisotropic_min_samples": 10
           }
         }
@@ -135,7 +135,7 @@
             "enable_plane_interpolation": true,
             "enable_mesh_stress": false,
             "mesh_subdivisions": 2,
-            "poisson_depth": 2,
+            "poisson_depth": 3,
             "density_threshold": 0.2,
             "max_distance_factor": 2.5,
             "min_fault_planes_for_interpolation": 1,
