@@ -1,0 +1,67 @@
+================================================================================
+                    HyFI v0.1.0 - Installation Instructions
+                 Hypocenter-based 3D Imaging of Active Faults
+================================================================================
+
+QUICK START (5 minutes)
+
+1. Extract the ZIP file
+   - Unzip HyFI-0.1.0.zip to your desired location
+   
+2. Open a Terminal and navigate to the HyFI folder:
+   $ cd /path/to/HyFI
+
+3. Create the Mamba environment with all dependencies:
+   $ mamba env create -f hyfi.yaml
+   
+   (Don't have Mamba? Install Miniforge first from:
+    https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html)
+
+4. Activate the environment (THIS STEP IS CRITICAL):
+   $ mamba activate hyfi
+   
+   Your terminal prompt should now show "(hyfi)" at the beginning.
+   
+   ⚠️  IMPORTANT: You MUST activate the environment before the next step!
+
+5. Install HyFI:
+   For normal use:
+   $ pip install .
+   
+   For development (if you plan to modify code):
+   $ pip install -e .
+   
+   Note: The conda packages (numba, obspy, etc.) are now available, so pip
+   won't try to build them from source.
+
+6. Verify the installation:
+   $ python -c "import hyfi; print(hyfi.__version__)"
+   
+   You should see: 0.1.0
+   
+   ✓ You're done! HyFI is now installed.
+
+================================================================================
+
+DOCUMENTATION
+
+Open your web browser and navigate to:
+   HyFI/docs/build/html/index.html
+
+Or read the quick reference guides:
+   - README.md (overview)
+   - INSTALLATION.md (detailed setup)
+   - QUICKSTART.md (common tasks after installation)
+
+Online documentation: https://hyfi.readthedocs.io/
+
+================================================================================
+
+FIRST STEPS AFTER INSTALLATION
+
+1. Check the QUICKSTART.md file for common tasks
+2. Browse the HTML documentation (open html/index.html in your browser)
+3. Look at example configuration files in example_projects/
+4. Run: hyfi --help (to see available commands)
+
+Happy fault imaging! 🎉
