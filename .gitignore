@@ -1,12 +1,12 @@
 
-/data/examples/Bedretto/
-/data/examples/Bohemia/
-/data/examples/SECOS_20260116/
-/data/examples/Stressfield/
-/hyfi_bohemia/
-/secos25_runs/
-/bohemia_runs/
-/src/hyfi.egg-info/
+/data/examples/Bedretto
+/data/examples/Bohemia
+/data/examples/SECOS_20260116
+/data/examples/Stressfield
+/hyfi_bohemia
+/secos25_runs
+/bohemia_runs
+/src/hyfi.egg-info
 /build
 *.pyc
 *.nbi
