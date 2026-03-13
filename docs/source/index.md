@@ -63,7 +63,7 @@ license.md
 
 - **[Processing Workflow](workflows)**: Understand the different processing workflows of HyFI to analyze simple or more complex earthquake catalogs
 - **[Configuration Guide](configuration)**: Learn how to set up JSON configuration files for your analysis
-- **[Input Parameters](input_parameters)**: Detailed documentation of all configuration parameters
+- **[Input Parameters](input_parameters)**: Detailed documentation of all configuration parameters, including data source conversion
 - **[HyFI Modules](modules/index)**: Understand the different analysis modules (fault network, validation, classification, stress analysis)
 - **[Output Guide](output)**: Learn about the generated output files and visualizations
 - **[Queries](querying)**: Learn how to efficiently query the HyFI results using SQL and DuckDB.

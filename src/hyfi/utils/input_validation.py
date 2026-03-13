@@ -24,8 +24,7 @@ class InputFileValidator:
     # Expected column names for hypocenter data (hypoDD format)
     REQUIRED_HYPO_COLUMNS = [
         'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'EX', 'EY', 'EZ',
-        'YR', 'MO', 'DY', 'HR', 'MI', 'SC', 'MAG', 'NCCP', 'NCCS', 
-        'NCTP', 'NCTS', 'RCC', 'RCT', 'CID'
+        'YR', 'MO', 'DY', 'HR', 'MI', 'SC', 'MAG'
     ]
     
     # Expected column names for focal mechanism data
@@ -33,7 +32,7 @@ class InputFileValidator:
         'ID', 'LAT', 'LON', 'DEPTH', 'X', 'Y', 'Z', 'YR', 'MO', 'DY', 
         'HR', 'MI', 'SC', 'MAG', 'A', 'Strike1', 'Dip1', 'Rake1', 
         'Strike2', 'Dip2', 'Rake2', 'Pazim', 'Pdip', 'Tazim', 'Tdip', 
-        'Q', 'Type', 'Loc'
+        'Q', 'Type'
     ]
     
     # Alternative time formats for focal mechanisms
@@ -202,8 +201,8 @@ class InputFileValidator:
             file_columns = list(df.columns)
             
             # First check for the core required columns (excluding time variations and optional metadata)
-            # Type, Q, Loc are optional metadata columns not required for processing
-            optional_columns = ['HR', 'MI', 'SC', 'Type', 'Q', 'Loc']
+            # Type, Q are optional metadata columns not required for processing
+            optional_columns = ['HR', 'MI', 'SC', 'Type', 'Q']
             core_columns = [col for col in self.REQUIRED_FOCAL_COLUMNS 
                            if col not in optional_columns]
             
@@ -315,7 +314,7 @@ class InputFileValidator:
             issues.extend(time_issues)
             
             # Check integer columns
-            integer_cols = ['YR', 'MO', 'DY', 'HR', 'MI', 'NCCP', 'NCCS', 'NCTP', 'NCTS', 'CID']
+            integer_cols = ['YR', 'MO', 'DY', 'HR', 'MI']
             for col in integer_cols:
                 if col in df.columns:
                     int_issues = self._validate_integer_column(df[col], col)

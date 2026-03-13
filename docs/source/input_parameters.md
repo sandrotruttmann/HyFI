@@ -53,7 +53,9 @@ Settings that apply to the entire workflow.
 
 ## Input Data
 
-Configuration for input earthquake catalog files.
+Configuration for input earthquake catalog files. See the [Quickstart](quickstart) guide for information about preparing your data and using the built-in ECOS parser.
+
+### File Requirements
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -63,18 +65,96 @@ Configuration for input earthquake catalog files.
 | `focal_mechanism_separator` | string | No | Column separator for focal mechanism file. Options: `","`, `"\t"`, `";"` |
 
 ### Required Hypocenter Columns
-- `YR`, `MO`, `DY`, `HR`, `MI`, `SC` (Date/time)
-- `LAT`, `LON`, `Z` (Location)
-- `X`, `Y` (Local coordinates)
-- `EX`, `EY`, `EZ` (Location uncertainties)
-- `ID` (Event identifier)
-- `MAG` or `ML` or `Mw` (Magnitude)
 
-### Required Focal Mechanism Columns (if used)
-- `ID` (Event identifier matching hypocenter catalog)
-- `Strike1`, `Dip1`, `Rake1` (First nodal plane)
-- `Strike2`, `Dip2`, `Rake2` (Second nodal plane)
-- `A` (Active plane indicator: `1` or `2`, optional but recommended)
+All hypocenter files must contain these 17 core columns (order not strict):
+
+| Column | Type | Description |
+|--------|------|-------------|
+| ID | string | Event identifier (must be unique) |
+| LAT | float | Latitude (degrees, WGS84) |
+| LON | float | Longitude (degrees, WGS84) |
+| DEPTH | float | Depth (kilometers below sea level, positive downward) |
+| X | float | Easting coordinate (meters, typically Swiss LV95/CH1903+) |
+| Y | float | Northing coordinate (meters, typically Swiss LV95/CH1903+) |
+| Z | float | Vertical position (meters, negative = below datum) |
+| EX | float | X-coordinate uncertainty (meters) |
+| EY | float | Y-coordinate uncertainty (meters) |
+| EZ | float | Z-coordinate uncertainty (meters) |
+| YR | int | Year (4-digit, e.g., 2024) |
+| MO | int | Month (1-12) |
+| DY | int | Day of month (1-31) |
+| HR | int | Hour (0-23) |
+| MI | int | Minute (0-59) |
+| SC | float | Second (0-59.999) |
+| MAG | float | Magnitude (any scale: ML, Mw, mb, etc.) |
+
+### Required Focal Mechanism Columns (Optional)
+
+If provided, focal mechanism files must contain all hypocenter columns plus these 10 additional columns:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| A | int | Quality flag (1 or 2 = valid focal mechanism, 0 or null = no solution) |
+| Strike1 | float | Strike angle of nodal plane 1 (degrees, 0-360) |
+| Dip1 | float | Dip angle of nodal plane 1 (degrees, 0-90) |
+| Rake1 | float | Rake angle of nodal plane 1 (degrees, -180 to 180) |
+| Strike2 | float | Strike angle of nodal plane 2 (degrees, 0-360) |
+| Dip2 | float | Dip angle of nodal plane 2 (degrees, 0-90) |
+| Rake2 | float | Rake angle of nodal plane 2 (degrees, -180 to 180) |
+| Pazim | float | P-axis azimuth (degrees, 0-360) |
+| Pdip | float | P-axis dip (degrees, 0-90) |
+| Tazim | float | T-axis azimuth (degrees, 0-360) |
+| Tdip | float | T-axis dip (degrees, 0-90) |
+| Q | int | Focal mechanism quality rating (1-5 scale, or null if unavailable) |
+| Type | string | Event type classification (e.g., "normal", "strike-slip", "reverse", "uncertain") |
+
+### Data Source Conversions
+
+#### ECOS Catalog Parser
+
+If you have ECOS ConsolidatedMergeCat and/or AssociateFM files, use the built-in parser:
+
+```bash
+hyfi parse-ecos --hypo ECOS_Merge_Bull+AbsRel+DDC+DDR_20260116.ConsolidatedMergeCat.csv \
+                 --focals ECOS_Merge_Bull+AbsRel+DDC+DDR_20260116.AssociateFM.csv
+```
+
+Or with just the filenames (if running from the directory containing them):
+
+```bash
+hyfi parse-ecos --hypo ECOS_Merge_Bull+AbsRel+DDC+DDR_20260116.ConsolidatedMergeCat.csv --focals ECOS_Merge_Bull+AbsRel+DDC+DDR_20260116.AssociateFM.csv
+```
+
+This automatically converts ECOS pipe-delimited format to standard HyFI CSV format. See [Quickstart: Using Your Own Data](quickstart#using-your-own-data) for detailed examples.
+
+#### Other Formats
+
+For earthquake catalogs from other sources:
+1. Prepare CSV file with required columns (order not strict, case-insensitive column names accepted)
+2. Specify the correct separator in configuration (`","`, `"\t"`, or `";"`)
+3. Ensure data types match (integers for YR/MO/DY/HR/MI, floats for coordinates/magnitudes, etc.)
+4. Verify coordinate systems match your project (typically WGS84 for lat/lon, local projection for X/Y)
+
+### CSV Example
+
+```
+ID	LAT	LON	DEPTH	X	Y	Z	EX	EY	EZ	YR	MO	DY	HR	MI	SC	MAG
+EV001	45.5234	9.7654	8.5	2683450.5	1247850.3	-8500	100	120	150	2024	3	15	14	30	45.2	3.2
+EV002	45.5245	9.7665	9.2	2683460.2	1247860.1	-9200	110	130	160	2024	3	15	14	31	22.8	2.8
+```
+
+### Data Validation
+
+HyFI automatically validates input files during workflow initialization. The validator checks:
+
+- ✓ All required columns are present
+- ✓ Column data types are correct
+- ✓ Coordinate values are within reasonable ranges
+- ✓ Temporal values (YR, MO, DY, HR, MI) are valid calendar dates
+- ✓ Magnitude values are plausible (typically -2 to 8)
+- ✓ Focal mechanism angles are within valid ranges (0-360° for azimuths, 0-90° for dips, -180 to 180° for rakes)
+
+Validation errors will be reported with specific guidance on how to fix the issues.
 
 ---
 

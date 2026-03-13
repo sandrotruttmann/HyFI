@@ -703,6 +703,51 @@ def validate_input(hypo_file, hypo_sep, focal_file, focal_sep, no_report):
 
 
 @main.command()
+@click.option('--hypo', type=click.Path(), 
+              help='ECOS ConsolidatedMergeCat CSV file')
+@click.option('--focals', type=click.Path(),
+              help='ECOS AssociateFM CSV file')
+def parse_ecos(hypo, focals):
+    """
+    Parse ECOS catalog files to HyFI input format.
+    
+    Converts ECOS ConsolidatedMergeCat and AssociateFM files to HyFI format.
+    
+    Examples:
+    
+        hyfi parse-ecos --hypo ConsolidatedMergeCat.csv --focals AssociateFM.csv
+        
+        hyfi parse-ecos --hypo ConsolidatedMergeCat.csv
+    """
+    from pathlib import Path
+    from .utils.parsers import parse_ecos_hypocenter, parse_ecos_focal_mechanism
+    
+    if not hypo and not focals:
+        click.echo("Error: At least one of --hypo or --focals is required", err=True)
+        sys.exit(1)
+    
+    try:
+        if hypo:
+            hypo_path = Path(hypo)
+            if not hypo_path.exists():
+                click.echo(f"Error: Hypocenter file not found: {hypo_path.resolve()}", err=True)
+                sys.exit(1)
+            parse_ecos_hypocenter(str(hypo_path))
+        
+        if focals:
+            focals_path = Path(focals)
+            if not focals_path.exists():
+                click.echo(f"Error: Focal mechanism file not found: {focals_path.resolve()}", err=True)
+                sys.exit(1)
+            parse_ecos_focal_mechanism(str(focals_path))
+        
+        click.echo("\nParsing completed successfully!")
+    except Exception as e:
+        click.echo(f"Error during parsing: {e}", err=True)
+        sys.exit(1)
+
+
+@main.command()
 def info():
     """Display information about HyFI."""
     

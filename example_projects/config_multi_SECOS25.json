@@ -15,9 +15,9 @@
   },
   "workflow_dag": {
     "step_1_load_data": {
-      "hypocenter_file": "../data_examples/SECOS_20260116/ECOS_20260116_MergeCat.csv",
+      "hypocenter_file": "../data_examples/SECOS_20260116/ECOS_Merge_Bull+AbsRel+DDC+DDR_20260116.ConsolidatedMergeCat_HyFI.csv",
       "hypocenter_separator": ",",
-      "focal_mechanism_file": "../data_examples/SECOS_20260116/ECOS_20260116_AssociateFM.csv",
+      "focal_mechanism_file": "../data_examples/SECOS_20260116/ECOS_Merge_Bull+AbsRel+DDC+DDR_20260116.AssociateFM_HyFI.csv",
       "focal_mechanism_separator": ","
     },
     "step_2_catalog_segmentation": {

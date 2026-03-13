@@ -146,7 +146,7 @@ def match_hypoDD_focals_proc(data_input, foc_file, foc_sep, foc_mag_check, foc_l
     print("✓ Focal mechanism file format validation passed.")
     
     # Import the focal file (only first 28 columns - standard focal mechanism format)
-    focal_import = pd.read_csv(foc_file, sep=foc_sep, usecols=range(28))
+    focal_import = pd.read_csv(foc_file, sep=foc_sep, usecols=range(26))
 
         
     # Handle different time formats based on validation results

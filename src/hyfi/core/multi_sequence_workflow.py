@@ -370,7 +370,7 @@ class MultiSequenceWorkflow:
         print("Loading full earthquake catalog...")
         
         # Load hypocenter data (only first 24 columns - standard hypoDD format)
-        self.full_catalog = pd.read_csv(self.config.catalog_file, sep=self.config.catalog_sep, usecols=range(24))
+        self.full_catalog = pd.read_csv(self.config.catalog_file, sep=self.config.catalog_sep, usecols=range(17))
         
         # Process temporal information
         self.full_catalog['Date'] = pd.to_datetime(pd.DataFrame({
@@ -1458,7 +1458,7 @@ class MultiSequenceWorkflow:
         
         try:
             # Load focal mechanism data (first 28 columns = standard format)
-            df_focals = pd.read_csv(focal_file_path, sep=focal_sep, usecols=range(28))
+            df_focals = pd.read_csv(focal_file_path, sep=focal_sep, usecols=range(26))
             print(f"  Loaded {len(df_focals)} focal mechanisms from {focal_file_path.name}")
             
             # Add sequence assignment from full catalog if available

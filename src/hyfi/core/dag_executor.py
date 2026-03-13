@@ -352,7 +352,7 @@ class DAGExecutor:
             raise FileNotFoundError(f"Hypocenter file not found: {hypo_file}")
         
         # Only load the first 24 columns (standard hypoDD format)
-        hypo_data = pd.read_csv(hypo_file, sep=node.hypocenter_separator, usecols=range(24))
+        hypo_data = pd.read_csv(hypo_file, sep=node.hypocenter_separator, usecols=range(17))
         
         result = {
             'hypocenter_data': hypo_data,
@@ -382,7 +382,7 @@ class DAGExecutor:
             foc_file = Path(node.focal_mechanism_file)
             if foc_file.exists():
                 # Only load the first 28 columns (standard focal mechanism format)
-                foc_data = pd.read_csv(foc_file, sep=node.focal_mechanism_separator, usecols=range(28))
+                foc_data = pd.read_csv(foc_file, sep=node.focal_mechanism_separator, usecols=range(26))
                 result['focal_mechanism_data'] = foc_data
                 result['focal_mechanism_file'] = str(foc_file)
                 result['focal_mechanism_separator'] = node.focal_mechanism_separator

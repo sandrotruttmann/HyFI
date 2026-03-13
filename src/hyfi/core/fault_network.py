@@ -1043,7 +1043,7 @@ def faultnetwork3D(input_params):
     # Data import - Load into single dataframe that will be enriched throughout pipeline
     # Ensure ID is read as string to preserve format (e.g., 'KP200307161108')
     # Only load the first 24 columns (standard hypoDD format)
-    df_hyfi = pd.read_csv(hypo_file, sep=hypo_sep, dtype={'ID': str}, usecols=range(24))
+    df_hyfi = pd.read_csv(hypo_file, sep=hypo_sep, dtype={'ID': str}, usecols=range(17))
     
     # Extract the date and time information of the hypocenters
     df_hyfi['Date'] = pd.to_datetime(pd.DataFrame({'year': df_hyfi['YR'],

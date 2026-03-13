@@ -52,7 +52,7 @@ def compare_outlier_methods(hypo_file, hypo_sep=',',
     
     # Load data
     print(f"\nLoading data from: {hypo_file}")
-    df = pd.read_csv(hypo_file, sep=hypo_sep, dtype={'ID': str}, usecols=range(24))
+    df = pd.read_csv(hypo_file, sep=hypo_sep, dtype={'ID': str}, usecols=range(17))
     
     # Extract date information
     df['Date'] = pd.to_datetime(pd.DataFrame({
