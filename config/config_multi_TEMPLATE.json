@@ -1,0 +1,237 @@
+{
+  "metadata": {
+    "workflow_name": "TEMPLATE - Multi-Sequence Analysis",
+    "workflow_version": "1.0.0",
+    "created_date": "2026-01-22T00:00:00",
+    "description": "Complete template with all available parameters for multi-sequence fault imaging analysis including catalog segmentation, per-sequence analysis, and database export. See documentation for detailed parameter descriptions."
+  },
+  "global_settings": {
+    "output_directory": "./hyfi_multi_output",
+    "parallel_processing": false,
+    "max_workers": 4,
+    "save_individual_results": true,
+    "coordinate_system": "EPSG:21781",
+    "log_level": "INFO"
+  },
+  "workflow_dag": {
+    "step_1_load_data": {
+      "hypocenter_file": "data/examples/SECOS_20250305_HyFI_VS_filtered.csv",
+      "hypocenter_separator": ",",
+      "focal_mechanism_file": "data/examples/SECOS_20250305_FM_HyFI.csv",
+      "focal_mechanism_separator": ","
+    },
+    "step_2_catalog_segmentation": {
+      "enabled": true,
+      "description": "Multi-step catalog segmentation to identify seismic sequences",
+      "segmentation_steps": [
+        {
+          "step_name": "Class_A",
+          "description": "Primary tight clustering for main sequences",
+          "method": "dbscan",
+          "features": ["spatial"],
+          "cluster_dimension": "3d",
+          "dbscan_eps": 350.0,
+          "dbscan_min_samples": 10,
+          "dbscan_metric": "euclidean",
+          "min_cluster_size": 20,
+          "process_outliers": true,
+          "outlier_handling": "next_step"
+        },
+        {
+          "step_name": "Class_B",
+          "description": "Secondary broader clustering for diffuse sequences",
+          "method": "dbscan",
+          "features": ["spatial"],
+          "cluster_dimension": "3d",
+          "dbscan_eps": 500.0,
+          "dbscan_min_samples": 10,
+          "dbscan_metric": "euclidean",
+          "min_cluster_size": 10,
+          "process_outliers": true,
+          "outlier_handling": "next_step"
+        },
+        {
+          "step_name": "Class_C_HDBSCAN",
+          "description": "Adaptive density clustering for variable density patterns",
+          "method": "hdbscan",
+          "features": ["spatial"],
+          "cluster_dimension": "3d",
+          "hdbscan_min_cluster_size": 15,
+          "hdbscan_min_samples": null,
+          "dbscan_metric": "euclidean",
+          "min_cluster_size": 5,
+          "process_outliers": true,
+          "outlier_handling": "next_step"
+        },
+        {
+          "step_name": "Class_D_OPTICS",
+          "description": "OPTICS clustering for linear and elongated structures",
+          "method": "optics",
+          "features": ["spatial"],
+          "cluster_dimension": "3d",
+          "optics_min_samples": 10,
+          "optics_max_eps": null,
+          "optics_cluster_method": "xi",
+          "optics_xi": 0.05,
+          "dbscan_metric": "euclidean",
+          "min_cluster_size": 5,
+          "process_outliers": true,
+          "outlier_handling": "next_step"
+        },
+        {
+          "step_name": "Class_E_Temporal",
+          "description": "Temporal clustering for time-based sequences",
+          "method": "temporal",
+          "features": ["temporal"],
+          "temporal_window_days": 30,
+          "min_cluster_size": 5,
+          "process_outliers": true,
+          "outlier_handling": "next_step"
+        },
+        {
+          "step_name": "Class_F_Spatiotemporal",
+          "description": "Combined spatial-temporal clustering",
+          "method": "spatial_temporal",
+          "features": ["spatial", "temporal"],
+          "cluster_dimension": "3d",
+          "dbscan_eps": 400.0,
+          "dbscan_min_samples": 8,
+          "dbscan_metric": "euclidean",
+          "spatial_weight": 0.7,
+          "min_cluster_size": 5,
+          "process_outliers": false,
+          "outlier_handling": "keep"
+        }
+      ],
+      "final_outlier_handling": "keep",
+      "max_outlier_ratio": 0.7
+    },
+    "step_3_per_sequence_analysis": {
+      "description": "Apply HyFI core analysis to each sequence identified in step_2",
+      "fault_network": {
+        "parameters": {
+          "core_network": {
+            "monte_carlo_simulations": 1,
+            "search_radius_meters": null,
+            "search_time_window_hours": null,
+            "magnitude_type": "ML"
+          },
+          "outlier_detection": {
+            "remove_outliers": true,
+            "outlier_method": "dbscan",
+            "lof_n_neighbors": null,
+            "lof_contamination": "auto",
+            "if_n_estimators": 100,
+            "if_max_samples": "auto",
+            "if_contamination": 0.05,
+            "if_random_state": 42
+          },
+          "focal_mechanism_constraints": {
+            "use_focal_constraints": true
+          },
+          "automatic_parameter_optimization": {
+            "auto_optimize_parameters": true,
+            "optimization_method": "optuna",
+            "optimization_use_adaptive_weights": true,
+            "optimization_random_state": 42,
+            "optimization_n_trials": 100,
+            "optimization_startup_trials": 10,
+            "optimization_early_stopping_rounds": 10,
+            "optimization_early_stopping_threshold": 0.0001,
+            "optimization_grid_points": 25,
+            "optimization_plot_results": true,
+            "optimization_r_nn_range": [50, 1000],
+            "optimization_dt_nn_range": [100, 50000]
+          }
+        }
+      },
+      "model_validation": {
+        "enabled": true,
+        "parameters": {
+          "check_magnitude_consistency": true,
+          "check_location_consistency": true,
+          "maximum_distance_km": 1.0,
+          "maximum_magnitude_difference": 0.2
+        }
+      },
+      "auto_classification": {
+        "enabled": true,
+        "parameters": {
+          "orientation_clustering": {
+            "auto_determine_clusters": true,
+            "max_clusters": 8,
+            "number_of_clusters": 2,
+            "clustering_algorithm": "vmf_soft",
+            "rotate_poles_before_analysis": true,
+            "convergence_tolerance": 1e-6,
+            "maximum_iterations": 300
+          },
+          "spatial_sub_clustering": {
+            "enable_spatial_clustering": true,
+            "spatial_clustering_method": "dbscan",
+            "min_events_per_cluster": 5,
+            "fault_plane_clustering_eps_meters": 100,
+            "fault_plane_clustering_min_samples": 5,
+            "use_fault_plane_points_for_clustering": true,
+            "use_anisotropic_eps": true,
+            "in_plane_eps_meters": 500,
+            "out_of_plane_eps_meters": 10,
+            "anisotropic_min_samples": 10
+          }
+        }
+      },
+      "stress_analysis": {
+        "enabled": true,
+        "parameters": {
+          "stress_field": {
+            "use_shapefile": true,
+            "shapefile_path": "data/examples/Stressfield/CH_stressfield_Kastrup.shp",
+            "sigma1_trend_degrees": null,
+            "sigma1_plunge_degrees": null,
+            "sigma3_trend_degrees": null,
+            "sigma3_plunge_degrees": null,
+            "stress_shape_ratio": null
+          },
+          "mechanical_properties": {
+            "pore_pressure_mpa": 0.0,
+            "friction_coefficient": 0.75
+          }
+        }
+      },
+      "visualization": {
+        "enabled": true,
+        "parameters": {
+          "basic_visualization": {
+            "generate_3d_model": true,
+            "generate_stereonet": true
+          },
+          "fault_surface_interpolation": {
+            "enable_plane_interpolation": true,
+            "enable_mesh_stress": true,
+            "mesh_subdivisions": 2,
+            "poisson_depth": 2,
+            "density_threshold": 0.2,
+            "max_distance_factor": 2.5,
+            "spatial_clustering_method": "adaptive",
+            "min_events_per_cluster": 10,
+            "min_fault_planes_for_interpolation": 1
+          },
+          "3d_export": {
+            "export_vtp": true,
+            "export_obj": false
+          }
+        }
+      }
+    },
+    "step_4_merge_and_export": {
+      "enabled": true,
+      "description": "Merge VTP files from individual sequences and save to database",
+      "merge_vtp_files": true,
+      "merged_output": {
+        "merged_vtp_path": "./hyfi_multi_output/HyFI_Database/HyFI_Database_vtp/merged_sequences.vtp",
+        "export_merged_csv": true,
+        "export_summary_statistics": true
+      }
+    }
+  }
+}

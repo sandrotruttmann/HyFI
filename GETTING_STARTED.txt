@@ -58,7 +58,7 @@ FIRST STEPS AFTER INSTALLATION
 
 1. Check the QUICKSTART.md file for common tasks
 2. Browse the HTML documentation (open html/index.html in your browser)
-3. Look at example configuration files in example_projects/
+3. Look at example configuration files in config/
 4. Run: hyfi --help (to see available commands)
 
 Happy fault imaging! 🎉

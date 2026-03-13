@@ -110,7 +110,7 @@ This installs HyFI from the local source code into your mamba environment.
 Navigate to the example projects directory and run a test configuration:
 
 ```bash
-cd example_projects
+cd config
 hyfi run config_TEMPLATE.json
 ```
 

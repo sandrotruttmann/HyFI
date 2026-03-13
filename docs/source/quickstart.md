@@ -29,7 +29,7 @@ Replace `/path/to/HyFI` with the actual path where you installed HyFI (e.g., `~/
 ### Step 3: Navigate to Example Projects
 
 ```bash
-cd example_projects
+cd config
 ```
 
 ### Step 4: Run an Example Configuration

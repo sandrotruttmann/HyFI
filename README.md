@@ -51,7 +51,7 @@ pip install .
 ### Run Example
 
 ```bash
-cd example_projects
+cd config
 
 # Single-sequence analysis (basic)
 hyfi run config_A0.json

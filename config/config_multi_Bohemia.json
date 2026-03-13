@@ -1,0 +1,153 @@
+{
+  "metadata": {
+    "workflow_name": "Example Multi-Step Segmentation Analysis",
+    "workflow_version": "1.0.0",
+    "created_date": "2025-10-03T00:00:00"
+  },
+  "global_settings": {
+    "output_directory": "../hyfi_bohemia",
+    "parallel_processing": true,
+    "max_workers": 8,
+    "save_individual_results": true,
+    "coordinate_system": "EPSG:32633",
+    "log_level": "INFO"
+  },
+  "workflow_dag": {
+    "step_1_load_data": {
+      "hypocenter_file": "../data/examples/Bohemia/HypocenterwithmatchingIDs_Bohemia_1991-2021_MLall.csv",
+      "hypocenter_separator": ",",
+      "focal_mechanism_file": "../data/examples/Bohemia/FocMecwithmatchingIDs_Bohemia_2008-2018_Mlall_onlymatched.csv",
+      "focal_mechanism_separator": ","
+    },
+    "step_2_catalog_segmentation": {
+      "enabled": true,
+      "segmentation_only": false,
+      "segmentation_steps": [
+        {
+          "step_name": "Class A",
+          "method": "dbscan",
+          "features": ["spatial", "temporal"],
+          "cluster_dimension": "3d",
+          "dbscan_eps": 200.0,
+          "temporal_window_days": 1460,
+          "dbscan_min_samples": 10,
+          "dbscan_metric": "euclidean",
+          "min_cluster_size": 30,
+          "process_outliers": true,
+          "outlier_handling": "next_step"
+        }
+      ],
+      "final_outlier_handling": "keep",
+      "max_outlier_ratio": 0.7
+    },
+    "step_3_per_sequence_analysis": {
+      "description": "Apply HyFI core analysis to each sequence identified in step_2",
+      "fault_network": {
+        "enabled": true,
+        "parameters": {
+          "core_network": {
+            "monte_carlo_simulations": 1,
+            "search_radius_meters": null,
+            "search_time_window_hours": null,
+            "magnitude_type": "ML"
+          },
+          "outlier_detection": {
+            "remove_outliers": true,
+            "outlier_method": "dbscan"
+          },
+          "focal_mechanism_constraints": {
+            "use_focal_constraints": true
+          },
+          "automatic_parameter_optimization": {
+            "auto_optimize_parameters": true,
+            "optimization_method": "optuna",
+            "optimization_use_adaptive_weights": true,
+            "optimization_random_state": 42,
+            "optimization_n_trials": 50,
+            "optimization_startup_trials": 10,
+            "optimization_early_stopping_rounds": 10,
+            "optimization_early_stopping_threshold": 0.0001,
+            "optimization_plot_results": true,
+            "optimization_r_nn_range": [100, 1000],
+            "optimization_dt_nn_range": [8760, 525600]
+          }
+        }
+      },
+      "model_validation": {
+        "enabled": true,
+        "parameters": {
+          "check_magnitude_consistency": true,
+          "check_location_consistency": true,
+          "maximum_distance_km": 1.0,
+          "maximum_magnitude_difference": 0.2
+        }
+      },
+      "auto_classification": {
+        "enabled": true,
+        "parameters": {
+          "orientation_clustering": {
+            "auto_determine_clusters": true,
+            "max_clusters": 3,
+            "clustering_algorithm": "vmf_soft",
+            "rotate_poles_before_analysis": true,
+            "convergence_tolerance": 1e-6,
+            "maximum_iterations": 300
+          },
+          "spatial_sub_clustering": {
+            "enable_spatial_clustering": true,
+            "spatial_clustering_method": "dbscan",
+            "min_events_per_cluster": 5,
+            "use_fault_plane_points_for_clustering": false,
+            "fault_plane_point_density_meters": 50.0,
+            "fault_plane_radius_interval_meters": 50.0,
+            "use_anisotropic_eps": true,
+            "in_plane_eps_meters": 500,
+            "out_of_plane_eps_meters": 50,
+            "anisotropic_min_samples": 10
+          }
+        }
+      },
+      "stress_analysis": {
+        "enabled": true,
+        "parameters": {
+          "stress_field": {
+            "use_shapefile": false,
+            "sigma1_trend_degrees": 146.0,
+            "sigma1_plunge_degrees": 48.0,
+            "sigma3_trend_degrees": 237.0,
+            "sigma3_plunge_degrees": 1.0,
+            "stress_shape_ratio": 0.55
+          },
+          "mechanical_properties": {
+            "pore_pressure_mpa": 0.0,
+            "friction_coefficient": 0.75
+          }
+        }
+      },
+      "visualization": {
+        "enabled": true,
+        "parameters": {
+          "basic_visualization": {
+            "generate_3d_model": true,
+            "generate_stereonet": true
+          },
+          "fault_surface_interpolation": {
+            "enable_plane_interpolation": true,
+            "enable_mesh_stress": false,
+            "mesh_subdivisions": 2,
+            "poisson_depth": 3,
+            "density_threshold": 0.2,
+            "max_distance_factor": 2.5,
+            "min_fault_planes_for_interpolation": 1,
+            "fault_plane_radius_interval_meters": 50.0,
+            "fault_plane_point_density_meters": 50.0
+          },
+          "3d_export": {
+            "export_vtp": true,
+            "export_obj": false
+          }
+        }
+      }
+    }
+  }
+}
