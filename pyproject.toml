@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hyfi"
-version = "1.0.0"
+version = "0.1.0"
 description = "HyFI: Hypocenter-based 3D Imaging of Active Faults"
 readme = "README.md"
 license = {text = "GPL-3.0"}
