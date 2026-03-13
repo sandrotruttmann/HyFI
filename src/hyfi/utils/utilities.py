@@ -664,7 +664,7 @@ def fault_network_with_optimization(input_params):
                 raise ValueError("hypo_file must be specified for parameter optimization")
             
             # Load hypocenter data (using same logic as fault_network.py)
-            data_input = pd.read_csv(hypo_file, sep=hypo_sep, dtype={'ID': str}, usecols=range(24))
+            data_input = pd.read_csv(hypo_file, sep=hypo_sep, dtype={'ID': str}, usecols=range(17))
             
             # Extract date and time information
             data_input['Date'] = pd.to_datetime(pd.DataFrame({'year': data_input['YR'],
