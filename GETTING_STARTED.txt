@@ -31,9 +31,6 @@ QUICK START (5 minutes)
    For development (if you plan to modify code):
    $ pip install -e .
    
-   Note: The conda packages (numba, obspy, etc.) are now available, so pip
-   won't try to build them from source.
-
 6. Verify the installation:
    $ python -c "import hyfi; print(hyfi.__version__)"
    
