@@ -14,7 +14,7 @@
   },
   "workflow_dag": {
     "step_1_load_data": {
-      "hypocenter_file": "../data/examples/Bohemia/HypocenterwithmatchingIDs_Bohemia_1991-2021_MLall.csv",
+      "hypocenter_file": "../data/examples/Bohemia/HypocenterwithmatchingIDs_Bohemia_1991-2021_MLall_FINALCROP.csv",
       "hypocenter_separator": ",",
       "focal_mechanism_file": "../data/examples/Bohemia/FocMecwithmatchingIDs_Bohemia_2008-2018_Mlall_onlymatched.csv",
       "focal_mechanism_separator": ","
