@@ -399,12 +399,14 @@ class MultiSequenceWorkflow:
         # Import the updated segmentation function
         from ..utils.catalog_segmentation import multi_step_catalog_segmentation
         
-        # Apply multi-step segmentation
+        # Apply multi-step segmentation (diagnostics saved to output_dir/diagnostics/)
         self.sequences, self.clustering_results = multi_step_catalog_segmentation(
             self.full_catalog,
             self.config.segmentation_steps,
             self.config.clustering.final_outlier_handling,
-            self.config.clustering.max_outlier_ratio
+            self.config.clustering.max_outlier_ratio,
+            output_dir=str(self.config.output_directory),
+            save_diagnostics=True,
         )
         
         print(f"Multi-step clustering completed:")

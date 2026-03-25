@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 def multi_step_catalog_segmentation(catalog: pd.DataFrame,
                                   segmentation_steps: List,
                                   final_outlier_handling: str = 'keep',
-                                  max_outlier_ratio: float = 0.3) -> Tuple[Dict[str, pd.DataFrame], Dict[str, Any]]:
+                                  max_outlier_ratio: float = 0.3,
+                                  output_dir: Optional[str] = None,
+                                  save_diagnostics: bool = True) -> Tuple[Dict[str, pd.DataFrame], Dict[str, Any]]:
     """
     Multi-step segmentation for full earthquake catalogs.
     
@@ -32,6 +34,11 @@ def multi_step_catalog_segmentation(catalog: pd.DataFrame,
         How to handle final outliers ('keep', 'discard', 'merge_largest')
     max_outlier_ratio : float
         Maximum allowed ratio of outliers to total events
+    output_dir : str, optional
+        If provided, diagnostic plots are saved to ``output_dir/diagnostics/``.
+    save_diagnostics : bool
+        Whether to generate and save diagnostic plots (default: True).
+        Requires matplotlib.  Only active when *output_dir* is set.
         
     Returns
     -------
@@ -103,6 +110,22 @@ def multi_step_catalog_segmentation(catalog: pd.DataFrame,
                 total_clustered += len(sequence_data)
                 logger.info(f"Found sequence {sequence_key}: {len(sequence_data)} events")
         
+        # Save per-step diagnostic plots
+        if save_diagnostics and output_dir is not None:
+            try:
+                from .segmentation_diagnostics import plot_segmentation_step_diagnostics
+                plot_segmentation_step_diagnostics(
+                    catalog=remaining_data,
+                    cluster_labels=cluster_labels,
+                    step_name=step.step_name,
+                    step_level=step_level,
+                    clustering_params=_step_to_clustering_params(step),
+                    features=step.features,
+                    output_dir=output_dir,
+                )
+            except Exception as _diag_exc:
+                logger.warning(f"Could not save step diagnostic plot: {_diag_exc}")
+
         # Store step results
         step_results[step.step_name] = {
             'input_size': len(remaining_data),
@@ -143,6 +166,18 @@ def multi_step_catalog_segmentation(catalog: pd.DataFrame,
     if outlier_ratio > max_outlier_ratio:
         logger.warning(f"High outlier ratio: {outlier_ratio:.2%} (threshold: {max_outlier_ratio:.2%})")
     
+    # Save final overview and parameter reference plots
+    if save_diagnostics and output_dir is not None:
+        try:
+            from .segmentation_diagnostics import (
+                plot_segmentation_overview,
+                plot_parameter_reference,
+            )
+            plot_segmentation_overview(catalog, all_sequences, output_dir)
+            plot_parameter_reference(catalog, segmentation_steps, output_dir)
+        except Exception as _diag_exc:
+            logger.warning(f"Could not save segmentation overview plot: {_diag_exc}")
+
     # Summary
     logger.info(f"\n=== Multi-Step Segmentation Summary ===")
     logger.info(f"Total input events: {len(catalog)}")
