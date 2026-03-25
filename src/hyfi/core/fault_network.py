@@ -80,9 +80,9 @@ def hypo_perturbation(n_mc, _X, _Y, _Z, EX, EY, EZ):
         # error (then it catches 99.7 % of the data according to normal
         # distribution properties)
         for i in range(_X.shape[0]):
-            per_X[i,:] = np.random.normal(loc=_X[i], scale=EX[i], size=n_mc)
-            per_Y[i,:] = np.random.normal(loc=_Y[i], scale=EY[i], size=n_mc)
-            per_Z[i,:] = np.random.normal(loc=_Z[i], scale=EZ[i], size=n_mc)
+            per_X[i,:] = np.random.normal(_X[i], EX[i], n_mc)
+            per_Y[i,:] = np.random.normal(_Y[i], EY[i], n_mc)
+            per_Z[i,:] = np.random.normal(_Z[i], EZ[i], n_mc)
         
     return per_X, per_Y, per_Z
 
@@ -1148,12 +1148,12 @@ def faultnetwork3D(input_params):
     # Create n_mc perturbed hypocenter datasets for Monte Carlo simulation
     # Use filtered data (without outliers) for plane fitting
     per_X, per_Y, per_Z = hypo_perturbation(n_mc,
-                                            np.array(data_for_plane_fitting['X']),
-                                            np.array(data_for_plane_fitting['Y']),
-                                            np.array(data_for_plane_fitting['Z']),
-                                            np.array(data_for_plane_fitting['EX']),
-                                            np.array(data_for_plane_fitting['EY']),
-                                            np.array(data_for_plane_fitting['EZ']))
+                                            np.array(data_for_plane_fitting['X'], dtype=np.float64),
+                                            np.array(data_for_plane_fitting['Y'], dtype=np.float64),
+                                            np.array(data_for_plane_fitting['Z'], dtype=np.float64),
+                                            np.array(data_for_plane_fitting['EX'], dtype=np.float64),
+                                            np.array(data_for_plane_fitting['EY'], dtype=np.float64),
+                                            np.array(data_for_plane_fitting['EZ'], dtype=np.float64))
 
     # Create dataframes for per_X, per_Y, and per_Z
     df_per_X = pd.concat([data_for_plane_fitting['ID'], pd.DataFrame(per_X)], axis=1)
