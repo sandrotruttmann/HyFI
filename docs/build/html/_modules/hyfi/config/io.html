@@ -1,0 +1,543 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hyfi.config.io &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            HyFI
+              <img src="../../../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">hyfi.config.io</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for hyfi.config.io</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Configuration file I/O utilities for HyFI.</span>
+
+<span class="sd">This module handles loading and saving configuration files.</span>
+<span class="sd">JSON is the only supported format for all configurations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProjectConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">HyFIWorkflowDAG</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigValidationError</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.multi_sequence_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultiSequenceConfig</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># ==============================================================================</span>
+<span class="c1"># JSON DAG Configuration (Only Supported Format for DAGs)</span>
+<span class="c1"># ==============================================================================</span>
+
+<div class="viewcode-block" id="load_dag_from_json">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.load_dag_from_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_dag_from_json</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">HyFIWorkflowDAG</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load DAG configuration from a JSON file.</span>
+<span class="sd">    </span>
+<span class="sd">    JSON is the only supported format for DAG configurations.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : Union[str, Path]</span>
+<span class="sd">        Path to the JSON DAG configuration file</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    HyFIWorkflowDAG</span>
+<span class="sd">        Loaded DAG configuration object</span>
+<span class="sd">        </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ConfigValidationError</span>
+<span class="sd">        If file cannot be loaded or parsed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">HyFIWorkflowDAG</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuration file not found: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error parsing JSON file: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error loading DAG configuration: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="save_dag_to_json">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.save_dag_to_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_dag_to_json</span><span class="p">(</span><span class="n">dag</span><span class="p">:</span> <span class="n">HyFIWorkflowDAG</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save DAG configuration to a JSON file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dag : HyFIWorkflowDAG</span>
+<span class="sd">        DAG configuration object to save</span>
+<span class="sd">    file_path : Union[str, Path]</span>
+<span class="sd">        Path where to save the JSON file</span>
+<span class="sd">        </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ConfigValidationError</span>
+<span class="sd">        If file cannot be written</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dag</span><span class="o">.</span><span class="n">save_to_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DAG configuration saved to: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error saving DAG configuration to JSON: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_template_dag">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.create_template_dag">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_template_dag</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> 
+                       <span class="n">workflow_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;My HyFI Analysis&quot;</span><span class="p">,</span>
+                       <span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;path/to/hypocenter_data.txt&quot;</span><span class="p">,</span>
+                       <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./hyfi_output&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HyFIWorkflowDAG</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a template DAG configuration and save it to JSON file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : Union[str, Path]</span>
+<span class="sd">        Path where to save the template</span>
+<span class="sd">    workflow_name : str</span>
+<span class="sd">        Name for the workflow</span>
+<span class="sd">    input_file : str</span>
+<span class="sd">        Path to input hypocenter data file</span>
+<span class="sd">    output_dir : str</span>
+<span class="sd">        Output directory for results</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    HyFIWorkflowDAG</span>
+<span class="sd">        Created template DAG</span>
+<span class="sd">        </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ConfigValidationError</span>
+<span class="sd">        If file cannot be written</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create a template DAG with reasonable defaults</span>
+    <span class="n">dag</span> <span class="o">=</span> <span class="n">HyFIWorkflowDAG</span><span class="p">(</span>
+        <span class="n">workflow_name</span><span class="o">=</span><span class="n">workflow_name</span><span class="p">,</span>
+        <span class="n">output_directory</span><span class="o">=</span><span class="n">output_dir</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Customize input data node</span>
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;input_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">hypocenter_file</span> <span class="o">=</span> <span class="n">input_file</span>
+    
+    <span class="c1"># Save to JSON file</span>
+    <span class="n">save_dag_to_json</span><span class="p">(</span><span class="n">dag</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template DAG configuration saved to: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;This JSON file represents your analysis workflow as a directed acyclic graph.&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Edit the file to customize your analysis parameters and workflow structure.&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">dag</span></div>
+
+
+
+<div class="viewcode-block" id="validate_dag_file">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.validate_dag_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_dag_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate a DAG configuration file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : Union[str, Path]</span>
+<span class="sd">        Path to the JSON DAG configuration file</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if validation passes</span>
+<span class="sd">        </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ConfigValidationError</span>
+<span class="sd">        If validation fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dag</span> <span class="o">=</span> <span class="n">load_dag_from_json</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="n">dag</span><span class="o">.</span><span class="n">validate_dag</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DAG configuration is valid: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DAG validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ==============================================================================</span>
+<span class="c1"># Auto-detection and Conversion (JSON Only)</span>
+<span class="c1"># ==============================================================================</span>
+
+<div class="viewcode-block" id="auto_load_config">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.auto_load_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">auto_load_config</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">HyFIWorkflowDAG</span><span class="p">,</span> <span class="s1">&#39;MultiSequenceConfig&#39;</span><span class="p">,</span> <span class="n">ProjectConfig</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Automatically detect JSON file format and load configuration.</span>
+<span class="sd">    </span>
+<span class="sd">    For JSON files, detects between DAG format, multi-sequence format, and legacy format.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : Union[str, Path]</span>
+<span class="sd">        Path to the JSON configuration file</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Union[HyFIWorkflowDAG, MultiSequenceConfig, ProjectConfig]</span>
+<span class="sd">        Loaded configuration object based on detected format</span>
+<span class="sd">        </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ConfigValidationError</span>
+<span class="sd">        If file format is not supported or file cannot be loaded</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    
+    <span class="c1"># Only handle JSON files</span>
+    <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;.json&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Read and analyze file content</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">content</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            
+            <span class="c1"># Check for DAG configuration (unified format)</span>
+            <span class="k">if</span> <span class="s1">&#39;workflow_dag&#39;</span> <span class="ow">in</span> <span class="n">content</span> <span class="ow">or</span> <span class="s1">&#39;metadata&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+                <span class="c1"># Check if it&#39;s a multi-sequence DAG by looking for step_2_catalog_segmentation node</span>
+                <span class="k">if</span> <span class="s1">&#39;workflow_dag&#39;</span> <span class="ow">in</span> <span class="n">content</span> <span class="ow">and</span> <span class="s1">&#39;step_2_catalog_segmentation&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;workflow_dag&#39;</span><span class="p">]:</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">.multi_sequence_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultiSequenceConfig</span>
+                    <span class="k">return</span> <span class="n">MultiSequenceConfig</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">load_dag_from_json</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            
+            <span class="c1"># Check for legacy multi-sequence configuration</span>
+            <span class="k">elif</span> <span class="s1">&#39;clustering&#39;</span> <span class="ow">in</span> <span class="n">content</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;template_config&#39;</span> <span class="ow">in</span> <span class="n">content</span> <span class="ow">or</span> <span class="s1">&#39;cluster_workflow_template&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">):</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">.multi_sequence_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultiSequenceConfig</span>
+                <span class="k">return</span> <span class="n">MultiSequenceConfig</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+            
+            <span class="c1"># Default to legacy configuration</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">load_config_from_json</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error loading JSON configuration: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Try JSON formats only</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">load_dag_from_json</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">load_config_from_json</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Only JSON configuration files are supported: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_template_config">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.create_template_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_template_config</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="nb">format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;json&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a template configuration file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : Union[str, Path]</span>
+<span class="sd">        Path where to save the template</span>
+<span class="sd">    format : str</span>
+<span class="sd">        File format - only &#39;json&#39; is supported</span>
+<span class="sd">        </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ConfigValidationError</span>
+<span class="sd">        If format is not supported or file cannot be written</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="nb">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+        <span class="c1"># Create DAG template (recommended - JSON only for DAGs)</span>
+        <span class="n">create_template_dag</span><span class="p">(</span>
+            <span class="n">file_path</span><span class="o">=</span><span class="n">file_path</span><span class="p">,</span>
+            <span class="n">workflow_name</span><span class="o">=</span><span class="s1">&#39;My HyFI Analysis&#39;</span><span class="p">,</span>
+            <span class="n">input_file</span><span class="o">=</span><span class="s1">&#39;path/to/hypocenter_data.txt&#39;</span><span class="p">,</span>
+            <span class="n">output_dir</span><span class="o">=</span><span class="s1">&#39;./hyfi_output&#39;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported format: </span><span class="si">{</span><span class="nb">format</span><span class="si">}</span><span class="s2">. Only &#39;json&#39; format is supported.&quot;</span><span class="p">)</span>
+        
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template configuration saved to: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Edit this file to customize your analysis parameters.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="load_config_from_json">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.load_config_from_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_config_from_json</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">ProjectConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load configuration from a JSON file (legacy format).</span>
+<span class="sd">    </span>
+<span class="sd">    Note: For DAG configurations, use load_dag_from_json() instead.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : Union[str, Path]</span>
+<span class="sd">        Path to the JSON configuration file</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ProjectConfig</span>
+<span class="sd">        Loaded configuration object</span>
+<span class="sd">        </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ConfigValidationError</span>
+<span class="sd">        If file cannot be loaded or parsed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">config_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ProjectConfig</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">config_dict</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuration file not found: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error parsing JSON file: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error loading configuration: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="save_config_to_json">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.save_config_to_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_config_to_json</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">ProjectConfig</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save configuration to a JSON file (legacy format).</span>
+<span class="sd">    </span>
+<span class="sd">    Note: For DAG configurations, use save_dag_to_json() instead.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : ProjectConfig</span>
+<span class="sd">        Configuration object to save</span>
+<span class="sd">    file_path : Union[str, Path]</span>
+<span class="sd">        Path where to save the JSON file</span>
+<span class="sd">        </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ConfigValidationError</span>
+<span class="sd">        If file cannot be written</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">config_dict</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="c1"># Convert Path objects to strings for JSON serialization</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+                <span class="n">config_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">config_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error saving configuration to JSON: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="convert_legacy_to_dag">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.convert_legacy_to_dag">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_legacy_to_dag</span><span class="p">(</span><span class="n">legacy_config</span><span class="p">:</span> <span class="n">ProjectConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HyFIWorkflowDAG</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a legacy ProjectConfig to a DAG configuration (JSON format).</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    legacy_config : ProjectConfig</span>
+<span class="sd">        Legacy configuration to convert</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    HyFIWorkflowDAG</span>
+<span class="sd">        Converted DAG configuration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create new DAG</span>
+    <span class="n">dag</span> <span class="o">=</span> <span class="n">HyFIWorkflowDAG</span><span class="p">(</span>
+        <span class="n">workflow_name</span><span class="o">=</span><span class="n">legacy_config</span><span class="o">.</span><span class="n">project_title</span><span class="p">,</span>
+        <span class="n">output_directory</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">legacy_config</span><span class="o">.</span><span class="n">out_dir</span><span class="p">)</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Map legacy parameters to DAG nodes</span>
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;input_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">hypocenter_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">legacy_config</span><span class="o">.</span><span class="n">hypo_file</span><span class="p">)</span>
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;input_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">hypocenter_separator</span> <span class="o">=</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">hypo_sep</span>
+    
+    <span class="c1"># Fault network parameters</span>
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;fault_network&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="s2">&quot;monte_carlo_simulations&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">n_mc</span><span class="p">,</span>
+        <span class="s2">&quot;search_radius_meters&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">r_nn</span><span class="p">,</span>
+        <span class="s2">&quot;search_time_window_hours&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">dt_nn</span><span class="p">,</span>
+        <span class="s2">&quot;magnitude_type&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">mag_type</span>
+    <span class="p">})</span>
+    
+    <span class="c1"># Model validation parameters</span>
+    <span class="k">if</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">foc_file</span><span class="p">:</span>
+        <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;input_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">focal_mechanism_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">legacy_config</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">foc_file</span><span class="p">)</span>
+        <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;input_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">focal_mechanism_separator</span> <span class="o">=</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">foc_sep</span>
+    
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;model_validation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">validation_bool</span>
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;model_validation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="s2">&quot;check_magnitude_consistency&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">foc_mag_check</span><span class="p">,</span>
+        <span class="s2">&quot;check_location_consistency&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">foc_loc_check</span>
+    <span class="p">})</span>
+    
+    <span class="c1"># Auto classification parameters</span>
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;auto_classification&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">auto_class</span><span class="o">.</span><span class="n">autoclass_bool</span>
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;auto_classification&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="s2">&quot;number_of_clusters&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">auto_class</span><span class="o">.</span><span class="n">n_clusters</span><span class="p">,</span>
+        <span class="s2">&quot;clustering_algorithm&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">auto_class</span><span class="o">.</span><span class="n">algorithm</span><span class="p">,</span>
+        <span class="s2">&quot;rotate_poles_before_analysis&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">auto_class</span><span class="o">.</span><span class="n">rotation</span>
+    <span class="p">})</span>
+    
+    <span class="c1"># Stress analysis parameters</span>
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;stress_analysis&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">stress_bool</span>
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;stress_analysis&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;stress_field&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="s2">&quot;use_shapefile&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">use_shapefile_stress</span><span class="p">,</span>
+        <span class="s2">&quot;shapefile_path&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">stress_field_shapefile</span><span class="p">,</span>
+        <span class="s2">&quot;sigma1_trend_degrees&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">S1_trend</span><span class="p">,</span>
+        <span class="s2">&quot;sigma1_plunge_degrees&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">S1_plunge</span><span class="p">,</span>
+        <span class="s2">&quot;sigma3_trend_degrees&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">S3_trend</span><span class="p">,</span>
+        <span class="s2">&quot;sigma3_plunge_degrees&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">S3_plunge</span><span class="p">,</span>
+        <span class="s2">&quot;stress_shape_ratio&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">stress_R</span>
+    <span class="p">})</span>
+    
+    <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s2">&quot;stress_analysis&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;mechanical_properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="s2">&quot;pore_pressure_mpa&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">PP</span><span class="p">,</span>
+        <span class="s2">&quot;friction_coefficient&quot;</span><span class="p">:</span> <span class="n">legacy_config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">fric_coeff</span>
+    <span class="p">})</span>
+    
+    <span class="k">return</span> <span class="n">dag</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

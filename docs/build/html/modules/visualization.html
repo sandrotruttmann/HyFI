@@ -1,0 +1,239 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visualization &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="HyFI Terminology" href="../terminology.html" />
+    <link rel="prev" title="Stress Analysis" href="stress_analysis.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HyFI
+              <img src="../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HyFI Core Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-module-execution-order">Core Module Execution Order</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#core-analysis-modules">Core Analysis Modules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="fault_network.html">Fault Network Reconstruction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="model_validation.html">Model Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auto_classification.html">Automatic Classification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stress_analysis.html">Stress Analysis</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Visualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#core-concepts">Core Concepts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#computational-workflow">Computational Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-outputs">Module Outputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">HyFI Core Modules</a></li>
+      <li class="breadcrumb-item active">Visualization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/visualization.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="visualization">
+<h1>Visualization<a class="headerlink" href="#visualization" title="Link to this heading"></a></h1>
+<p><strong>HyFI</strong> provides comprehensive 3D interpolation, visualization and export capabilities. The visualization module processes clustered and classified fault data to generate interactive 3D models, stereonet projections, and exportable mesh formats suitable for advanced visualization software such as ParaView.</p>
+<hr class="docutils" />
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading"></a></h2>
+<section id="poisson-surface-reconstruction">
+<h3>Poisson Surface Reconstruction<a class="headerlink" href="#poisson-surface-reconstruction" title="Link to this heading"></a></h3>
+<p>To generate continuous meshes representing active faults, the system utilizes Poisson Surface Reconstruction (PSR) (Kazhdan et al., 2006). <strong>HyFI</strong> processes the discrete rupture segments of each <code class="docutils literal notranslate"><span class="pre">final_cluster_id</span></code> — identified during the auto-classification stage — and interpolates them into a coherent geometric surface using PSR.</p>
+<p>Unlike local interpolation methods (such as Delaunay triangulation), PSR treats surface reconstruction as a global optimization problem. It expresses the reconstruction as a spatial Poisson problem, which effectively “wraps” a surface around the input data points based on their orientation.</p>
+<ul>
+<li><p>Input: Oriented point clouds or segments derived from fault clusters.</p></li>
+<li><p>Indicator Function: The algorithm solves for a scalar function <span class="math notranslate nohighlight">\(\chi\)</span> (the indicator function) that is <span class="math notranslate nohighlight">\(1\)</span> inside the fault volume and <span class="math notranslate nohighlight">\(0\)</span> outside.</p></li>
+<li><p>The Poisson Equation: The surface is found by aligning the gradient of the indicator function with the vector field <span class="math notranslate nohighlight">\(\vec{V}\)</span> created by the input normals:</p>
+<p><span class="math notranslate nohighlight">\(\nabla \cdot \nabla \chi = \nabla \cdot \vec{V} \Longleftrightarrow \nabla^2 \chi = \nabla \cdot \vec{V}\)</span></p>
+</li>
+<li><p>Extraction: The final fault mesh is extracted as an isosurface (level set) using an adaptive octree.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="computational-workflow">
+<h2>Computational Workflow<a class="headerlink" href="#computational-workflow" title="Link to this heading"></a></h2>
+<p>The visualization module executes the following sequential steps:</p>
+<section id="step-1-3d-interactive-plotly-model-generation">
+<h3>Step 1: 3D Interactive Plotly Model Generation<a class="headerlink" href="#step-1-3d-interactive-plotly-model-generation" title="Link to this heading"></a></h3>
+<p>Creates an interactive 3D model in html format that can be visualized in any web browser. Note that this is not very efficient and may be laggy for larger datasets. For visualization of large datasets, use the VTP-files in an external 3D software (e.g. ParaView).</p>
+</section>
+<section id="step-2-poisson-surface-reconstruction-optional">
+<h3>Step 2: Poisson Surface Reconstruction (Optional)<a class="headerlink" href="#step-2-poisson-surface-reconstruction-optional" title="Link to this heading"></a></h3>
+<p>In the next step, the (enhanced) point clouds of each cluster (<code class="docutils literal notranslate"><span class="pre">final_cluster_id</span></code>) are interpolated into smooth triangulated meshes using PSR with the according octree depth (<code class="docutils literal notranslate"><span class="pre">poisson_depth</span></code>). With the density threshold (<code class="docutils literal notranslate"><span class="pre">density_threshold</span></code>), the meshes are trimmed to valid regions.</p>
+</section>
+<section id="step-3-stereonet-visualization">
+<h3>Step 3: Stereonet Visualization<a class="headerlink" href="#step-3-stereonet-visualization" title="Link to this heading"></a></h3>
+<p>The poles of the rupture planes (normal vectors) are projected onto a lower-hemispher stereonet and returned as image.</p>
+</section>
+<section id="step-4-visualization-export">
+<h3>Step 4: Visualization Export<a class="headerlink" href="#step-4-visualization-export" title="Link to this heading"></a></h3>
+<p><strong>HyFI</strong> support the export of different formats to be visualized in third-party software (e.g. ParaView):</p>
+<ul class="simple">
+<li><p>VTP Export (VTK PolyData) → vtp_export/ directory</p>
+<ul>
+<li><p>Ideal for visualization/post-processing in ParaView with full attributes attached.</p></li>
+</ul>
+</li>
+<li><p>OBJ Export → obj_export/ directory</p>
+<ul>
+<li><p>Ideal for visualization/post-processing in MOVE. Note that OBJ files do not have any attributes attached.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="module-outputs">
+<h2>Module Outputs<a class="headerlink" href="#module-outputs" title="Link to this heading"></a></h2>
+<section id="generated-files">
+<h3>Generated Files<a class="headerlink" href="#generated-files" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{output_dir}/
+├── 3D_model.html                    # Interactive Plotly 3D visualization
+├── stereonet_by_cluster.png         # Equal-area stereonet projection
+│
+├── vtp_export/
+│   ├── fault_1.vtp                  # Individual cluster mesh
+│   ├── fault_2.vtp
+│   ├── ...
+│   ├── faults_compiled.vtp          # All meshes combined
+│   └── hypocenters.vtp              # Point cloud of original events
+│
+├── obj_export/  (optional)
+│   ├── fault_planes.obj             # Wavefront OBJ format
+│   └── fault_planes.mtl             # Material definition
+│
+└── interpolated_faults_summary.csv   # Per-mesh metadata table
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Kazhdan, M., Bolitho, M., &amp; Hoppe, H. (2006, June). Poisson surface reconstruction. In Proceedings of the fourth Eurographics symposium on Geometry processing (Vol. 7, No. 4).</p></li>
+</ul>
+<hr class="docutils" />
+<p>Happy fault imaging! 🎉</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="stress_analysis.html" class="btn btn-neutral float-left" title="Stress Analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../terminology.html" class="btn btn-neutral float-right" title="HyFI Terminology" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

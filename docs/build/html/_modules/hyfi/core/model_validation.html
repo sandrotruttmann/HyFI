@@ -1,0 +1,986 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hyfi.core.model_validation &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            HyFI
+              <img src="../../../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">hyfi.core.model_validation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for hyfi.core.model_validation</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">HYPOCENTER-BASED 3D IMAGING OF ACTIVE FAULTS: Model Validation Module</span>
+
+<span class="sd">Please cite: Truttmann et al. (2023). Hypocenter-based 3D Imaging of Active Faults: Method and Applications in the Southwestern Swiss Alps.</span>
+
+<span class="sd">@author: Sandro Truttmann</span>
+<span class="sd">@contact: sandro.truttmann@gmail.com</span>
+<span class="sd">@license: GPL-3.0</span>
+<span class="sd">@date: April 2023</span>
+<span class="sd">@version: 0.1.1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Import modules</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">utilities</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">obspy.imaging.beachball</span><span class="w"> </span><span class="kn">import</span> <span class="n">aux_plane</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">merge_focal_mechanisms_early</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">,</span> <span class="n">input_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Merge focal mechanism data with hypocenter data early in the pipeline.</span>
+<span class="sd">    </span>
+<span class="sd">    This function can be called from fault_network module to make focal mechanism</span>
+<span class="sd">    data available for subsequent processing steps.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df_hyfi : DataFrame</span>
+<span class="sd">        Hypocenter dataframe</span>
+<span class="sd">    input_params : dict</span>
+<span class="sd">        Input parameters containing focal mechanism file information</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    df_hyfi : DataFrame</span>
+<span class="sd">        Dataframe with focal mechanism data merged in</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Check if focal mechanism parameters are available</span>
+    <span class="n">foc_file</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_file&#39;</span><span class="p">)</span>
+    <span class="n">foc_sep</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_sep&#39;</span><span class="p">,</span> <span class="s1">&#39;;&#39;</span><span class="p">)</span>
+    <span class="n">foc_mag_check</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_mag_check&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">foc_loc_check</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_loc_check&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">max_mag_diff</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_max_mag_diff&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+    <span class="n">max_distance_km</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_max_dist_km&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">foc_file</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No focal mechanism file specified, continuing without focal mechanisms&quot;</span><span class="p">)</span>
+        <span class="c1"># Add empty focal mechanism columns for consistency</span>
+        <span class="n">focal_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">,</span> <span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols</span><span class="p">:</span>
+            <span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">return</span> <span class="n">df_hyfi</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Merging focal mechanism data...&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Create temporary data_input from relevant columns of df_hyfi for compatibility</span>
+        <span class="n">data_input_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;Date&#39;</span><span class="p">,</span> <span class="s1">&#39;EX&#39;</span><span class="p">,</span> <span class="s1">&#39;EY&#39;</span><span class="p">,</span> <span class="s1">&#39;EZ&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;MAG&#39;</span> <span class="ow">in</span> <span class="n">df_hyfi</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">data_input_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;MAG&#39;</span><span class="p">)</span>
+            
+        <span class="n">temp_data_input</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="n">data_input_cols</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="c1"># Add underscore columns temporarily for compatibility with legacy function</span>
+        <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;_X&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span>
+        <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;_Y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span> 
+        <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;_Z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;Z&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Call the existing function</span>
+        <span class="n">matched_data_input</span> <span class="o">=</span> <span class="n">match_hypoDD_focals_proc</span><span class="p">(</span><span class="n">temp_data_input</span><span class="p">,</span> <span class="n">foc_file</span><span class="p">,</span> <span class="n">foc_sep</span><span class="p">,</span> 
+                                                       <span class="n">foc_mag_check</span><span class="p">,</span> <span class="n">foc_loc_check</span><span class="p">,</span>
+                                                       <span class="n">max_mag_diff</span><span class="p">,</span> <span class="n">max_distance_km</span><span class="p">)</span>
+        
+        <span class="c1"># Add the focal mechanism columns to df_hyfi (including &#39;A&#39; for active plane)</span>
+        <span class="n">focal_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">,</span> <span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">matched_data_input</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">matched_data_input</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        
+        <span class="c1"># Count successful matches</span>
+        <span class="n">nr_match</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully merged </span><span class="si">{</span><span class="n">nr_match</span><span class="si">}</span><span class="s2"> focal mechanisms with hypocenter data&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">df_hyfi</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error merging focal mechanisms: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Continuing without focal mechanism data...&quot;</span><span class="p">)</span>
+        <span class="c1"># Add empty focal mechanism columns for consistency</span>
+        <span class="n">focal_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">,</span> <span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols</span><span class="p">:</span>
+            <span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">return</span> <span class="n">df_hyfi</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">match_hypoDD_focals_proc</span><span class="p">(</span><span class="n">data_input</span><span class="p">,</span> <span class="n">foc_file</span><span class="p">,</span> <span class="n">foc_sep</span><span class="p">,</span> <span class="n">foc_mag_check</span><span class="p">,</span> <span class="n">foc_loc_check</span><span class="p">,</span> 
+                             <span class="n">max_mag_diff</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">max_distance_km</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load and match hypoDD and focal data (using event time and magnitude).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_input : DataFrame</span>
+<span class="sd">        Input hypocenter dataframe with coordinates and metadata</span>
+<span class="sd">    foc_file : str</span>
+<span class="sd">        Path of focal mechanism file.</span>
+<span class="sd">    foc_sep : str</span>
+<span class="sd">        Separator in focal mechanism file.</span>
+<span class="sd">    foc_mag_check : bool</span>
+<span class="sd">        Whether to perform magnitude consistency check</span>
+<span class="sd">    foc_loc_check : bool</span>
+<span class="sd">        Whether to perform location consistency check</span>
+<span class="sd">    max_mag_diff : float, default=0.5</span>
+<span class="sd">        Maximum allowed magnitude difference for matching events (magnitude units)</span>
+<span class="sd">    max_distance_km : float, default=5.0</span>
+<span class="sd">        Maximum allowed distance for location consistency check (km for depth, </span>
+<span class="sd">        converted to degrees for lat/lon: ~0.045 degrees ≈ 5 km)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    DataFrame with hypoDD events and matched focal mechanisms.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Validate focal mechanism file before loading</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.input_validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">InputFileValidator</span>
+    
+    <span class="n">validator</span> <span class="o">=</span> <span class="n">InputFileValidator</span><span class="p">()</span>
+    <span class="n">focal_validation</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate_focal_mechanism_file</span><span class="p">(</span><span class="n">foc_file</span><span class="p">,</span> <span class="n">foc_sep</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">focal_validation</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]:</span>
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Focal mechanism file validation failed: </span><span class="si">{</span><span class="n">focal_validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Unknown error&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">focal_validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missing_columns&#39;</span><span class="p">):</span>
+            <span class="n">error_msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Missing columns: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">focal_validation</span><span class="p">[</span><span class="s1">&#39;missing_columns&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">focal_validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;recommendations&#39;</span><span class="p">):</span>
+            <span class="n">error_msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Recommendations: </span><span class="si">{</span><span class="s1">&#39;; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">focal_validation</span><span class="p">[</span><span class="s1">&#39;recommendations&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Focal mechanism file format validation passed.&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Import the focal file (only first 28 columns - standard focal mechanism format)</span>
+    <span class="n">focal_import</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">foc_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">foc_sep</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">26</span><span class="p">))</span>
+
+        
+    <span class="c1"># Handle different time formats based on validation results</span>
+    <span class="n">time_format</span> <span class="o">=</span> <span class="n">focal_validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time_format&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;HR&#39;</span><span class="p">,</span> <span class="s1">&#39;MI&#39;</span><span class="p">,</span> <span class="s1">&#39;SC&#39;</span><span class="p">])</span>
+    
+    <span class="k">if</span> <span class="n">time_format</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;Hr:Mi&#39;</span><span class="p">]:</span>
+        <span class="c1"># Combined time format - use original logic</span>
+        <span class="c1"># Delete the last columns of the focals - but be more flexible</span>
+        <span class="k">if</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">27</span><span class="p">:</span>  <span class="c1"># If more than expected columns</span>
+            <span class="n">focal_import</span> <span class="o">=</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">27</span><span class="p">]</span>  <span class="c1"># Keep first 27 columns</span>
+        
+        <span class="c1"># Check if focal_import[&#39;Hr:Mi&#39;] incorporates seconds</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Hr:Mi&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="p">:</span>
+            <span class="n">datestring</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Hr:Mi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">Hr</span><span class="p">,</span> <span class="n">Mi</span><span class="p">,</span> <span class="n">Sec</span> <span class="o">=</span> <span class="n">datestring</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">df_date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Yr&#39;</span><span class="p">],</span>
+                                    <span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Mo&#39;</span><span class="p">],</span>
+                                    <span class="s1">&#39;day&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Dy&#39;</span><span class="p">],</span>
+                                    <span class="s1">&#39;hour&#39;</span><span class="p">:</span> <span class="n">Hr</span><span class="p">,</span>
+                                    <span class="s1">&#39;minute&#39;</span><span class="p">:</span> <span class="n">Mi</span><span class="p">,</span>
+                                    <span class="s1">&#39;second&#39;</span><span class="p">:</span> <span class="n">Sec</span><span class="p">})</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Hr:Mi&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">Hr</span><span class="p">,</span> <span class="n">Mi</span> <span class="o">=</span> <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Hr:Mi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">df_date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Yr&#39;</span><span class="p">],</span>
+                                    <span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Mo&#39;</span><span class="p">],</span>
+                                    <span class="s1">&#39;day&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Dy&#39;</span><span class="p">],</span>
+                                    <span class="s1">&#39;hour&#39;</span><span class="p">:</span> <span class="n">Hr</span><span class="p">,</span>
+                                    <span class="s1">&#39;minute&#39;</span><span class="p">:</span> <span class="n">Mi</span><span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please check the time format of the focal file!&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Separate time columns (HR, MI, SC or Hr, Mi, Sc)</span>
+        <span class="c1"># Delete extra columns but keep enough for the expected structure</span>
+        <span class="k">if</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">28</span><span class="p">:</span>  <span class="c1"># More flexible column handling</span>
+            <span class="n">focal_import</span> <span class="o">=</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">28</span><span class="p">]</span>
+        
+        <span class="c1"># Handle different capitalizations</span>
+        <span class="n">hr_col</span> <span class="o">=</span> <span class="s1">&#39;HR&#39;</span> <span class="k">if</span> <span class="s1">&#39;HR&#39;</span> <span class="ow">in</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="s1">&#39;Hr&#39;</span>
+        <span class="n">mi_col</span> <span class="o">=</span> <span class="s1">&#39;MI&#39;</span> <span class="k">if</span> <span class="s1">&#39;MI&#39;</span> <span class="ow">in</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="s1">&#39;Mi&#39;</span>
+        <span class="n">sc_col</span> <span class="o">=</span> <span class="s1">&#39;SC&#39;</span> <span class="k">if</span> <span class="s1">&#39;SC&#39;</span> <span class="ow">in</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="s1">&#39;Sc&#39;</span>
+        
+        <span class="n">df_date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;YR&#39;</span><span class="p">],</span>
+                                <span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;MO&#39;</span><span class="p">],</span>
+                                <span class="s1">&#39;day&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;DY&#39;</span><span class="p">],</span>
+                                <span class="s1">&#39;hour&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="n">hr_col</span><span class="p">],</span>
+                                <span class="s1">&#39;minute&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="n">mi_col</span><span class="p">],</span>
+                                <span class="s1">&#39;second&#39;</span><span class="p">:</span> <span class="n">focal_import</span><span class="p">[</span><span class="n">sc_col</span><span class="p">]</span> <span class="k">if</span> <span class="n">sc_col</span> <span class="ow">in</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="mi">0</span><span class="p">})</span>
+    
+    <span class="n">focal_import</span><span class="p">[</span><span class="s1">&#39;Date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df_date</span><span class="p">)</span>
+    <span class="n">focal_import</span> <span class="o">=</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;Date&#39;</span><span class="p">)</span>
+
+   <span class="c1"># First, try to merge on ID if both datasets have matching IDs</span>
+    <span class="k">if</span> <span class="s1">&#39;ID&#39;</span> <span class="ow">in</span> <span class="n">data_input</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="s1">&#39;ID&#39;</span> <span class="ow">in</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="c1"># Ensure both ID columns have the same data type for merging</span>
+        <span class="n">data_input_copy</span> <span class="o">=</span> <span class="n">data_input</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">focal_import_copy</span> <span class="o">=</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">data_input_copy</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_input_copy</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+        <span class="n">focal_import_copy</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">focal_import_copy</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+        
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">data_input_copy</span><span class="p">,</span> <span class="n">focal_import_copy</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;_fm&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Check if we got any matches by counting non-null focal mechanism values</span>
+        <span class="n">focal_cols_check</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">]</span>
+        <span class="n">matched_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols_check</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">matched_count</span> <span class="o">+=</span> <span class="p">(</span><span class="o">~</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">())</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">matched_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No matches found with Focal ID merge, falling back to time-based merge...&quot;</span><span class="p">)</span>
+            <span class="c1"># Fall back to time-based merge</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge_asof</span><span class="p">(</span><span class="n">data_input</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;Date&#39;</span><span class="p">),</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;Date&#39;</span><span class="p">),</span> 
+                             <span class="n">on</span><span class="o">=</span><span class="s1">&#39;Date&#39;</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&#39;60s&#39;</span><span class="p">),</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;_fm&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully merged focal mechanisms by ID (total non-null values: </span><span class="si">{</span><span class="n">matched_count</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Merging on Date (temporal matching)...&quot;</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge_asof</span><span class="p">(</span><span class="n">data_input</span><span class="p">,</span> <span class="n">focal_import</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;Date&#39;</span><span class="p">,</span>
+                         <span class="n">tolerance</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&#39;60s&#39;</span><span class="p">),</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;_fm&#39;</span><span class="p">))</span>
+        
+    <span class="c1"># Optional: magnitude cross-check</span>
+    <span class="k">if</span> <span class="n">foc_mag_check</span><span class="p">:</span>
+        <span class="c1"># Check if required magnitude columns exist</span>
+        <span class="c1"># After merge, hypocenter MAG should be &#39;MAG&#39; and focal mechanism MAG should be &#39;MAG_fm&#39;</span>
+        <span class="n">hypo_mag_col</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">focal_mag_col</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Find hypocenter magnitude column</span>
+        <span class="k">if</span> <span class="s1">&#39;MAG&#39;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">hypo_mag_col</span> <span class="o">=</span> <span class="s1">&#39;MAG&#39;</span>
+        <span class="k">elif</span> <span class="s1">&#39;Mag&#39;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">hypo_mag_col</span> <span class="o">=</span> <span class="s1">&#39;Mag&#39;</span>
+            
+        <span class="c1"># Find focal mechanism magnitude column</span>
+        <span class="k">if</span> <span class="s1">&#39;MAG_fm&#39;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">focal_mag_col</span> <span class="o">=</span> <span class="s1">&#39;MAG_fm&#39;</span>
+        <span class="k">elif</span> <span class="s1">&#39;Mag_fm&#39;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">focal_mag_col</span> <span class="o">=</span> <span class="s1">&#39;Mag_fm&#39;</span>
+        
+        <span class="k">if</span> <span class="n">hypo_mag_col</span> <span class="ow">and</span> <span class="n">focal_mag_col</span><span class="p">:</span>
+            <span class="c1"># Check if magnitudes of merged data fits</span>
+            <span class="c1"># Calculate magnitude difference</span>
+            <span class="n">mag_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">hypo_mag_col</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="n">focal_mag_col</span><span class="p">])</span>
+            <span class="c1"># Find indexes with missfitting magnitudes (using configurable threshold)</span>
+            <span class="n">error_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mag_diff</span> <span class="o">&gt;</span> <span class="n">max_mag_diff</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1"># Delete the focal data for the respective missfited hypocenter datasets</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">error_idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">error_idx</span><span class="p">)</span><span class="si">}</span><span class="s2"> events with magnitude misfit &gt; </span><span class="si">{</span><span class="n">max_mag_diff</span><span class="si">}</span><span class="s2">, setting focal data to NaN&quot;</span><span class="p">)</span>
+                <span class="n">focal_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">,</span> <span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">,</span> <span class="s1">&#39;Pazim&#39;</span><span class="p">,</span> <span class="s1">&#39;Pdip&#39;</span><span class="p">,</span> <span class="s1">&#39;Tazim&#39;</span><span class="p">,</span> <span class="s1">&#39;Tdip&#39;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">error_idx</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Cannot perform magnitude cross-check - required magnitude columns not found&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Looking for: hypocenter mag (</span><span class="si">{</span><span class="n">hypo_mag_col</span><span class="si">}</span><span class="s2">), focal mag (</span><span class="si">{</span><span class="n">focal_mag_col</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available magnitude columns: </span><span class="si">{</span><span class="p">[</span><span class="n">col</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="s1">&#39;MAG&#39;</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">col</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">&#39;Mag&#39;</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">col</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Optional: Location cross-check</span>
+    <span class="k">if</span> <span class="n">foc_loc_check</span><span class="p">:</span>
+        <span class="c1"># Check if required location columns exist</span>
+        <span class="n">required_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LAT&#39;</span><span class="p">,</span> <span class="s1">&#39;LON&#39;</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">]</span>
+        <span class="n">focal_location_cols</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># Find corresponding focal mechanism location columns</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">required_cols</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="c1"># Look for focal mechanism equivalent (might be &#39;Lat&#39;, &#39;Lon&#39;, &#39;Z_y&#39;, etc.)</span>
+                <span class="n">focal_col</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="s1">&#39;LAT&#39;</span> <span class="ow">and</span> <span class="s1">&#39;Lat&#39;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="n">focal_col</span> <span class="o">=</span> <span class="s1">&#39;Lat&#39;</span>
+                <span class="k">elif</span> <span class="n">col</span> <span class="o">==</span> <span class="s1">&#39;LON&#39;</span> <span class="ow">and</span> <span class="s1">&#39;Lon&#39;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="n">focal_col</span> <span class="o">=</span> <span class="s1">&#39;Lon&#39;</span>
+                <span class="k">elif</span> <span class="n">col</span> <span class="o">==</span> <span class="s1">&#39;DEPTH&#39;</span> <span class="ow">and</span> <span class="s1">&#39;Z_y&#39;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="n">focal_col</span> <span class="o">=</span> <span class="s1">&#39;Z_y&#39;</span>
+                <span class="k">elif</span> <span class="n">col</span> <span class="o">==</span> <span class="s1">&#39;DEPTH&#39;</span> <span class="ow">and</span> <span class="s1">&#39;DEPTH&#39;</span> <span class="ow">in</span> <span class="n">focal_import</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="n">focal_col</span> <span class="o">=</span> <span class="s1">&#39;DEPTH&#39;</span>
+                
+                <span class="k">if</span> <span class="n">focal_col</span><span class="p">:</span>
+                    <span class="n">focal_location_cols</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">col</span><span class="p">,</span> <span class="n">focal_col</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">focal_location_cols</span><span class="p">:</span>
+            <span class="c1"># Check if lat &amp; lon &amp; depth are fitting (using configurable thresholds)</span>
+            <span class="c1"># Convert km to degrees for lat/lon: ~1 km ≈ 0.009 degrees at mid-latitudes</span>
+            <span class="n">degrees_per_km</span> <span class="o">=</span> <span class="mf">0.009</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">hypo_col</span><span class="p">,</span> <span class="n">focal_col</span> <span class="ow">in</span> <span class="n">focal_location_cols</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">hypo_col</span> <span class="o">==</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">:</span>
+                            <span class="c1"># Use km threshold for depth</span>
+                            <span class="n">threshold</span> <span class="o">=</span> <span class="n">max_distance_km</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># Convert km to degrees for lat/lon</span>
+                            <span class="n">threshold</span> <span class="o">=</span> <span class="n">max_distance_km</span> <span class="o">*</span> <span class="n">degrees_per_km</span>
+                        
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">hypo_col</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">focal_col</span><span class="p">]):</span>
+                            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">hypo_col</span><span class="p">]</span> <span class="o">-</span> <span class="n">row</span><span class="p">[</span><span class="n">focal_col</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Please check: Missfit in </span><span class="si">{</span><span class="n">hypo_col</span><span class="si">}</span><span class="s2"> for event with ID </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>
+                                      <span class="sa">f</span><span class="s2">&quot;(diff: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">hypo_col</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">row</span><span class="p">[</span><span class="n">focal_col</span><span class="p">])</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, threshold: </span><span class="si">{</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Cannot check location fit for </span><span class="si">{</span><span class="n">hypo_col</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Cannot perform location cross-check - required location columns not found&quot;</span><span class="p">)</span>
+
+
+    <span class="k">return</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="focal_validation">
+<a class="viewcode-back" href="../../../api/hyfi.core.html#hyfi.focal_validation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">focal_validation</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">,</span> <span class="n">input_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate the fault network model with focal mechanism data using single dataframe approach.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df_hyfi : DataFrame</span>
+<span class="sd">        Single dataframe containing hypocenter data and computed fault plane parameters</span>
+<span class="sd">    input_params : dict</span>
+<span class="sd">        Input parameters including validation settings and focal mechanism file info</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    df_hyfi : DataFrame</span>
+<span class="sd">        Input dataframe with added focal mechanism validation columns</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Extract validation parameters</span>
+    <span class="n">validation_bool</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;validation_bool&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">validation_bool</span><span class="p">:</span>
+        <span class="c1"># No validation requested - initialize columns for compatibility</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">focal_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">,</span> <span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df_hyfi</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">return</span> <span class="n">df_hyfi</span>
+        
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FAULT NETWORK VALIDATION&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Extract focal mechanism parameters</span>
+        <span class="n">foc_file</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_file&#39;</span><span class="p">)</span>
+        <span class="n">foc_sep</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_sep&#39;</span><span class="p">,</span> <span class="s1">&#39;;&#39;</span><span class="p">)</span>
+        <span class="n">foc_mag_check</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_mag_check&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">foc_loc_check</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_loc_check&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">max_mag_diff</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_max_mag_diff&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+        <span class="n">max_distance_km</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_max_dist_km&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">foc_file</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: No focal mechanism file specified, skipping validation&quot;</span><span class="p">)</span>
+            <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="k">return</span> <span class="n">df_hyfi</span>
+        
+        <span class="c1"># Check if focal mechanisms are already merged (from fault network module)</span>
+        <span class="n">focal_cols_to_check</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">]</span>
+        <span class="n">already_merged</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">col</span> <span class="ow">in</span> <span class="n">df_hyfi</span><span class="o">.</span><span class="n">columns</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols_to_check</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">already_merged</span><span class="p">:</span>
+            <span class="c1"># Check if we have any actual focal mechanism data (not just NaN columns)</span>
+            <span class="n">has_focal_data</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols_to_check</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">has_focal_data</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Focal mechanisms already merged in fault network module, proceeding with validation...&quot;</span><span class="p">)</span>
+                <span class="n">nr_existing_match</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="n">nr_existing_match</span><span class="si">}</span><span class="s2"> existing focal mechanism matches&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Focal mechanism columns exist but contain no data, attempting to merge...&quot;</span><span class="p">)</span>
+                <span class="c1"># Match hypocenter data with focal mechanisms</span>
+                <span class="n">df_hyfi</span> <span class="o">=</span> <span class="n">match_hypoDD_focals</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">,</span> <span class="n">foc_file</span><span class="p">,</span> <span class="n">foc_sep</span><span class="p">,</span> <span class="n">foc_mag_check</span><span class="p">,</span> <span class="n">foc_loc_check</span><span class="p">,</span>
+                                              <span class="n">max_mag_diff</span><span class="p">,</span> <span class="n">max_distance_km</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Focal mechanisms not yet merged, merging now...&quot;</span><span class="p">)</span>
+            <span class="c1"># Match hypocenter data with focal mechanisms</span>
+            <span class="n">df_hyfi</span> <span class="o">=</span> <span class="n">match_hypoDD_focals</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">,</span> <span class="n">foc_file</span><span class="p">,</span> <span class="n">foc_sep</span><span class="p">,</span> <span class="n">foc_mag_check</span><span class="p">,</span> <span class="n">foc_loc_check</span><span class="p">,</span>
+                                          <span class="n">max_mag_diff</span><span class="p">,</span> <span class="n">max_distance_km</span><span class="p">)</span>
+
+        <span class="c1"># Calculate auxiliary plane from Strike1, Dip1, Rake1</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">strike1</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="s1">&#39;Strike1&#39;</span><span class="p">]</span>
+                <span class="n">dip1</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">]</span>
+                <span class="n">rake1</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">]</span>
+                
+                <span class="c1"># Check if focal mechanism parameters are valid</span>
+                <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">strike1</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">dip1</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">rake1</span><span class="p">):</span>
+                    <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                    <span class="k">continue</span>
+                
+                <span class="c1"># Check parameter ranges</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">strike1</span> <span class="o">&lt;=</span> <span class="mi">360</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">dip1</span> <span class="o">&lt;=</span> <span class="mi">90</span> <span class="ow">and</span> <span class="o">-</span><span class="mi">180</span> <span class="o">&lt;=</span> <span class="n">rake1</span> <span class="o">&lt;=</span> <span class="mi">180</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Invalid focal mechanism parameters for event </span><span class="si">{</span><span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;ID&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Strike1=</span><span class="si">{</span><span class="n">strike1</span><span class="si">}</span><span class="s2">, Dip1=</span><span class="si">{</span><span class="n">dip1</span><span class="si">}</span><span class="s2">, Rake1=</span><span class="si">{</span><span class="n">rake1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                    <span class="k">continue</span>
+                
+                <span class="n">auxiliary_plane</span> <span class="o">=</span> <span class="n">aux_plane</span><span class="p">(</span><span class="n">strike1</span><span class="p">,</span> <span class="n">dip1</span><span class="p">,</span> <span class="n">rake1</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">auxiliary_plane</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                    <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">auxiliary_plane</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">auxiliary_plane</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">auxiliary_plane</span><span class="p">[</span><span class="mi">2</span><span class="p">])]</span>
+                    
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error calculating auxiliary plane for event </span><span class="si">{</span><span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;ID&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="c1"># Initialize validation columns for all events</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    
+        <span class="c1"># Calculate the angular difference between fault plane orientations and focal mechanisms</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Skip if no fault plane was calculated</span>
+                <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;rupt_plane_azi&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]):</span>
+                    <span class="k">continue</span>
+                    
+                <span class="c1"># Check if focal mechanism data is available</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Dip1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span> <span class="ow">or</span> 
+                    <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Strike2&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Dip2&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])):</span>
+                    <span class="k">continue</span>
+                
+                <span class="c1"># Calculate the normal unit vector of the computed fault plane</span>
+                <span class="n">nor_fau</span> <span class="o">=</span> <span class="p">[</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;nor_x_mean&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
+                          <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;nor_y_mean&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
+                          <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;nor_z_mean&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]]</span>
+                
+                <span class="c1"># Calculate the normal unit vectors of the two focal plane solutions</span>
+                <span class="c1"># Strike to dip azimuth conversion: dip direction is 90° clockwise from strike</span>
+                <span class="n">azi1</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">90</span><span class="p">)</span> <span class="o">%</span> <span class="mi">360</span>  <span class="c1"># Convert strike to dip azimuth</span>
+                <span class="n">dip1</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Dip1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">azi2</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Strike2&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">90</span><span class="p">)</span> <span class="o">%</span> <span class="mi">360</span>  <span class="c1"># Convert strike to dip azimuth</span>
+                <span class="n">dip2</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Dip2&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                
+                <span class="n">nor_x1</span><span class="p">,</span> <span class="n">nor_y1</span><span class="p">,</span> <span class="n">nor_z1</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">plane_azidip_to_normal</span><span class="p">(</span><span class="n">azi1</span><span class="p">,</span> <span class="n">dip1</span><span class="p">)</span>
+                <span class="n">nor_x2</span><span class="p">,</span> <span class="n">nor_y2</span><span class="p">,</span> <span class="n">nor_z2</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">plane_azidip_to_normal</span><span class="p">(</span><span class="n">azi2</span><span class="p">,</span> <span class="n">dip2</span><span class="p">)</span>
+                <span class="n">nor_foc1</span> <span class="o">=</span> <span class="p">[</span><span class="n">nor_x1</span><span class="p">,</span> <span class="n">nor_y1</span><span class="p">,</span> <span class="n">nor_z1</span><span class="p">]</span>
+                <span class="n">nor_foc2</span> <span class="o">=</span> <span class="p">[</span><span class="n">nor_x2</span><span class="p">,</span> <span class="n">nor_y2</span><span class="p">,</span> <span class="n">nor_z2</span><span class="p">]</span>
+    
+                <span class="c1"># Calculate the angle between the computed fault plane and the focal planes</span>
+                <span class="n">angle1</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">angle_between</span><span class="p">(</span><span class="n">nor_fau</span><span class="p">,</span> <span class="n">nor_foc1</span><span class="p">)</span>
+                <span class="n">angle2</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">angle_between</span><span class="p">(</span><span class="n">nor_fau</span><span class="p">,</span> <span class="n">nor_foc2</span><span class="p">)</span>
+                <span class="n">angle1</span> <span class="o">=</span> <span class="n">angle1</span> <span class="k">if</span> <span class="n">angle1</span> <span class="o">&lt;</span> <span class="mi">90</span> <span class="k">else</span> <span class="mi">180</span> <span class="o">-</span> <span class="n">angle1</span>
+                <span class="n">angle2</span> <span class="o">=</span> <span class="n">angle2</span> <span class="k">if</span> <span class="n">angle2</span> <span class="o">&lt;</span> <span class="mi">90</span> <span class="k">else</span> <span class="mi">180</span> <span class="o">-</span> <span class="n">angle2</span>    
+                
+                <span class="c1"># PRIORITIZE the active plane indicator &quot;A&quot; if available</span>
+                <span class="k">if</span> <span class="s1">&#39;A&#39;</span> <span class="ow">in</span> <span class="n">df_hyfi</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]):</span>
+                    <span class="n">active_plane</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">active_plane</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+                        <span class="c1"># Use the specified active plane</span>
+                        <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">active_plane</span>
+                        <span class="c1"># Store the angular difference for the active plane</span>
+                        <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">angle1</span> <span class="k">if</span> <span class="n">active_plane</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">angle2</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># A=0 or invalid A value: use geometric selection (minimum angular difference)</span>
+                        <span class="n">angle12</span> <span class="o">=</span> <span class="p">[</span><span class="n">angle1</span><span class="p">,</span> <span class="n">angle2</span><span class="p">]</span>
+                        <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">angle12</span><span class="p">)</span>
+                        <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">angle12</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">angle12</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># No active plane specified, choose based on minimal angular difference</span>
+                    <span class="n">angle12</span> <span class="o">=</span> <span class="p">[</span><span class="n">angle1</span><span class="p">,</span> <span class="n">angle2</span><span class="p">]</span>
+                    <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">angle12</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]):</span>
+                        <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">angle12</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">angle12</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+                        
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error calculating angular differences for event </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    
+        <span class="c1"># Count the number of matched focals</span>
+        <span class="n">nr_match</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of matched focal mechanisms: &#39;</span><span class="p">,</span> <span class="n">nr_match</span><span class="p">)</span>
+        
+        <span class="c1"># Report on active plane usage and automatically determined planes</span>
+        <span class="n">has_A_column</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span> <span class="ow">in</span> <span class="n">df_hyfi</span><span class="o">.</span><span class="n">columns</span>
+        
+        <span class="k">if</span> <span class="n">has_A_column</span><span class="p">:</span>
+            <span class="n">nr_with_active_plane</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">nr_with_active_plane</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Number of events with active plane indicator (A): </span><span class="si">{</span><span class="n">nr_with_active_plane</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;✓ Active plane information WILL BE USED for preferred plane selection&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No active plane indicators found - using geometric selection only&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No active plane column found - using geometric selection only&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Count preferred planes by determination method</span>
+        <span class="n">nr_pref_determined</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">nr_pref_determined</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">--- PREFERRED FOCAL PLANE DETERMINATION ---&#39;</span><span class="p">)</span>
+            
+            <span class="c1"># Separate events by how plane was determined</span>
+            <span class="k">if</span> <span class="n">has_A_column</span><span class="p">:</span>
+                <span class="c1"># Events with A=1 or A=2 (pre-specified)</span>
+                <span class="n">prespecified_mask</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">&amp;</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span>
+                <span class="n">nr_prespecified</span> <span class="o">=</span> <span class="n">prespecified_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                
+                <span class="c1"># Events with A=0 (unknown, newly determined)</span>
+                <span class="n">A0_determined_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span>
+                <span class="n">nr_A0_determined</span> <span class="o">=</span> <span class="n">A0_determined_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                
+                <span class="c1"># Events with no A or NaN A (newly determined)</span>
+                <span class="n">noA_determined_mask</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span>
+                <span class="n">nr_noA_determined</span> <span class="o">=</span> <span class="n">noA_determined_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                
+                <span class="c1"># Events with A=1/2 but no pref_foc (no rupture plane)</span>
+                <span class="n">A_but_no_plane_mask</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">&amp;</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
+                <span class="n">nr_A_no_plane</span> <span class="o">=</span> <span class="n">A_but_no_plane_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                
+                <span class="n">nr_newly_total</span> <span class="o">=</span> <span class="n">nr_A0_determined</span> <span class="o">+</span> <span class="n">nr_noA_determined</span>
+                
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Pre-specified active planes (A=1 or A=2): </span><span class="si">{</span><span class="n">nr_prespecified</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Newly determined preferred planes (geometric selection):&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - A=0 (unknown plane): </span><span class="si">{</span><span class="n">nr_A0_determined</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">nr_noA_determined</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - No A value: </span><span class="si">{</span><span class="n">nr_noA_determined</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - Total newly determined: </span><span class="si">{</span><span class="n">nr_newly_total</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">nr_A_no_plane</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">  ⚠️  </span><span class="si">{</span><span class="n">nr_A_no_plane</span><span class="si">}</span><span class="s1"> events with A=1/2 have no pref_foc (no computed rupture plane)&#39;</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">nr_newly_total</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">  ℹ️  </span><span class="si">{</span><span class="n">nr_newly_total</span><span class="si">}</span><span class="s1"> active planes were newly determined by geometric selection&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;     (based on minimum angular difference to computed fault plane)&#39;</span><span class="p">)</span>
+                    
+                    <span class="c1"># Provide statistics on the newly determined planes</span>
+                    <span class="n">newly_determined</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="n">A0_determined_mask</span> <span class="o">|</span> <span class="n">noA_determined_mask</span><span class="p">]</span>
+                    <span class="n">nr_plane1</span> <span class="o">=</span> <span class="p">(</span><span class="n">newly_determined</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="n">nr_plane2</span> <span class="o">=</span> <span class="p">(</span><span class="n">newly_determined</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;     - Plane 1 selected: </span><span class="si">{</span><span class="n">nr_plane1</span><span class="si">}</span><span class="s1"> events&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;     - Plane 2 selected: </span><span class="si">{</span><span class="n">nr_plane2</span><span class="si">}</span><span class="s1"> events&#39;</span><span class="p">)</span>
+                    
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newly_determined</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">mean_epsilon</span> <span class="o">=</span> <span class="n">newly_determined</span><span class="p">[</span><span class="s1">&#39;epsilon&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;     - Mean angular difference: </span><span class="si">{</span><span class="n">mean_epsilon</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">°&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># No A column, all are newly determined</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  All </span><span class="si">{</span><span class="n">nr_pref_determined</span><span class="si">}</span><span class="s1"> preferred planes were newly determined (geometric selection)&#39;</span><span class="p">)</span>
+                <span class="n">nr_plane1</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="n">nr_plane2</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;     - Plane 1 selected: </span><span class="si">{</span><span class="n">nr_plane1</span><span class="si">}</span><span class="s1"> events&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;     - Plane 2 selected: </span><span class="si">{</span><span class="n">nr_plane2</span><span class="si">}</span><span class="s1"> events&#39;</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">nr_pref_determined</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">mean_epsilon</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()][</span><span class="s1">&#39;epsilon&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;     - Mean angular difference: </span><span class="si">{</span><span class="n">mean_epsilon</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">°&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Export detailed active plane determination summary to file</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;out_dir&#39;</span> <span class="ow">in</span> <span class="n">input_params</span> <span class="ow">and</span> <span class="n">nr_pref_determined</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">export_active_plane_summary</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">,</span> <span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not export active plane summary: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error during focal mechanism validation: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Continuing without focal mechanism validation...&quot;</span><span class="p">)</span>
+        <span class="c1"># Set default values for validation columns</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="c1"># Add focal mechanism columns as NaN if they don&#39;t exist</span>
+        <span class="n">focal_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">,</span> <span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df_hyfi</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">df_hyfi</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">export_active_plane_summary</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Export a detailed summary of active plane determinations to a CSV file.</span>
+<span class="sd">    </span>
+<span class="sd">    This documents which events had pre-specified active planes vs. auto-determined ones,</span>
+<span class="sd">    and also lists events where no preferred plane could be determined.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df_hyfi : DataFrame</span>
+<span class="sd">        Main dataframe with focal mechanism and validation data</span>
+<span class="sd">    out_dir : str</span>
+<span class="sd">        Output directory path</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    
+    <span class="c1"># Filter to events with focal mechanisms (Strike1 is not NaN)</span>
+    <span class="n">has_focal_mask</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span>
+    <span class="n">focal_events_all</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="n">has_focal_mask</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">focal_events_all</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+    
+    <span class="c1"># Determine determination method for each event</span>
+    <span class="n">has_A_column</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span> <span class="ow">in</span> <span class="n">focal_events_all</span><span class="o">.</span><span class="n">columns</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_determination_method</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+        <span class="n">has_pref_foc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">])</span>
+        <span class="n">has_rupture_plane</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rupt_plane_azi&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">has_pref_foc</span><span class="p">:</span>
+            <span class="c1"># pref_foc is determined</span>
+            <span class="k">if</span> <span class="n">has_A_column</span> <span class="ow">and</span> <span class="n">pd</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+                    <span class="c1"># A=1 or A=2: Pre-specified active plane</span>
+                    <span class="k">return</span> <span class="s1">&#39;Pre-specified (A=1 or A=2)&#39;</span>
+                <span class="k">elif</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># A=0 with pref_foc: Unknown plane, newly determined by geometry</span>
+                    <span class="k">return</span> <span class="s1">&#39;Newly determined (A=0, geometric selection)&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Invalid A value but pref_foc exists</span>
+                    <span class="k">return</span> <span class="s1">&#39;Newly determined (invalid A, geometric selection)&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># No A column, geometric selection</span>
+                <span class="k">return</span> <span class="s1">&#39;Newly determined (no A, geometric selection)&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># No pref_foc determined</span>
+            <span class="k">if</span> <span class="n">has_A_column</span> <span class="ow">and</span> <span class="n">pd</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">])</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+                <span class="c1"># A=1 or A=2 but pref_foc is NaN: no rupture plane was calculated</span>
+                <span class="k">return</span> <span class="s1">&#39;Not determined (A specified but no rupture plane)&#39;</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">has_rupture_plane</span><span class="p">:</span>
+                <span class="c1"># No rupture plane computed</span>
+                <span class="k">return</span> <span class="s1">&#39;Not determined (no computed rupture plane)&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Other reason</span>
+                <span class="k">return</span> <span class="s1">&#39;Not determined (other reason)&#39;</span>
+    
+    <span class="n">focal_events_all</span><span class="p">[</span><span class="s1">&#39;plane_determination_method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">focal_events_all</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="n">get_determination_method</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Create summary dataframe with relevant columns</span>
+    <span class="n">summary_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;Date&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;MAG&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">,</span> 
+                    <span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;pref_foc&#39;</span><span class="p">,</span> <span class="s1">&#39;epsilon&#39;</span><span class="p">,</span> <span class="s1">&#39;plane_determination_method&#39;</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="n">has_A_column</span><span class="p">:</span>
+        <span class="n">summary_cols</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">summary_cols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">),</span> <span class="s1">&#39;A&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Add mean_azi and mean_dip to show computed fault plane orientation</span>
+    <span class="k">if</span> <span class="s1">&#39;rupt_plane_azi&#39;</span> <span class="ow">in</span> <span class="n">focal_events_all</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">summary_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;rupt_plane_azi&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;rupt_plane_dip&#39;</span> <span class="ow">in</span> <span class="n">focal_events_all</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">summary_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;rupt_plane_dip&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Only include columns that exist</span>
+    <span class="n">summary_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">summary_cols</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_events_all</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+    
+    <span class="n">summary_df</span> <span class="o">=</span> <span class="n">focal_events_all</span><span class="p">[</span><span class="n">summary_cols</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    
+    <span class="c1"># Add interpretation columns (only for events with pref_foc)</span>
+    <span class="n">summary_df</span><span class="p">[</span><span class="s1">&#39;preferred_strike&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> 
+                   <span class="k">else</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Strike2&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span>
+    <span class="n">summary_df</span><span class="p">[</span><span class="s1">&#39;preferred_dip&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Dip1&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> 
+                   <span class="k">else</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Dip2&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span>
+    <span class="n">summary_df</span><span class="p">[</span><span class="s1">&#39;preferred_rake&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Rake1&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> 
+                   <span class="k">else</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Rake2&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;pref_foc&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Sort by determination method, then by epsilon (best matches first)</span>
+    <span class="c1"># Put &quot;Not determined&quot; events at the end</span>
+    <span class="n">sort_order</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Pre-specified (A=1 or A=2)&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;Newly determined (A=0, geometric selection)&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;Newly determined (no A, geometric selection)&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s1">&#39;Newly determined (invalid A, geometric selection)&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;Not determined (A specified but no rupture plane)&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="s1">&#39;Not determined (no computed rupture plane)&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s1">&#39;Not determined (other reason)&#39;</span><span class="p">:</span> <span class="mi">6</span>
+    <span class="p">}</span>
+    <span class="n">summary_df</span><span class="p">[</span><span class="s1">&#39;_sort_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_df</span><span class="p">[</span><span class="s1">&#39;plane_determination_method&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">sort_order</span><span class="p">)</span>
+    <span class="n">summary_df</span> <span class="o">=</span> <span class="n">summary_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&#39;_sort_order&#39;</span><span class="p">,</span> <span class="s1">&#39;epsilon&#39;</span><span class="p">])</span>
+    <span class="n">summary_df</span> <span class="o">=</span> <span class="n">summary_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;_sort_order&#39;</span><span class="p">])</span>
+    <span class="n">summary_df</span><span class="p">[</span><span class="s1">&#39;epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_df</span><span class="p">[</span><span class="s1">&#39;epsilon&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="c1"># Export to CSV — use ISO 8601 &#39;T&#39; separator so datetime values are never</span>
+    <span class="c1"># split into two columns by space-delimited viewers.</span>
+    <span class="n">output_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s1">&#39;active_plane_determination_summary.csv&#39;</span><span class="p">)</span>
+    <span class="n">summary_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S.</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span>
+                       <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONNUMERIC</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">  📄 Active plane determination summary exported to: </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Also create a brief statistics file</span>
+    <span class="n">stats_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s1">&#39;active_plane_statistics.txt&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">stats_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">60</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;ACTIVE PLANE DETERMINATION STATISTICS</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">60</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Total events with focal mechanisms: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary_df</span><span class="p">)</span><span class="si">}</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Count events by determination method</span>
+        <span class="n">method_counts</span> <span class="o">=</span> <span class="n">summary_df</span><span class="p">[</span><span class="s1">&#39;plane_determination_method&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+        
+        <span class="c1"># New categories</span>
+        <span class="n">nr_prespecified</span> <span class="o">=</span> <span class="n">method_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Pre-specified (A=1 or A=2)&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">nr_newly_A0</span> <span class="o">=</span> <span class="n">method_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Newly determined (A=0, geometric selection)&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">nr_newly_noA</span> <span class="o">=</span> <span class="n">method_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Newly determined (no A, geometric selection)&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">nr_newly_invalid</span> <span class="o">=</span> <span class="n">method_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Newly determined (invalid A, geometric selection)&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">nr_newly_total</span> <span class="o">=</span> <span class="n">nr_newly_A0</span> <span class="o">+</span> <span class="n">nr_newly_noA</span> <span class="o">+</span> <span class="n">nr_newly_invalid</span>
+        
+        <span class="n">nr_not_A_no_plane</span> <span class="o">=</span> <span class="n">method_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Not determined (A specified but no rupture plane)&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">nr_not_determined_no_plane</span> <span class="o">=</span> <span class="n">method_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Not determined (fault plane)&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">nr_not_determined_other</span> <span class="o">=</span> <span class="n">method_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Not determined (other reason)&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">nr_not_determined_total</span> <span class="o">=</span> <span class="n">nr_not_A_no_plane</span> <span class="o">+</span> <span class="n">nr_not_determined_no_plane</span> <span class="o">+</span> <span class="n">nr_not_determined_other</span>
+        
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;DETERMINATION METHOD BREAKDOWN:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Pre-specified active planes (A=1 or A=2): </span><span class="si">{</span><span class="n">nr_prespecified</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Newly determined preferred planes (geometric selection):</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - A=0 (unknown plane): </span><span class="si">{</span><span class="n">nr_newly_A0</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nr_newly_noA</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - No A column: </span><span class="si">{</span><span class="n">nr_newly_noA</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nr_newly_invalid</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - Invalid A value: </span><span class="si">{</span><span class="n">nr_newly_invalid</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - Total newly determined: </span><span class="si">{</span><span class="n">nr_newly_total</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Not determined:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nr_not_A_no_plane</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - A specified but no rupture plane: </span><span class="si">{</span><span class="n">nr_not_A_no_plane</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - No computed rupture plane: </span><span class="si">{</span><span class="n">nr_not_determined_no_plane</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nr_not_determined_other</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - Other reason: </span><span class="si">{</span><span class="n">nr_not_determined_other</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    - Total NOT determined: </span><span class="si">{</span><span class="n">nr_not_determined_total</span><span class="si">}</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Statistics for newly determined planes (all geometric selection methods combined)</span>
+        <span class="k">if</span> <span class="n">nr_newly_total</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">newly_df</span> <span class="o">=</span> <span class="n">summary_df</span><span class="p">[</span><span class="n">summary_df</span><span class="p">[</span><span class="s1">&#39;plane_determination_method&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;Newly determined&#39;</span><span class="p">)]</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Newly determined plane selection breakdown:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - Plane 1 selected: </span><span class="si">{</span><span class="p">(</span><span class="n">newly_df</span><span class="p">[</span><span class="s2">&quot;pref_foc&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s1"> events</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - Plane 2 selected: </span><span class="si">{</span><span class="p">(</span><span class="n">newly_df</span><span class="p">[</span><span class="s2">&quot;pref_foc&quot;</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s1"> events</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - Mean angular difference: </span><span class="si">{</span><span class="n">newly_df</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">°</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - Median angular difference: </span><span class="si">{</span><span class="n">newly_df</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">()</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">°</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - Best match: </span><span class="si">{</span><span class="n">newly_df</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">°</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - Worst match: </span><span class="si">{</span><span class="n">newly_df</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">°</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Statistics for pre-specified planes</span>
+        <span class="k">if</span> <span class="n">nr_prespecified</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">prespec_df</span> <span class="o">=</span> <span class="n">summary_df</span><span class="p">[</span><span class="n">summary_df</span><span class="p">[</span><span class="s1">&#39;plane_determination_method&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Pre-specified (A=1 or A=2)&#39;</span><span class="p">]</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Pre-specified plane angular differences:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - Mean angular difference: </span><span class="si">{</span><span class="n">prespec_df</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">°</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - Median angular difference: </span><span class="si">{</span><span class="n">prespec_df</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">()</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">°</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Events where no preferred plane could be determined</span>
+        <span class="k">if</span> <span class="n">nr_not_determined_total</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Events where NO preferred plane could be determined:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nr_not_A_no_plane</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - A specified (A=1 or A=2) but no rupture plane: </span><span class="si">{</span><span class="n">nr_not_A_no_plane</span><span class="si">}</span><span class="s1"> events</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    (Focal mechanism available, but fault plane fitting failed)</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nr_not_determined_no_plane</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - No computed rupture plane available: </span><span class="si">{</span><span class="n">nr_not_determined_no_plane</span><span class="si">}</span><span class="s1"> events</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    (Insufficient neighbors for plane fitting)</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nr_not_determined_other</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  - Other reasons: </span><span class="si">{</span><span class="n">nr_not_determined_other</span><span class="si">}</span><span class="s1"> events</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">  ⚠️  Review these </span><span class="si">{</span><span class="n">nr_not_determined_total</span><span class="si">}</span><span class="s1"> events in the CSV file for details</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">60</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;See active_plane_determination_summary.csv for full details</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">60</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  📊 Statistics summary exported to: </span><span class="si">{</span><span class="n">stats_file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Print warning if there are events without determined planes</span>
+    <span class="k">if</span> <span class="n">nr_not_determined_total</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">  ⚠️  Warning: </span><span class="si">{</span><span class="n">nr_not_determined_total</span><span class="si">}</span><span class="s1"> events with focal mechanisms have NO determined preferred plane&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;     See statistics file for breakdown by reason&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">match_hypoDD_focals</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">,</span> <span class="n">foc_file</span><span class="p">,</span> <span class="n">foc_sep</span><span class="p">,</span> <span class="n">foc_mag_check</span><span class="p">,</span> <span class="n">foc_loc_check</span><span class="p">,</span>
+                        <span class="n">max_mag_diff</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">max_distance_km</span><span class="o">=</span><span class="mf">5.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Match hypocenter data with focal mechanism data for single dataframe approach.</span>
+<span class="sd">    </span>
+<span class="sd">    This is a single dataframe version of match_hypoDD_focals that adds focal mechanism</span>
+<span class="sd">    data directly to df_hyfi instead of returning separate dataframes.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df_hyfi : DataFrame</span>
+<span class="sd">        Main hypocenter dataframe</span>
+<span class="sd">    foc_file : str</span>
+<span class="sd">        Path to focal mechanism file</span>
+<span class="sd">    foc_sep : str</span>
+<span class="sd">        Separator for focal mechanism file</span>
+<span class="sd">    foc_mag_check : bool</span>
+<span class="sd">        Whether to perform magnitude consistency check</span>
+<span class="sd">    foc_loc_check : bool</span>
+<span class="sd">        Whether to perform location consistency check</span>
+<span class="sd">    max_mag_diff : float, default=0.5</span>
+<span class="sd">        Maximum allowed magnitude difference for matching events</span>
+<span class="sd">    max_distance_km : float, default=5.0</span>
+<span class="sd">        Maximum allowed distance for location consistency check (km)</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    df_hyfi : DataFrame</span>
+<span class="sd">        Input dataframe with added focal mechanism columns</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Use the existing match_hypoDD_focals function but adapt for single dataframe</span>
+        <span class="c1"># Create temporary data_input from relevant columns of df_hyfi</span>
+        <span class="n">data_input_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;Date&#39;</span><span class="p">,</span> <span class="s1">&#39;EX&#39;</span><span class="p">,</span> <span class="s1">&#39;EY&#39;</span><span class="p">,</span> <span class="s1">&#39;EZ&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;MAG&#39;</span> <span class="ow">in</span> <span class="n">df_hyfi</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">data_input_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;MAG&#39;</span><span class="p">)</span>
+            
+        <span class="n">temp_data_input</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="n">data_input_cols</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="c1"># Add underscore columns temporarily for compatibility with legacy function</span>
+        <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;_X&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span>
+        <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;_Y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span> 
+        <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;_Z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_data_input</span><span class="p">[</span><span class="s1">&#39;Z&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Call the existing function with all parameters</span>
+        <span class="n">matched_data_input</span> <span class="o">=</span> <span class="n">match_hypoDD_focals_proc</span><span class="p">(</span><span class="n">temp_data_input</span><span class="p">,</span> <span class="n">foc_file</span><span class="p">,</span> <span class="n">foc_sep</span><span class="p">,</span> 
+                                                       <span class="n">foc_mag_check</span><span class="p">,</span> <span class="n">foc_loc_check</span><span class="p">,</span>
+                                                       <span class="n">max_mag_diff</span><span class="p">,</span> <span class="n">max_distance_km</span><span class="p">)</span>
+        
+        <span class="c1"># Add the focal mechanism columns back to df_hyfi (including &#39;A&#39; for active plane)</span>
+        <span class="n">focal_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">,</span> <span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">matched_data_input</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">matched_data_input</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                
+        <span class="k">return</span> <span class="n">df_hyfi</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error matching focal mechanisms: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Add empty focal mechanism columns (including &#39;A&#39; for active plane)</span>
+        <span class="n">focal_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Strike1&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip1&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake1&#39;</span><span class="p">,</span> <span class="s1">&#39;Strike2&#39;</span><span class="p">,</span> <span class="s1">&#39;Dip2&#39;</span><span class="p">,</span> <span class="s1">&#39;Rake2&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">focal_cols</span><span class="p">:</span>
+            <span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">return</span> <span class="n">df_hyfi</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

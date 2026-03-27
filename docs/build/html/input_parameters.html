@@ -1,0 +1,1707 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HyFI Input Parameters &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="HyFI Core Modules" href="modules/index.html" />
+    <link rel="prev" title="HyFI Configuration" href="configuration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            HyFI
+              <img src="_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">HyFI Input Parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of Contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#metadata">Metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#global-settings">Global Settings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#common-settings-single-multi-sequence">Common Settings (Single &amp; Multi-Sequence)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multi-sequence-only-settings">Multi-Sequence Only Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#input-data">Input Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#file-requirements">File Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#required-hypocenter-columns">Required Hypocenter Columns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#required-focal-mechanism-columns-optional">Required Focal Mechanism Columns (Optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-source-conversions">Data Source Conversions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ecos-catalog-parser">ECOS Catalog Parser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#other-formats">Other Formats</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#csv-example">CSV Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-validation">Data Validation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#fault-network">Fault Network</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#core-network-parameters">Core Network Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#outlier-detection">Outlier Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#focal-mechanism-constraints">Focal Mechanism Constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#automatic-parameter-optimization">Automatic Parameter Optimization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#grid-search-specific-parameters">Grid Search Specific Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#optuna-optimization-specific-parameters">Optuna Optimization Specific Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pareto-multi-objective-optimization-specific-parameters">Pareto Multi-Objective Optimization Specific Parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#model-validation">Model Validation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#validation-parameters">Validation Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#auto-classification">Auto Classification</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#orientation-clustering-parameters">Orientation Clustering Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spatial-sub-clustering-parameters">Spatial Sub-Clustering Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#stress-analysis">Stress Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#regional-stress-field-parameters">Regional Stress Field Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mechanical-properties-parameters">Mechanical Properties Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-visualization-parameters">Basic Visualization Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fault-surface-interpolation-parameters">Fault Surface Interpolation Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#d-export-parameters">3D Export Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#multi-sequence-processing">Multi-Sequence Processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-load-input-data">Step 1: Load Input Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-segmentation-configuration">Step 2: Segmentation Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#clustering-method">Clustering Method</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#feature-selection">Feature Selection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cluster-dimension">Cluster Dimension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dbscan-parameters">DBSCAN Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dbscan-specific-parameters">DBSCAN-Specific Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hdbscan-parameters">HDBSCAN Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cluster-geometry-filtering">Cluster Geometry Filtering</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#temporal-clustering-parameters">Temporal Clustering Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spatial-temporal-parameters">Spatial-Temporal Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#outlier-handling-per-step">Outlier Handling (Per-Step)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#segmentation-only-mode">Segmentation-Only Mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#final-outlier-handling">Final Outlier Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-per-sequence-analysis-configuration">Step 3: Per-Sequence Analysis Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-4-merge-and-export-configuration">Step 4: Merge and Export Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#vtp-file-merging">VTP File Merging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#merged-output-configuration">Merged Output Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#output-directory-structure">Output Directory Structure</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">HyFI Input Parameters</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/input_parameters.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="hyfi-input-parameters">
+<h1>HyFI Input Parameters<a class="headerlink" href="#hyfi-input-parameters" title="Link to this heading"></a></h1>
+<p>This document provides detailed explanations for all <strong>HyFI</strong> parameters in <code class="docutils literal notranslate"><span class="pre">config_single_TEMPLATE.json</span></code> and <code class="docutils literal notranslate"><span class="pre">config_multi_TEMPLATE.json</span></code>.</p>
+<hr class="docutils" />
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/importlib.metadata.html#metadata" title="Python 3.14"><span class="xref myst">Metadata</span></a></p></li>
+<li><p><a class="reference internal" href="#global-settings"><span class="xref myst">Global Settings</span></a></p></li>
+<li><p><a class="reference internal" href="#input-data"><span class="xref myst">Input Data</span></a></p></li>
+<li><p><a class="reference internal" href="#fault-network"><span class="xref myst">Fault Network</span></a></p></li>
+<li><p><a class="reference internal" href="#model-validation"><span class="xref myst">Model Validation</span></a></p></li>
+<li><p><a class="reference internal" href="#auto-classification"><span class="xref myst">Auto Classification</span></a></p></li>
+<li><p><a class="reference internal" href="#stress-analysis"><span class="xref myst">Stress Analysis</span></a></p></li>
+<li><p><a class="reference internal" href="api/hyfi.visualization.html#module-hyfi.visualization" title="hyfi.visualization"><span class="xref myst py py-mod">Visualization</span></a></p></li>
+<li><p><a class="reference internal" href="#multi-sequence-processing"><span class="xref myst">Multi-Sequence Processing</span></a></p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="metadata">
+<h2>Metadata<a class="headerlink" href="#metadata" title="Link to this heading"></a></h2>
+<p>Configuration metadata for documentation and tracking purposes.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">workflow_name</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Name for this analysis workflow (e.g., “St. Leonard Sequence”)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">workflow_version</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Version number for tracking configuration changes (e.g., “1.0.0”)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">created_date</span></code></p></td>
+<td><p>string</p></td>
+<td><p>ISO 8601 formatted date when config was created (e.g., “2025-11-11T00:00:00”)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">description</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Optional description of the analysis</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="global-settings">
+<h2>Global Settings<a class="headerlink" href="#global-settings" title="Link to this heading"></a></h2>
+<p>Settings that apply to the entire workflow.</p>
+<section id="common-settings-single-multi-sequence">
+<h3>Common Settings (Single &amp; Multi-Sequence)<a class="headerlink" href="#common-settings-single-multi-sequence" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">output_directory</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;./hyfi_output&quot;</span></code></p></td>
+<td><p>Directory where all output files will be saved. For single-sequence: all outputs go to this directory. For multi-sequence: individual sequence results go to subdirectories within this path</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">log_level</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;INFO&quot;</span></code></p></td>
+<td><p>Logging verbosity. Options: <code class="docutils literal notranslate"><span class="pre">&quot;DEBUG&quot;</span></code> (verbose), <code class="docutils literal notranslate"><span class="pre">&quot;INFO&quot;</span></code> (standard), <code class="docutils literal notranslate"><span class="pre">&quot;WARNING&quot;</span></code> (errors only), <code class="docutils literal notranslate"><span class="pre">&quot;ERROR&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;CRITICAL&quot;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="multi-sequence-only-settings">
+<h3>Multi-Sequence Only Settings<a class="headerlink" href="#multi-sequence-only-settings" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">parallel_processing</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Enable parallel processing of per-sequence analysis using multiple CPU cores. When <code class="docutils literal notranslate"><span class="pre">true</span></code>, sequences are dispatched to a <code class="docutils literal notranslate"><span class="pre">ProcessPoolExecutor</span></code> with up to <code class="docutils literal notranslate"><span class="pre">max_workers</span></code> workers. Per-sequence verbose output is written to <code class="docutils literal notranslate"><span class="pre">&lt;sequence&gt;/&lt;sequence&gt;_processing.log</span></code> instead of the terminal. Fault IDs are non-continuous in parallel mode (each sequence reserves a block of 10 000 IDs) but are always unique.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_workers</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
+<td><p>Maximum number of parallel worker processes for multi-sequence processing. Used when <code class="docutils literal notranslate"><span class="pre">parallel_processing:</span> <span class="pre">true</span></code> is implemented. Range: 1-16 depending on system CPU cores. Recommended: 4-8 for typical systems</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">save_individual_results</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Save intermediate and individual sequence analysis results to disk. When <code class="docutils literal notranslate"><span class="pre">true</span></code>, creates subdirectories for each sequence with full analysis outputs; when <code class="docutils literal notranslate"><span class="pre">false</span></code>, only final merged results are kept (saves disk space but loses per-sequence details)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="input-data">
+<h2>Input Data<a class="headerlink" href="#input-data" title="Link to this heading"></a></h2>
+<p>Configuration for input earthquake catalog files. See the <a class="reference internal" href="quickstart.html"><span class="doc std std-doc">Quickstart</span></a> guide for information about preparing your data and using the built-in ECOS parser.</p>
+<section id="file-requirements">
+<h3>File Requirements<a class="headerlink" href="#file-requirements" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Required</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hypocenter_file</span></code></p></td>
+<td><p>string</p></td>
+<td><p><strong>Yes</strong></p></td>
+<td><p>Path to hypocenter catalog file (e.g., “data_examples/A0_data.csv”)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hypocenter_separator</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Yes</p></td>
+<td><p>Column separator for hypocenter file. Options: <code class="docutils literal notranslate"><span class="pre">&quot;,&quot;</span></code> (CSV), <code class="docutils literal notranslate"><span class="pre">&quot;\t&quot;</span></code> (TSV), <code class="docutils literal notranslate"><span class="pre">&quot;;&quot;</span></code> (semicolon)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">focal_mechanism_file</span></code></p></td>
+<td><p>string or null</p></td>
+<td><p>No</p></td>
+<td><p>Path to focal mechanism catalog. Set to <code class="docutils literal notranslate"><span class="pre">null</span></code> if not available</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">focal_mechanism_separator</span></code></p></td>
+<td><p>string</p></td>
+<td><p>No</p></td>
+<td><p>Column separator for focal mechanism file. Options: <code class="docutils literal notranslate"><span class="pre">&quot;,&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;\t&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;;&quot;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="required-hypocenter-columns">
+<h3>Required Hypocenter Columns<a class="headerlink" href="#required-hypocenter-columns" title="Link to this heading"></a></h3>
+<p>All hypocenter files must contain these 17 core columns (order not strict):</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ID</p></td>
+<td><p>string</p></td>
+<td><p>Event identifier (must be unique)</p></td>
+</tr>
+<tr class="row-odd"><td><p>LAT</p></td>
+<td><p>float</p></td>
+<td><p>Latitude (degrees, WGS84)</p></td>
+</tr>
+<tr class="row-even"><td><p>LON</p></td>
+<td><p>float</p></td>
+<td><p>Longitude (degrees, WGS84)</p></td>
+</tr>
+<tr class="row-odd"><td><p>DEPTH</p></td>
+<td><p>float</p></td>
+<td><p>Depth (kilometers below sea level, positive downward)</p></td>
+</tr>
+<tr class="row-even"><td><p>X</p></td>
+<td><p>float</p></td>
+<td><p>Easting coordinate (meters, typically Swiss LV95/CH1903+)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Y</p></td>
+<td><p>float</p></td>
+<td><p>Northing coordinate (meters, typically Swiss LV95/CH1903+)</p></td>
+</tr>
+<tr class="row-even"><td><p>Z</p></td>
+<td><p>float</p></td>
+<td><p>Vertical position (meters, negative = below datum)</p></td>
+</tr>
+<tr class="row-odd"><td><p>EX</p></td>
+<td><p>float</p></td>
+<td><p>X-coordinate uncertainty (meters)</p></td>
+</tr>
+<tr class="row-even"><td><p>EY</p></td>
+<td><p>float</p></td>
+<td><p>Y-coordinate uncertainty (meters)</p></td>
+</tr>
+<tr class="row-odd"><td><p>EZ</p></td>
+<td><p>float</p></td>
+<td><p>Z-coordinate uncertainty (meters)</p></td>
+</tr>
+<tr class="row-even"><td><p>YR</p></td>
+<td><p>int</p></td>
+<td><p>Year (4-digit, e.g., 2024)</p></td>
+</tr>
+<tr class="row-odd"><td><p>MO</p></td>
+<td><p>int</p></td>
+<td><p>Month (1-12)</p></td>
+</tr>
+<tr class="row-even"><td><p>DY</p></td>
+<td><p>int</p></td>
+<td><p>Day of month (1-31)</p></td>
+</tr>
+<tr class="row-odd"><td><p>HR</p></td>
+<td><p>int</p></td>
+<td><p>Hour (0-23)</p></td>
+</tr>
+<tr class="row-even"><td><p>MI</p></td>
+<td><p>int</p></td>
+<td><p>Minute (0-59)</p></td>
+</tr>
+<tr class="row-odd"><td><p>SC</p></td>
+<td><p>float</p></td>
+<td><p>Second (0-59.999)</p></td>
+</tr>
+<tr class="row-even"><td><p>MAG</p></td>
+<td><p>float</p></td>
+<td><p>Magnitude (any scale: ML, Mw, mb, etc.)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="required-focal-mechanism-columns-optional">
+<h3>Required Focal Mechanism Columns (Optional)<a class="headerlink" href="#required-focal-mechanism-columns-optional" title="Link to this heading"></a></h3>
+<p>If provided, focal mechanism files must contain all hypocenter columns plus these 10 additional columns:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A</p></td>
+<td><p>int</p></td>
+<td><p>Quality flag (1 or 2 = valid focal mechanism, 0 or null = no solution)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Strike1</p></td>
+<td><p>float</p></td>
+<td><p>Strike angle of nodal plane 1 (degrees, 0-360)</p></td>
+</tr>
+<tr class="row-even"><td><p>Dip1</p></td>
+<td><p>float</p></td>
+<td><p>Dip angle of nodal plane 1 (degrees, 0-90)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Rake1</p></td>
+<td><p>float</p></td>
+<td><p>Rake angle of nodal plane 1 (degrees, -180 to 180)</p></td>
+</tr>
+<tr class="row-even"><td><p>Strike2</p></td>
+<td><p>float</p></td>
+<td><p>Strike angle of nodal plane 2 (degrees, 0-360)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Dip2</p></td>
+<td><p>float</p></td>
+<td><p>Dip angle of nodal plane 2 (degrees, 0-90)</p></td>
+</tr>
+<tr class="row-even"><td><p>Rake2</p></td>
+<td><p>float</p></td>
+<td><p>Rake angle of nodal plane 2 (degrees, -180 to 180)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pazim</p></td>
+<td><p>float</p></td>
+<td><p>P-axis azimuth (degrees, 0-360)</p></td>
+</tr>
+<tr class="row-even"><td><p>Pdip</p></td>
+<td><p>float</p></td>
+<td><p>P-axis dip (degrees, 0-90)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tazim</p></td>
+<td><p>float</p></td>
+<td><p>T-axis azimuth (degrees, 0-360)</p></td>
+</tr>
+<tr class="row-even"><td><p>Tdip</p></td>
+<td><p>float</p></td>
+<td><p>T-axis dip (degrees, 0-90)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Q</p></td>
+<td><p>int</p></td>
+<td><p>Focal mechanism quality rating (1-5 scale, or null if unavailable)</p></td>
+</tr>
+<tr class="row-even"><td><p>Type</p></td>
+<td><p>string</p></td>
+<td><p>Event type classification (e.g., “normal”, “strike-slip”, “reverse”, “uncertain”)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="data-source-conversions">
+<h3>Data Source Conversions<a class="headerlink" href="#data-source-conversions" title="Link to this heading"></a></h3>
+<section id="ecos-catalog-parser">
+<h4>ECOS Catalog Parser<a class="headerlink" href="#ecos-catalog-parser" title="Link to this heading"></a></h4>
+<p>If you have ECOS ConsolidatedMergeCat and/or AssociateFM files, use the built-in parser:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>hyfi<span class="w"> </span>parse-ecos<span class="w"> </span>--hypo<span class="w"> </span>ECOS_Merge_Bull+AbsRel+DDC+DDR_20260116.ConsolidatedMergeCat.csv<span class="w"> </span><span class="se">\</span>
+<span class="w">                 </span>--focals<span class="w"> </span>ECOS_Merge_Bull+AbsRel+DDC+DDR_20260116.AssociateFM.csv
+</pre></div>
+</div>
+<p>Or with just the filenames (if running from the directory containing them):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>hyfi<span class="w"> </span>parse-ecos<span class="w"> </span>--hypo<span class="w"> </span>ECOS_Merge_Bull+AbsRel+DDC+DDR_20260116.ConsolidatedMergeCat.csv<span class="w"> </span>--focals<span class="w"> </span>ECOS_Merge_Bull+AbsRel+DDC+DDR_20260116.AssociateFM.csv
+</pre></div>
+</div>
+<p>This automatically converts ECOS pipe-delimited format to standard HyFI CSV format. See <a class="reference internal" href="#quickstart#using-your-own-data"><span class="xref myst">Quickstart: Using Your Own Data</span></a> for detailed examples.</p>
+</section>
+<section id="other-formats">
+<h4>Other Formats<a class="headerlink" href="#other-formats" title="Link to this heading"></a></h4>
+<p>For earthquake catalogs from other sources:</p>
+<ol class="arabic simple">
+<li><p>Prepare CSV file with required columns (order not strict, case-insensitive column names accepted)</p></li>
+<li><p>Specify the correct separator in configuration (<code class="docutils literal notranslate"><span class="pre">&quot;,&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;\t&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;;&quot;</span></code>)</p></li>
+<li><p>Ensure data types match (integers for YR/MO/DY/HR/MI, floats for coordinates/magnitudes, etc.)</p></li>
+<li><p>Verify coordinate systems match your project (typically WGS84 for lat/lon, local projection for X/Y)</p></li>
+</ol>
+</section>
+</section>
+<section id="csv-example">
+<h3>CSV Example<a class="headerlink" href="#csv-example" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ID</span>	<span class="n">LAT</span>	<span class="n">LON</span>	<span class="n">DEPTH</span>	<span class="n">X</span>	<span class="n">Y</span>	<span class="n">Z</span>	<span class="n">EX</span>	<span class="n">EY</span>	<span class="n">EZ</span>	<span class="n">YR</span>	<span class="n">MO</span>	<span class="n">DY</span>	<span class="n">HR</span>	<span class="n">MI</span>	<span class="n">SC</span>	<span class="n">MAG</span>
+<span class="n">EV001</span>	<span class="mf">45.5234</span>	<span class="mf">9.7654</span>	<span class="mf">8.5</span>	<span class="mf">2683450.5</span>	<span class="mf">1247850.3</span>	<span class="o">-</span><span class="mi">8500</span>	<span class="mi">100</span>	<span class="mi">120</span>	<span class="mi">150</span>	<span class="mi">2024</span>	<span class="mi">3</span>	<span class="mi">15</span>	<span class="mi">14</span>	<span class="mi">30</span>	<span class="mf">45.2</span>	<span class="mf">3.2</span>
+<span class="n">EV002</span>	<span class="mf">45.5245</span>	<span class="mf">9.7665</span>	<span class="mf">9.2</span>	<span class="mf">2683460.2</span>	<span class="mf">1247860.1</span>	<span class="o">-</span><span class="mi">9200</span>	<span class="mi">110</span>	<span class="mi">130</span>	<span class="mi">160</span>	<span class="mi">2024</span>	<span class="mi">3</span>	<span class="mi">15</span>	<span class="mi">14</span>	<span class="mi">31</span>	<span class="mf">22.8</span>	<span class="mf">2.8</span>
+</pre></div>
+</div>
+</section>
+<section id="data-validation">
+<h3>Data Validation<a class="headerlink" href="#data-validation" title="Link to this heading"></a></h3>
+<p>HyFI automatically validates input files during workflow initialization. The validator checks:</p>
+<ul class="simple">
+<li><p>✓ All required columns are present</p></li>
+<li><p>✓ Column data types are correct</p></li>
+<li><p>✓ Coordinate values are within reasonable ranges</p></li>
+<li><p>✓ Temporal values (YR, MO, DY, HR, MI) are valid calendar dates</p></li>
+<li><p>✓ Magnitude values are plausible (typically -2 to 8)</p></li>
+<li><p>✓ Focal mechanism angles are within valid ranges (0-360° for azimuths, 0-90° for dips, -180 to 180° for rakes)</p></li>
+</ul>
+<p>Validation errors will be reported with specific guidance on how to fix the issues.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="fault-network">
+<h2>Fault Network<a class="headerlink" href="#fault-network" title="Link to this heading"></a></h2>
+<p>Parameters for 3D fault network reconstruction using NN search and PCA.</p>
+<section id="core-network-parameters">
+<h3>Core Network Parameters<a class="headerlink" href="#core-network-parameters" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">monte_carlo_simulations</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1000</span></code></p></td>
+<td><p>Number of Monte Carlo iterations for uncertainty quantification. Range: 1-inf. Higher values = more robust statistics but slower computation. Typical: 1000</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">search_radius_meters</span></code></p></td>
+<td><p>float or string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">100.0</span></code></p></td>
+<td><p>Spatial search radius for neighbor detection in meters. Use numeric value or <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> for automatic optimization. Typical range: 50-1000 m</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">search_time_window_hours</span></code></p></td>
+<td><p>float or string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">9999999</span></code></p></td>
+<td><p>Temporal search window for neighbor detection in hours. Use numeric value or <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> for automatic optimization. Large value (e.g. 9999999h) includes all events</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">magnitude_type</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;ML&quot;</span></code></p></td>
+<td><p>Magnitude type to use for rupture radius calculation. Options: <code class="docutils literal notranslate"><span class="pre">&quot;ML&quot;</span></code> (local magnitude), <code class="docutils literal notranslate"><span class="pre">&quot;Mw&quot;</span></code> (moment magnitude)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="outlier-detection">
+<h3>Outlier Detection<a class="headerlink" href="#outlier-detection" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">remove_outliers</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Enable outlier detection and removal before fault network reconstruction (clean-up of hypocenters)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">outlier_method</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;DBSCAN&quot;</span></code></p></td>
+<td><p>Outlier detection algorithm. Options: <code class="docutils literal notranslate"><span class="pre">&quot;DBSCAN&quot;</span></code> (density-based, good for distinct clusters, <strong>default</strong>), <code class="docutils literal notranslate"><span class="pre">&quot;LOF&quot;</span></code> (local outlier factor, good for varying density), <code class="docutils literal notranslate"><span class="pre">&quot;IForest&quot;</span></code> (isolation forest, robust and fast)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lof_n_neighbors</span></code></p></td>
+<td><p>integer or null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">null</span></code></p></td>
+<td><p><strong>LOF-specific</strong>: Number of neighbors to consider. <code class="docutils literal notranslate"><span class="pre">null</span></code> = auto-tuned based on dataset size, or integer 10-50</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lof_contamination</span></code></p></td>
+<td><p>string or float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code></p></td>
+<td><p><strong>LOF-specific</strong>: Expected outlier proportion. <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> or float 0.01-0.5 (1%-50%)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">if_n_estimators</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">100</span></code></p></td>
+<td><p><strong>IForest-specific</strong>: Number of trees in the forest. Range: 50-200. Higher = more robust but slower</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">if_max_samples</span></code></p></td>
+<td><p>string or integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code></p></td>
+<td><p><strong>IForest-specific</strong>: Number of samples per tree. <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> = auto-tuned, or integer. Lower = faster but less accurate</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">if_contamination</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.05</span></code></p></td>
+<td><p><strong>IForest-specific</strong>: Expected outlier proportion. Float 0.01-0.5 (5% = 0.05, conservative default)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">if_random_state</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">42</span></code></p></td>
+<td><p><strong>IForest-specific</strong>: Random seed for Isolation Forest reproducibility</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note</strong>: Events with valid focal mechanism data (A=1 or A=2) are protected from outlier removal.</p>
+</section>
+<section id="focal-mechanism-constraints">
+<h3>Focal Mechanism Constraints<a class="headerlink" href="#focal-mechanism-constraints" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_focal_constraints</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Use focal mechanism data to constrain fault plane selection. Requires <code class="docutils literal notranslate"><span class="pre">focal_mechanism_file</span></code> to be specified. When enabled, the algorithm selects between the two nodal planes based on consistency with neighboring events</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="automatic-parameter-optimization">
+<h3>Automatic Parameter Optimization<a class="headerlink" href="#automatic-parameter-optimization" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">auto_optimize_parameters</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Enable automatic optimization of <code class="docutils literal notranslate"><span class="pre">search_radius_meters</span></code> and <code class="docutils literal notranslate"><span class="pre">search_time_window_hours</span></code>. When enabled, ignores manual values for these parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_method</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;optuna&quot;</span></code></p></td>
+<td><p>Optimization algorithm. Options: <code class="docutils literal notranslate"><span class="pre">&quot;optuna&quot;</span></code> (TPE sampler, <strong>recommended</strong>, default), <code class="docutils literal notranslate"><span class="pre">&quot;grid_search&quot;</span></code> (thorough grid search), <code class="docutils literal notranslate"><span class="pre">&quot;pareto&quot;</span></code> (multi-objective), <code class="docutils literal notranslate"><span class="pre">&quot;heuristic&quot;</span></code> (fast heuristic)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_use_adaptive_weights</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>When <code class="docutils literal notranslate"><span class="pre">true</span></code>, automatically adjusts weights based on number of focal mechanisms (reduces focal weight for datasets with few focals, increases recovery importance) and dataset density (adjusts recovery expectations for sparse datasets). When <code class="docutils literal notranslate"><span class="pre">false</span></code>, uses fixed weights (original behavior).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_random_state</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">42</span></code></p></td>
+<td><p>Random seed for optimization reproducibility</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_plot_results</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Generate visualization plots of optimization results</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_r_nn_range</span></code></p></td>
+<td><p>array or null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[50,</span> <span class="pre">1000]</span></code></p></td>
+<td><p>Search radius range for optimization <code class="docutils literal notranslate"><span class="pre">[min_meters,</span> <span class="pre">max_meters]</span></code>. Use <code class="docutils literal notranslate"><span class="pre">null</span></code> for automatic range determination</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_dt_nn_range</span></code></p></td>
+<td><p>array or null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[100,</span> <span class="pre">50000]</span></code></p></td>
+<td><p>Time window range for optimization <code class="docutils literal notranslate"><span class="pre">[min_hours,</span> <span class="pre">max_hours]</span></code>. Use <code class="docutils literal notranslate"><span class="pre">null</span></code> for automatic range determination</p></td>
+</tr>
+</tbody>
+</table>
+<section id="grid-search-specific-parameters">
+<h4>Grid Search Specific Parameters<a class="headerlink" href="#grid-search-specific-parameters" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_grid_points</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">25</span></code></p></td>
+<td><p>Grid resolution for grid_search method. Total evaluations = <code class="docutils literal notranslate"><span class="pre">grid_points²</span></code>. Range: 10-50. Higher = more thorough but slower (25 = 625 evaluations)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="optuna-optimization-specific-parameters">
+<h4>Optuna Optimization Specific Parameters<a class="headerlink" href="#optuna-optimization-specific-parameters" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_n_trials</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">50</span></code></p></td>
+<td><p>Total number of trials for Optuna optimization. Range: 30-500. Higher = more thorough</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_sampler</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;tpe&quot;</span></code></p></td>
+<td><p>Optuna sampling algorithm. Options: <code class="docutils literal notranslate"><span class="pre">&quot;tpe&quot;</span></code> (Tree-structured Parzen Estimator, <strong>recommended</strong>), <code class="docutils literal notranslate"><span class="pre">&quot;cmaes&quot;</span></code> (CMA-ES), <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code> (Random sampling)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_n_startup_trials</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+<td><p>Number of random trials before sampler-specific optimization starts. Range: 5-20</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_early_stopping_rounds</span></code></p></td>
+<td><p>integer or null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">null</span></code></p></td>
+<td><p><strong>Early stopping</strong>: Stop if no improvement for N consecutive trials. <code class="docutils literal notranslate"><span class="pre">null</span></code> = disabled. Recommended: 10-20 for n_trials=50, 20-30 for n_trials=200. Saves computation time</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_early_stopping_threshold</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.0001</span></code></p></td>
+<td><p>Minimum improvement to be considered significant for early stopping. Range: 1e-5 to 1e-3. Lower = more conservative</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="pareto-multi-objective-optimization-specific-parameters">
+<h4>Pareto Multi-Objective Optimization Specific Parameters<a class="headerlink" href="#pareto-multi-objective-optimization-specific-parameters" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_pareto_sampler</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;nsga2&quot;</span></code></p></td>
+<td><p>Pareto optimization sampler. Options: <code class="docutils literal notranslate"><span class="pre">&quot;nsga2&quot;</span></code> (NSGA-II, <strong>recommended</strong>), <code class="docutils literal notranslate"><span class="pre">&quot;nsga3&quot;</span></code> (NSGA-III), <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">optimization_pareto_population</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">50</span></code></p></td>
+<td><p>Population size for evolutionary algorithms. Range: 30-100</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="model-validation">
+<h2>Model Validation<a class="headerlink" href="#model-validation" title="Link to this heading"></a></h2>
+<p>Validation of reconstructed fault planes using focal mechanism data.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Enable model validation module. Requires <code class="docutils literal notranslate"><span class="pre">focal_mechanism_file</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<section id="validation-parameters">
+<h3>Validation Parameters<a class="headerlink" href="#validation-parameters" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">check_magnitude_consistency</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Verify magnitude consistency between hypocenter and focal mechanism catalogs</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">check_location_consistency</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Verify spatial location consistency between catalogs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">maximum_distance_km</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Maximum distance (km) between hypocenter and focal mechanism location for matching</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">maximum_magnitude_difference</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.2</span></code></p></td>
+<td><p>Maximum magnitude difference for matching hypocenters with focal mechanisms</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="auto-classification">
+<h2>Auto Classification<a class="headerlink" href="#auto-classification" title="Link to this heading"></a></h2>
+<p>Automatic classification of fault structures based on orientation and spatial clustering.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Enable automatic classification module</p></td>
+</tr>
+</tbody>
+</table>
+<section id="orientation-clustering-parameters">
+<h3>Orientation Clustering Parameters<a class="headerlink" href="#orientation-clustering-parameters" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">auto_determine_clusters</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Automatically determine optimal number of orientation clusters using silhouette analysis</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_clusters</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">8</span></code></p></td>
+<td><p>Maximum number of orientation clusters to consider when auto-determining. Range: 2-15</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">number_of_clusters</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2</span></code></p></td>
+<td><p>Fixed number of orientation clusters. Used only if <code class="docutils literal notranslate"><span class="pre">auto_determine_clusters=false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">clustering_algorithm</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;vmf_soft&quot;</span></code></p></td>
+<td><p>Clustering algorithm. Options: <code class="docutils literal notranslate"><span class="pre">&quot;vmf_soft&quot;</span></code> (von Mises-Fisher soft, <strong>recommended</strong>), <code class="docutils literal notranslate"><span class="pre">&quot;vmf_hard&quot;</span></code> (von Mises-Fisher hard), <code class="docutils literal notranslate"><span class="pre">&quot;skm&quot;</span></code> (spherical k-means)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rotate_poles_before_analysis</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Rotate fault normal vectors to same hemisphere before clustering. <strong>Recommended for sub-vertical faults</strong>. Ensures all poles point to similar direction</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">convergence_tolerance</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1e-6</span></code></p></td>
+<td><p>Convergence tolerance for clustering algorithms (1e-4 for SphericalKMeans, 1e-6 for VonMisesFisher)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">maximum_iterations</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">300</span></code></p></td>
+<td><p>Maximum iterations for clustering algorithms</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="spatial-sub-clustering-parameters">
+<h3>Spatial Sub-Clustering Parameters<a class="headerlink" href="#spatial-sub-clustering-parameters" title="Link to this heading"></a></h3>
+<p>All spatial sub-clustering parameters are organized under the <code class="docutils literal notranslate"><span class="pre">spatial_sub_clustering</span></code> object:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enable_spatial_clustering</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Enable spatial sub-clustering within orientation clusters to identify separate fault structures</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">spatial_clustering_method</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;dbscan&quot;</span></code></p></td>
+<td><p>Spatial clustering method. Options: <code class="docutils literal notranslate"><span class="pre">&quot;dbscan&quot;</span></code> (density-based, <strong>recommended</strong>), <code class="docutils literal notranslate"><span class="pre">&quot;kmeans&quot;</span></code> (k-means), <code class="docutils literal notranslate"><span class="pre">&quot;hierarchical&quot;</span></code> (agglomerative)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min_events_per_cluster</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+<td><p>Minimum number of events required to form a valid spatial cluster</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_fault_plane_points_for_clustering</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Use enhanced point cloud (fault plane surface points) instead of hypocenters for spatial clustering. Improves spatial resolution when enabled. When <code class="docutils literal notranslate"><span class="pre">true</span></code>, generates synthetic points on fault plane surfaces</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fault_plane_point_density_meters</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10.0</span></code></p></td>
+<td><p>Target spacing in meters between points on fault plane circumference. Range: 5-50m. <strong>Lower values = denser point cloud, more computation</strong>. Typical: 10-25m</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fault_plane_radius_interval_meters</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10.0</span></code></p></td>
+<td><p>Spacing in meters between concentric circles when generating fault plane points. Range: 5-50m. <strong>Lower values = more circles and higher resolution</strong>. Typical: 10-25m</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_anisotropic_eps</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Use anisotropic (direction-dependent) distance metrics for DBSCAN. When <code class="docutils literal notranslate"><span class="pre">true</span></code>, different distance thresholds are applied in-plane vs. out-of-plane, improving detection of elongated fault structures</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">in_plane_eps_meters</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">500.0</span></code></p></td>
+<td><p>DBSCAN <code class="docutils literal notranslate"><span class="pre">eps</span></code> parameter in meters for <strong>in-plane</strong> distances (when using anisotropic metric). Range: 100-1000m. Lower = tighter clusters</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">out_of_plane_eps_meters</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">50.0</span></code></p></td>
+<td><p>DBSCAN <code class="docutils literal notranslate"><span class="pre">eps</span></code> parameter in meters for <strong>out-of-plane</strong> distances (when using anisotropic metric). Range: 10-100m. Typically much smaller than <code class="docutils literal notranslate"><span class="pre">in_plane_eps_meters</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">anisotropic_min_samples</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5</span></code></p></td>
+<td><p>DBSCAN <code class="docutils literal notranslate"><span class="pre">min_samples</span></code> parameter when using anisotropic metric. Minimum number of neighbors required. Range: 3-20. Higher = more conservative clustering</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="stress-analysis">
+<h2>Stress Analysis<a class="headerlink" href="#stress-analysis" title="Link to this heading"></a></h2>
+<p>Fault stress analysis and failure assessment using regional stress field.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Enable fault stress analysis module</p></td>
+</tr>
+</tbody>
+</table>
+<section id="regional-stress-field-parameters">
+<h3>Regional Stress Field Parameters<a class="headerlink" href="#regional-stress-field-parameters" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_shapefile</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Enable spatially-varying stress field from shapefile. When <code class="docutils literal notranslate"><span class="pre">true</span></code>, stress parameters are read from shapefile instead of using fixed values below</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">shapefile_path</span></code></p></td>
+<td><p>string/null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">null</span></code></p></td>
+<td><p>Path to shapefile (.shp) with spatially-varying stress field polygons. Only used if <code class="docutils literal notranslate"><span class="pre">use_shapefile</span></code> is <code class="docutils literal notranslate"><span class="pre">true</span></code>. Shapefile must have columns: <code class="docutils literal notranslate"><span class="pre">s1_trend</span></code>, <code class="docutils literal notranslate"><span class="pre">s1_plunge</span></code>, <code class="docutils literal notranslate"><span class="pre">s3_trend</span></code>, <code class="docutils literal notranslate"><span class="pre">s3_plunge</span></code>, <code class="docutils literal notranslate"><span class="pre">R</span></code>. Example: <code class="docutils literal notranslate"><span class="pre">&quot;data_examples/Stressfield/CH_stressfield_Kastrup.shp&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sigma1_trend_degrees</span></code></p></td>
+<td><p>float/null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">null</span></code></p></td>
+<td><p>σ₁ (maximum principal stress) azimuth/trend in degrees. Range: 0-360, measured clockwise from North. Used as fixed value (if <code class="docutils literal notranslate"><span class="pre">use_shapefile=false</span></code>) or fallback value. <strong>Required if <code class="docutils literal notranslate"><span class="pre">use_shapefile=false</span></code></strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sigma1_plunge_degrees</span></code></p></td>
+<td><p>float/null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">null</span></code></p></td>
+<td><p>σ₁ plunge in degrees. Range: 0-90 (0=horizontal, 90=vertical). Used as fixed value (if <code class="docutils literal notranslate"><span class="pre">use_shapefile=false</span></code>) or fallback value. <strong>Required if <code class="docutils literal notranslate"><span class="pre">use_shapefile=false</span></code></strong></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sigma3_trend_degrees</span></code></p></td>
+<td><p>float/null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">null</span></code></p></td>
+<td><p>σ₃ (minimum principal stress) azimuth/trend in degrees. Range: 0-360. Used as fixed value (if <code class="docutils literal notranslate"><span class="pre">use_shapefile=false</span></code>) or fallback value. <strong>Required if <code class="docutils literal notranslate"><span class="pre">use_shapefile=false</span></code></strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sigma3_plunge_degrees</span></code></p></td>
+<td><p>float/null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">null</span></code></p></td>
+<td><p>σ₃ plunge in degrees. Range: 0-90. Used as fixed value (if <code class="docutils literal notranslate"><span class="pre">use_shapefile=false</span></code>) or fallback value. <strong>Required if <code class="docutils literal notranslate"><span class="pre">use_shapefile=false</span></code></strong></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stress_shape_ratio</span></code></p></td>
+<td><p>float/null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">null</span></code></p></td>
+<td><p>Stress shape ratio R = (σ₂-σ₃)/(σ₁-σ₃). Range: 0-1 (0=uniaxial extension, 0.5=σ₂ midway, 1=isotropic/uniaxial compression). Used as fixed value (if <code class="docutils literal notranslate"><span class="pre">use_shapefile=false</span></code>) or fallback value. <strong>Required if <code class="docutils literal notranslate"><span class="pre">use_shapefile=false</span></code></strong></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note</strong>: σ₂ (intermediate principal stress) is automatically calculated from σ₁, σ₃, and the stress shape ratio.</p>
+<p><strong>Spatially-Varying Stress Field</strong>: When <code class="docutils literal notranslate"><span class="pre">use_shapefile</span></code> is <code class="docutils literal notranslate"><span class="pre">true</span></code> and <code class="docutils literal notranslate"><span class="pre">shapefile_path</span></code> is provided, the algorithm calculates the center coordinate (mean X, Y) of all hypocenters and queries the stress field values from the polygon containing this point.</p>
+</section>
+<section id="mechanical-properties-parameters">
+<h3>Mechanical Properties Parameters<a class="headerlink" href="#mechanical-properties-parameters" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pore_pressure_mpa</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.0</span></code></p></td>
+<td><p>Pore fluid pressure in MPa. Range: 0-50 MPa typical. Reduces effective normal stress on faults</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">friction_coefficient</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.75</span></code></p></td>
+<td><p>Coulomb friction coefficient μ. Range: 0.6-0.85 typical (Byerlee’s law: ~0.6-1.0). Controls fault reactivation potential</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Calculated Outputs</strong>:</p>
+<ul class="simple">
+<li><p>Effective normal stress (Sn_eff)</p></li>
+<li><p>Shear stress (Tau)</p></li>
+<li><p>Rake (slip direction)</p></li>
+<li><p>Instability index (I)</p></li>
+<li><p>Slip tendency</p></li>
+<li><p>Dilation tendency</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Link to this heading"></a></h2>
+<p>Visualization and export settings for analysis results.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Enable visualization module</p></td>
+</tr>
+</tbody>
+</table>
+<section id="basic-visualization-parameters">
+<h3>Basic Visualization Parameters<a class="headerlink" href="#basic-visualization-parameters" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">generate_3d_model</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Generate interactive 3D Plotly HTML visualization of complete fault network</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">generate_stereonet</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Generate stereonet (lower-hemisphere equal-area projection) showing fault plane orientations</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="fault-surface-interpolation-parameters">
+<h3>Fault Surface Interpolation Parameters<a class="headerlink" href="#fault-surface-interpolation-parameters" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enable_plane_interpolation</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Enable Poisson surface reconstruction to interpolate continuous fault surfaces from point clouds</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">enable_mesh_stress</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Calculate stress parameters (Sn_eff, Tau, rake, sliptend, dilatend) for each mesh face. Requires stress_analysis enabled</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mesh_subdivisions</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2</span></code></p></td>
+<td><p>Number of mesh subdivision iterations (0-3). Each iteration quadruples face count. Loop subdivision maintains smoothness. Creates denser meshes than increasing poisson_depth</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">poisson_depth</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2</span></code></p></td>
+<td><p>Poisson reconstruction octree depth. Range: 4-12. Higher = more detail but can introduce noise. <strong>Recommended: 2-3 for smooth base, then use mesh_subdivisions for density</strong></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">density_threshold</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.01</span></code></p></td>
+<td><p>Minimum density threshold for surface reconstruction. Range: 0.01-0.9. Lower = includes sparse regions, higher = only dense regions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_distance_factor</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2.5</span></code></p></td>
+<td><p>Maximum distance factor for point-to-surface association. Range: 1.0-5.0. Higher = more permissive association</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">min_fault_planes_for_interpolation</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+<td><p>Minimum number of fault planes required in a cluster to attempt Poisson surface reconstruction. Clusters with fewer fault planes are skipped</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fault_plane_radius_interval_meters</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10.0</span></code></p></td>
+<td><p>Spacing in meters between concentric circles when generating synthetic fault plane points.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fault_plane_point_density_meters</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10.0</span></code></p></td>
+<td><p>Target spacing in meters between points on fault plane circles. Increase to reduce computation time.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="d-export-parameters">
+<h3>3D Export Parameters<a class="headerlink" href="#d-export-parameters" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">export_vtp</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Export all results to VTP (VTK PolyData) format for visualization in ParaView/Blender</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">export_obj</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Export meshes as Wavefront OBJ files for 3D modeling software (MOVE, Blender, MeshLab, etc.)</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Exported VTP Files</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hypocenters.vtp</span></code> - All hypocenter points with attributes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">enhanced_pointcloud.vtp</span></code> - Enhanced fault plane point cloud</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rupture_planes_combined.vtp</span></code> - All rupture plane meshes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">focal_planes_combined.vtp</span></code> - All focal mechanism planes (if focal constraints enabled)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interpolated_surfaces_*.vtp</span></code> - Interpolated fault surfaces (if interpolation enabled)</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="multi-sequence-processing">
+<h2>Multi-Sequence Processing<a class="headerlink" href="#multi-sequence-processing" title="Link to this heading"></a></h2>
+<p>Parameters for catalog segmentation and merging procedures that are required specifically for the multi-sequence workflow in addition to the single-sequence parameters.</p>
+<p>See <a class="reference internal" href="workflows.html"><span class="std std-doc">Workflows Guide</span></a> for complete multi-sequence workflow documentation.</p>
+<p><strong>Note</strong>: Multi-sequence global settings (<code class="docutils literal notranslate"><span class="pre">parallel_processing</span></code>, <code class="docutils literal notranslate"><span class="pre">max_workers</span></code>, <code class="docutils literal notranslate"><span class="pre">save_individual_results</span></code>) are documented in <a class="reference internal" href="#global-settings"><span class="xref myst">Global Settings</span></a> → Multi-Sequence Only Settings.</p>
+<section id="step-1-load-input-data">
+<h3>Step 1: Load Input Data<a class="headerlink" href="#step-1-load-input-data" title="Link to this heading"></a></h3>
+<p>Data loading in the multi-sequence workflow is configured in the <code class="docutils literal notranslate"><span class="pre">step_1_load_data</span></code> workflow step. This step loads and prepares the earthquake catalog for segmentation:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;step_1_load_data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;hypocenter_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;data_examples/SECOS_20250305_HyFI.csv&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;hypocenter_separator&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;,&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;focal_mechanism_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;data_examples/SECOS_20250305_FM_HyFI.csv&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;focal_mechanism_separator&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;,&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Required</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hypocenter_file</span></code></p></td>
+<td><p>string</p></td>
+<td><p><strong>Yes</strong></p></td>
+<td><p>Path to hypocenter catalog file (e.g., “data_examples/SECOS_20250305_HyFI.csv”). This is the full earthquake catalog to be segmented into sequences</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hypocenter_separator</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Yes</p></td>
+<td><p>Column separator for hypocenter file. Options: <code class="docutils literal notranslate"><span class="pre">&quot;,&quot;</span></code> (CSV), <code class="docutils literal notranslate"><span class="pre">&quot;\t&quot;</span></code> (TSV), <code class="docutils literal notranslate"><span class="pre">&quot;;&quot;</span></code> (semicolon). Must match the format of your input file</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">focal_mechanism_file</span></code></p></td>
+<td><p>string or null</p></td>
+<td><p>No</p></td>
+<td><p>Path to focal mechanism catalog. Set to <code class="docutils literal notranslate"><span class="pre">null</span></code> if not available. Optional but recommended for improved fault plane selection via focal constraints</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">focal_mechanism_separator</span></code></p></td>
+<td><p>string</p></td>
+<td><p>No</p></td>
+<td><p>Column separator for focal mechanism file. Options: <code class="docutils literal notranslate"><span class="pre">&quot;,&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;\t&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;;&quot;</span></code>. Only needed if <code class="docutils literal notranslate"><span class="pre">focal_mechanism_file</span></code> is specified</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Required Columns</strong> (see <a class="reference internal" href="#input-data"><span class="xref myst">Input Data</span></a> section for complete column descriptions):</p>
+<ul class="simple">
+<li><p>Hypocenter: <code class="docutils literal notranslate"><span class="pre">YR</span></code>, <code class="docutils literal notranslate"><span class="pre">MO</span></code>, <code class="docutils literal notranslate"><span class="pre">DY</span></code>, <code class="docutils literal notranslate"><span class="pre">HR</span></code>, <code class="docutils literal notranslate"><span class="pre">MI</span></code>, <code class="docutils literal notranslate"><span class="pre">SC</span></code>, <code class="docutils literal notranslate"><span class="pre">LAT</span></code>, <code class="docutils literal notranslate"><span class="pre">LON</span></code>, <code class="docutils literal notranslate"><span class="pre">Z</span></code>, <code class="docutils literal notranslate"><span class="pre">X</span></code>, <code class="docutils literal notranslate"><span class="pre">Y</span></code>, <code class="docutils literal notranslate"><span class="pre">EX</span></code>, <code class="docutils literal notranslate"><span class="pre">EY</span></code>, <code class="docutils literal notranslate"><span class="pre">EZ</span></code>, <code class="docutils literal notranslate"><span class="pre">ID</span></code>, <code class="docutils literal notranslate"><span class="pre">MAG</span></code> (or <code class="docutils literal notranslate"><span class="pre">ML</span></code>/<code class="docutils literal notranslate"><span class="pre">Mw</span></code>)</p></li>
+<li><p>Focal Mechanism (if used): <code class="docutils literal notranslate"><span class="pre">ID</span></code>, <code class="docutils literal notranslate"><span class="pre">Strike1</span></code>, <code class="docutils literal notranslate"><span class="pre">Dip1</span></code>, <code class="docutils literal notranslate"><span class="pre">Rake1</span></code>, <code class="docutils literal notranslate"><span class="pre">Strike2</span></code>, <code class="docutils literal notranslate"><span class="pre">Dip2</span></code>, <code class="docutils literal notranslate"><span class="pre">Rake2</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code> (optional)</p></li>
+</ul>
+</section>
+<section id="step-2-segmentation-configuration">
+<h3>Step 2: Segmentation Configuration<a class="headerlink" href="#step-2-segmentation-configuration" title="Link to this heading"></a></h3>
+<p>Multi-sequence segmentation is configured in the <code class="docutils literal notranslate"><span class="pre">step_2_catalog_segmentation</span></code> workflow step:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;step_2_catalog_segmentation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;segmentation_steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;step_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Class_A&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dbscan&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;features&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;spatial&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;cluster_dimension&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;3d&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;dbscan_eps&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">350.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;dbscan_min_samples&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;min_cluster_size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;outlier_handling&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;next_step&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;final_outlier_handling&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;keep&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>To achieve hierarchical multi-scale clustering, multiple segmentation steps can be defined.</p>
+<section id="clustering-method">
+<h4>Clustering Method<a class="headerlink" href="#clustering-method" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Options</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">method</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;dbscan&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hdbscan&quot;</span></code></p></td>
+<td><p>Clustering algorithm to use for segmentation</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Method Comparison</strong>:</p>
+<ul class="simple">
+<li><p><strong>DBSCAN</strong>: Density-based spatial clustering with fixed distance threshold.</p></li>
+<li><p><strong>HDBSCAN</strong>: Hierarchical DBSCAN that adapts to varying densities.</p></li>
+</ul>
+</section>
+<section id="feature-selection">
+<h4>Feature Selection<a class="headerlink" href="#feature-selection" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Options</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">features</span></code></p></td>
+<td><p>array</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;spatial&quot;]</span></code>, <code class="docutils literal notranslate"><span class="pre">[&quot;spatial&quot;,</span> <span class="pre">&quot;temporal&quot;]</span></code></p></td>
+<td><p>Features to use for clustering. Options: <code class="docutils literal notranslate"><span class="pre">[&quot;spatial&quot;]</span></code>  (Spatial clustering only using X, Y, Z coordinates. Groups events by location regardless of time), <code class="docutils literal notranslate"><span class="pre">[&quot;spatial&quot;,</span> <span class="pre">&quot;temporal&quot;]</span></code> (Spatiotemporal clustering using X, Y, Z, and time. Groups events that are close in both space and time)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="cluster-dimension">
+<h4>Cluster Dimension<a class="headerlink" href="#cluster-dimension" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Options</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cluster_dimension</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;3d&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;2d&quot;</span></code></p></td>
+<td><p>Spatial dimensionality for clustering. Options: <code class="docutils literal notranslate"><span class="pre">&quot;3d&quot;</span></code> (Full 3D spatial clustering using X, Y, Z coordinates. Standard for most fault analysis), <code class="docutils literal notranslate"><span class="pre">&quot;2d&quot;</span></code> (Horizontal clustering using only X, Y coordinates (ignores depth). Useful for analyzing lateral distribution or when depth uncertainty is high)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="dbscan-parameters">
+<h4>DBSCAN Parameters<a class="headerlink" href="#dbscan-parameters" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">step_name</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Required</p></td>
+<td><p>Label for this segmentation step (e.g., “Class_A”, “Fine_Scale”, “Primary”). Used in output directory names</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dbscan_eps</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Required</p></td>
+<td><p>Maximum distance between events in the same cluster (meters). Smaller values = tighter clusters. Typical range: 100-1000 m</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dbscan_min_samples</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+<td><p>Minimum number of events required to form a dense cluster core. Higher values = stricter clustering. Typical range: 5-20</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_cluster_size</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+<td><p>Minimum number of events required to keep a cluster after segmentation. Clusters with fewer events are treated as outliers. Typical range: 10-50</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">outlier_handling</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;next_step&quot;</span></code></p></td>
+<td><p>How to handle events not assigned to any cluster. Options: <code class="docutils literal notranslate"><span class="pre">&quot;next_step&quot;</span></code> (pass to next segmentation step), <code class="docutils literal notranslate"><span class="pre">&quot;keep&quot;</span></code> (create outlier sequence), <code class="docutils literal notranslate"><span class="pre">&quot;discard&quot;</span></code> (remove from analysis)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="dbscan-specific-parameters">
+<h4>DBSCAN-Specific Parameters<a class="headerlink" href="#dbscan-specific-parameters" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dbscan_metric</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code></p></td>
+<td><p>Distance metric for DBSCAN. Options: <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code> (standard Euclidean distance, <strong>recommended</strong>), <code class="docutils literal notranslate"><span class="pre">&quot;manhattan&quot;</span></code> (L1 distance), <code class="docutils literal notranslate"><span class="pre">&quot;chebyshev&quot;</span></code> (Chebyshev distance). Only used with <code class="docutils literal notranslate"><span class="pre">method:</span> <span class="pre">&quot;dbscan&quot;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="hdbscan-parameters">
+<h4>HDBSCAN Parameters<a class="headerlink" href="#hdbscan-parameters" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hdbscan_min_cluster_size</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">15</span></code></p></td>
+<td><p>Minimum number of samples in a cluster. Range: 5-50. Lower values = more clusters but potential noise. Higher values = fewer, larger clusters. Only used with <code class="docutils literal notranslate"><span class="pre">method:</span> <span class="pre">&quot;hdbscan&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hdbscan_min_samples</span></code></p></td>
+<td><p>integer or null</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">null</span></code></p></td>
+<td><p>Minimum number of samples in a neighborhood for a point to be considered a core point. <code class="docutils literal notranslate"><span class="pre">null</span></code> = same as <code class="docutils literal notranslate"><span class="pre">hdbscan_min_cluster_size</span></code>. Use integer 3-20 for custom values. Only used with <code class="docutils literal notranslate"><span class="pre">method:</span> <span class="pre">&quot;hdbscan&quot;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="cluster-geometry-filtering">
+<h4>Cluster Geometry Filtering<a class="headerlink" href="#cluster-geometry-filtering" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_by_aspect_ratio</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Enable filtering of clusters based on their geometric aspect ratio (shape). When <code class="docutils literal notranslate"><span class="pre">true</span></code>, clusters are evaluated by elongation: aspect_ratio = max_eigenvalue / min_eigenvalue. Clusters with aspect ratio below <code class="docutils literal notranslate"><span class="pre">min_aspect_ratio</span></code> threshold (blob-shaped or compact) are reclassified as noise (-1)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_aspect_ratio</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.5</span></code></p></td>
+<td><p>Minimum aspect ratio threshold for keeping a cluster. Range: 1.0-5.0+. When <code class="docutils literal notranslate"><span class="pre">filter_by_aspect_ratio:</span> <span class="pre">true</span></code>, clusters with aspect_ratio &lt; min_aspect_ratio are discarded.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="temporal-clustering-parameters">
+<h4>Temporal Clustering Parameters<a class="headerlink" href="#temporal-clustering-parameters" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">temporal_window_days</span></code></p></td>
+<td><p>integer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">30</span></code></p></td>
+<td><p>Time window for grouping events (days). Range: 1-365. Events within this time window are grouped together regardless of spatial separation. Only used with <code class="docutils literal notranslate"><span class="pre">method:</span> <span class="pre">&quot;temporal&quot;</span></code> or when <code class="docutils literal notranslate"><span class="pre">&quot;temporal&quot;</span></code> is in <code class="docutils literal notranslate"><span class="pre">features</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Temporal Method</strong>: Groups events by time windows, independent of location. Useful for identifying earthquake swarms and sequences that occur within specific time periods.</p>
+</section>
+<section id="spatial-temporal-parameters">
+<h4>Spatial-Temporal Parameters<a class="headerlink" href="#spatial-temporal-parameters" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">spatial_weight</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.7</span></code></p></td>
+<td><p>Weight for spatial vs temporal features in combined analysis. Range: 0.0-1.0. Use 0.7 = 70% spatial/30% temporal (<strong>recommended</strong>), 0.5 = equal weight, 0.9 = mostly spatial. Only used with <code class="docutils literal notranslate"><span class="pre">method:</span> <span class="pre">&quot;spatial_temporal&quot;</span></code> or when both <code class="docutils literal notranslate"><span class="pre">&quot;spatial&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;temporal&quot;</span></code> are in <code class="docutils literal notranslate"><span class="pre">features</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Spatial-Temporal Method</strong>: Combines spatial and temporal clustering using weighted features. Better for identifying space-time patterns in seismicity.</p>
+</section>
+<section id="outlier-handling-per-step">
+<h4>Outlier Handling (Per-Step)<a class="headerlink" href="#outlier-handling-per-step" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">process_outliers</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Whether to process outlier events in subsequent segmentation steps. When <code class="docutils literal notranslate"><span class="pre">true</span></code>, events not assigned to clusters are passed to the next step. When <code class="docutils literal notranslate"><span class="pre">false</span></code>, outliers are discarded immediately</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">outlier_handling</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;next_step&quot;</span></code></p></td>
+<td><p>Strategy for handling unassigned events in this step. Options: <code class="docutils literal notranslate"><span class="pre">&quot;next_step&quot;</span></code> (pass to next segmentation step, <strong>recommended for hierarchical</strong>), <code class="docutils literal notranslate"><span class="pre">&quot;keep&quot;</span></code> (create separate outlier sequence), <code class="docutils literal notranslate"><span class="pre">&quot;discard&quot;</span></code> (remove from analysis). Applies only to this specific step</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hierarchical Workflow Strategy</strong>:</p>
+<ul class="simple">
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">outlier_handling:</span> <span class="pre">&quot;next_step&quot;</span></code> for all intermediate steps</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">outlier_handling:</span> <span class="pre">&quot;keep&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;discard&quot;</span></code> only for the final step</p></li>
+<li><p>This creates a hierarchical multi-scale segmentation where fine-scale clusters are found first, then broader clusters are identified from remaining events</p></li>
+</ul>
+</section>
+<section id="segmentation-only-mode">
+<h4>Segmentation-Only Mode<a class="headerlink" href="#segmentation-only-mode" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">segmentation_only</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>If <code class="docutils literal notranslate"><span class="pre">true</span></code>, skip fault analysis (step 3) and export VTP files directly after segmentation. Useful for testing and validating segmentation parameters before running full fault plane analysis. Exports individual VTP files per sequence and a combined VTP file with all sequences</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output Files</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">segmented_sequences_{step_name}_sequence_{ID}.vtp</span></code> - Individual VTP file per sequence</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">segmented_sequences_{step_name}_combined.vtp</span></code> - Combined VTP with all sequences (different colors per cluster)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">segmentation_summary.json</span></code> - JSON file with statistics (cluster counts, event counts per sequence)</p></li>
+</ul>
+</section>
+<section id="final-outlier-handling">
+<h4>Final Outlier Handling<a class="headerlink" href="#final-outlier-handling" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Options</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">final_outlier_handling</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;keep&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;discard&quot;</span></code></p></td>
+<td><p>How to handle events not clustered after all segmentation steps are complete. <code class="docutils literal notranslate"><span class="pre">&quot;keep&quot;</span></code> creates a <code class="docutils literal notranslate"><span class="pre">Z_outliers</span></code> sequence directory with unclustered events, <code class="docutils literal notranslate"><span class="pre">&quot;discard&quot;</span></code> removes them from analysis and subsequent per-sequence processing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_outlier_ratio</span></code></p></td>
+<td><p>float</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.3</span></code></p></td>
+<td><p>Maximum acceptable ratio of outlier events relative to total catalog. Range: 0.0-1.0 (0.3 = 30%). If exceeded, a warning is logged but processing continues. Used for validation/diagnostics</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="step-3-per-sequence-analysis-configuration">
+<h3>Step 3: Per-Sequence Analysis Configuration<a class="headerlink" href="#step-3-per-sequence-analysis-configuration" title="Link to this heading"></a></h3>
+<p>After segmentation, HyFI core analysis is applied independently to each identified sequence in the <code class="docutils literal notranslate"><span class="pre">step_3_per_sequence_analysis</span></code> workflow step:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;step_3_per_sequence_analysis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Apply HyFI core analysis to each sequence identified in step_2&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;fault_network&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;model_validation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;auto_classification&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;stress_analysis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;visualization&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This step applies all single-sequence analysis modules (Fault Network, Model Validation, Auto-Classification, Stress Analysis, and Visualization) to each sequence independently. The configuration is identical to the single-sequence workflow parameters documented in the respective sections:</p>
+</section>
+<section id="step-4-merge-and-export-configuration">
+<h3>Step 4: Merge and Export Configuration<a class="headerlink" href="#step-4-merge-and-export-configuration" title="Link to this heading"></a></h3>
+<p>After per-sequence analysis, individual results are merged and exported in the <code class="docutils literal notranslate"><span class="pre">step_4_merge_and_export</span></code> workflow step:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;step_4_merge_and_export&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Merge VTP files and export combined results&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;merge_vtp_files&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;merged_output&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;merged_vtp_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;./output/HyFI_Database/HyFI_Database_vtp/&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;export_merged_csv&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;export_summary_statistics&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="vtp-file-merging">
+<h4>VTP File Merging<a class="headerlink" href="#vtp-file-merging" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">merge_vtp_files</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Merge individual VTP files from all sequences into combined VTP files. Creates one merged file for each analysis layer (hypocenters, rupture planes, focal planes, interpolated surfaces, slip vectors, etc.). All sequences are combined into single files with metadata tracking which sequence each point/geometry belongs to</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Merged VTP Output Files</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hypocenters_ALL.vtp</span></code> - All hypocenter points with cluster attribution</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rupture_planes_ALL.vtp</span></code> - All rupture plane meshes from all sequences</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">faults_ALL.vtp</span></code> - Combined fault plane compilation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">focal_planes_ALL.vtp</span></code> - All focal mechanism planes (if constraints enabled)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interpolated_surfaces_ALL.vtp</span></code> - All interpolated fault surfaces</p></li>
+</ul>
+</section>
+<section id="merged-output-configuration">
+<h4>Merged Output Configuration<a class="headerlink" href="#merged-output-configuration" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">merged_output</span></code> → <code class="docutils literal notranslate"><span class="pre">merged_vtp_path</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Required</p></td>
+<td><p>Directory path for merged VTP files. Example: <code class="docutils literal notranslate"><span class="pre">&quot;./output/HyFI_Database/HyFI_Database_vtp/&quot;</span></code>. Merged VTP files are saved to this location for combined 3D visualization</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">export_merged_csv</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Export enriched merged CSV catalog with all analysis results from all sequences. Output file: <code class="docutils literal notranslate"><span class="pre">HyFI_Database/merged_catalog_enriched.csv</span></code>. Combines hypocenters + fault plane parameters + auto-classification results. Useful for GIS import and further analysis</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">export_summary_statistics</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Export summary statistics CSV with aggregate metrics per sequence. Output file: <code class="docutils literal notranslate"><span class="pre">HyFI_Database/summary_statistics.csv</span></code>. One row per sequence with event counts, magnitude range, spatial extent, and mean orientations</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="output-directory-structure">
+<h4>Output Directory Structure<a class="headerlink" href="#output-directory-structure" title="Link to this heading"></a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>output_directory/
+├── HyFI_Database/                               # Main export folder
+│   ├── merged_catalog_enriched.csv              # All events + analysis results
+│   ├── summary_statistics.csv                   # Per-sequence summary
+│   ├── HyFI_database_metadata.csv               # Fault system metadata
+│   ├── HyFI_database_focal_mechanisms.csv       # Focal mechanism compilation
+│   └── HyFI_Database_vtp/                       # Merged VTP files
+│       ├── hypocenters_merged.vtp
+│       ├── rupture_planes_merged.vtp
+│       ├── faults_merged.vtp
+│       ├── focal_planes_merged.vtp
+│       └── interpolated_surfaces_merged.vtp
+├── A1/                                          # Individual sequence outputs
+│   ├── 3D_model.html
+│   ├── A1_data.csv
+│   ├── vtp_export/
+│   └── ...
+├── A2/
+├── B1/
+└── Z_outliers/                                  # Unclustered events (if kept)
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>Happy fault imaging! 🎉</p>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="configuration.html" class="btn btn-neutral float-left" title="HyFI Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modules/index.html" class="btn btn-neutral float-right" title="HyFI Core Modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

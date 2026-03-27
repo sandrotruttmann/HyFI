@@ -1,0 +1,272 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation Guide &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quickstart" href="quickstart.html" />
+    <link rel="prev" title="Welcome to HyFI’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            HyFI
+              <img src="_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-install-miniforge-mamba-package-manager">Step 1: Install Miniforge (Mamba Package Manager)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-download-hyfi">Step 2: Download HyFI</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#option-a-direct-download-recommended">Option A: Direct Download (Recommended)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#option-b-using-git-for-developers">Option B: Using Git (For Developers)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#step-3-create-the-mamba-environment">Step 3: Create the Mamba Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-4-install-hyfi">Step 4: Install HyFI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-5-verify-installation">Step 5: Verify Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-6-run-a-test-example">Step 6: Run a Test Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-7-install-paraview-optional-for-3d-visualization">Step 7: Install ParaView (Optional, for 3D Visualization)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#download-and-install-paraview">Download and Install ParaView</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="installation-guide">
+<h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Link to this heading"></a></h1>
+<p>This guide will walk you through installing HyFI from scratch, even if you have no previous installations.</p>
+<hr class="docutils" />
+<section id="step-1-install-miniforge-mamba-package-manager">
+<h2>Step 1: Install Miniforge (Mamba Package Manager)<a class="headerlink" href="#step-1-install-miniforge-mamba-package-manager" title="Link to this heading"></a></h2>
+<p><strong>Miniforge</strong> provides both <code class="docutils literal notranslate"><span class="pre">conda</span></code> and <code class="docutils literal notranslate"><span class="pre">mamba</span></code> package managers. <strong>We recommend using mamba</strong> as it’s significantly faster for package installation.</p>
+<p><strong>Download and install Miniforge from:</strong>
+https://conda-forge.org/download/</p>
+<p>Choose the appropriate installer for your operating system and follow the installation instructions provided on the website.</p>
+<p><strong>Verify successful installation</strong> by opening a new terminal and running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mamba<span class="w"> </span>--version
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="step-2-download-hyfi">
+<h2>Step 2: Download HyFI<a class="headerlink" href="#step-2-download-hyfi" title="Link to this heading"></a></h2>
+<p>You have two options to get HyFI:</p>
+<section id="option-a-direct-download-recommended">
+<h3>Option A: Direct Download (Recommended)<a class="headerlink" href="#option-a-direct-download-recommended" title="Link to this heading"></a></h3>
+<p>If you just want to use a static version of HyFI without Git:</p>
+<ol class="arabic">
+<li><p><strong>Download the repository as a ZIP file:</strong></p>
+<ul class="simple">
+<li><p>Go to: https://github.com/sandrotruttmann/HyFI</p></li>
+<li><p>Click the green “Code” button</p></li>
+<li><p>Select “Download ZIP”</p></li>
+</ul>
+</li>
+<li><p><strong>Extract the ZIP file:</strong></p>
+<ul class="simple">
+<li><p>Extract to your desired location (e.g., <code class="docutils literal notranslate"><span class="pre">~/HyFI</span></code> or <code class="docutils literal notranslate"><span class="pre">C:\Users\YourName\HyFI</span></code>)</p></li>
+</ul>
+</li>
+<li><p><strong>Navigate to the extracted folder:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>path/to/HyFI
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="option-b-using-git-for-developers">
+<h3>Option B: Using Git (For Developers)<a class="headerlink" href="#option-b-using-git-for-developers" title="Link to this heading"></a></h3>
+<p>If you plan to modify the code or stay up-to-date with the latest changes:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/sandrotruttmann/HyFI.git
+<span class="nb">cd</span><span class="w"> </span>HyFI
+git<span class="w"> </span>checkout<span class="w"> </span>main
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="step-3-create-the-mamba-environment">
+<h2>Step 3: Create the Mamba Environment<a class="headerlink" href="#step-3-create-the-mamba-environment" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">hyfi.yaml</span></code> file contains all the required dependencies.</p>
+<ol class="arabic">
+<li><p><strong>Create the environment using mamba:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mamba<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>hyfi.yaml
+</pre></div>
+</div>
+<p>This may take several minutes as it downloads and installs all required packages.</p>
+</li>
+<li><p><strong>Activate the environment:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mamba<span class="w"> </span>activate<span class="w"> </span>hyfi
+</pre></div>
+</div>
+<p>You should see <code class="docutils literal notranslate"><span class="pre">(hyfi)</span></code> appear at the beginning of your terminal prompt.</p>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="step-4-install-hyfi">
+<h2>Step 4: Install HyFI<a class="headerlink" href="#step-4-install-hyfi" title="Link to this heading"></a></h2>
+<p>Install HyFI using pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+<p>This installs HyFI from the local source code into your mamba environment.</p>
+</section>
+<hr class="docutils" />
+<section id="step-5-verify-installation">
+<h2>Step 5: Verify Installation<a class="headerlink" href="#step-5-verify-installation" title="Link to this heading"></a></h2>
+<ol class="arabic">
+<li><p><strong>Check that HyFI is installed:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import hyfi; print(hyfi.__version__)&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Check that the CLI works:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>hyfi<span class="w"> </span>--help
+</pre></div>
+</div>
+<p>You should see the HyFI command-line interface help text.</p>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="step-6-run-a-test-example">
+<h2>Step 6: Run a Test Example<a class="headerlink" href="#step-6-run-a-test-example" title="Link to this heading"></a></h2>
+<p>Navigate to the example projects directory and run a test configuration:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>config
+hyfi<span class="w"> </span>run<span class="w"> </span>config_TEMPLATE.json
+</pre></div>
+</div>
+<p>Check the output directory specified in the DAG (.json) for results (output data, visualizations, VTP, etc.).</p>
+</section>
+<hr class="docutils" />
+<section id="step-7-install-paraview-optional-for-3d-visualization">
+<h2>Step 7: Install ParaView (Optional, for 3D Visualization)<a class="headerlink" href="#step-7-install-paraview-optional-for-3d-visualization" title="Link to this heading"></a></h2>
+<p><strong>ParaView</strong> is a powerful open-source application for visualizing and analyzing 3D data. HyFI exports VTP files that can be opened in ParaView for interactive visualization of hypocenters, focal mechanisms, rupture planes, fault systems and others.</p>
+<section id="download-and-install-paraview">
+<h3>Download and Install ParaView<a class="headerlink" href="#download-and-install-paraview" title="Link to this heading"></a></h3>
+<p>Download and install ParaView from the Official website: https://www.paraview.org/download/</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<p>You are now ready to run your first HyFI Analysis! Please continue to <strong><a class="reference internal" href="quickstart.html"><span class="doc std std-doc">Quickstart</span></a></strong>.</p>
+<hr class="docutils" />
+<p>Happy fault imaging! 🎉</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to HyFI’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quickstart.html" class="btn btn-neutral float-right" title="Quickstart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

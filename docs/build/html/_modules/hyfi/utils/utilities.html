@@ -1,0 +1,1001 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hyfi.utils.utilities &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            HyFI
+              <img src="../../../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">hyfi.utils.utilities</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for hyfi.utils.utilities</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">HYPOCENTER-BASED 3D IMAGING OF ACTIVE FAULTS: General utilities and helper function</span>
+
+<span class="sd">Please cite: Truttmann et al. (2023). Hypocenter-based 3D Imaging of Active Faults: Method and Applications in the Southwestern Swiss Alps.</span>
+
+<span class="sd">@author: Sandro Truttmann</span>
+<span class="sd">@contact: sandro.truttmann@gmail.com</span>
+<span class="sd">@license: GPL-3.0</span>
+<span class="sd">@date: April 2023</span>
+<span class="sd">@version: 0.1.1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Import modules</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numba</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_output_directory</span><span class="p">(</span><span class="n">output_dir</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create output directory structure if it doesn&#39;t exist.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    output_dir : str or Path</span>
+<span class="sd">        Path to the output directory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">dag_params_to_legacy_params</span><span class="p">(</span><span class="n">dag</span><span class="p">,</span> <span class="n">node_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert DAG node parameters to legacy input_params format.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dag : HyFIWorkflowDAG</span>
+<span class="sd">        DAG configuration object</span>
+<span class="sd">    node_id : str</span>
+<span class="sd">        ID of the current node</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Legacy input_params dictionary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Base parameters</span>
+    <span class="n">input_params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;out_dir&#39;</span><span class="p">:</span> <span class="n">dag</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span>
+        <span class="s1">&#39;hypo_file&#39;</span><span class="p">:</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;input_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">hypocenter_file</span><span class="p">,</span>
+        <span class="s1">&#39;hypo_sep&#39;</span><span class="p">:</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;input_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">hypocenter_separator</span><span class="p">,</span>
+        <span class="s1">&#39;project_title&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dag</span><span class="p">,</span> <span class="s1">&#39;workflow_name&#39;</span><span class="p">,</span> <span class="s1">&#39;Fault Imaging Analysis&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+    
+    <span class="c1"># Add focal mechanism data if available</span>
+    <span class="k">if</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;input_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">focal_mechanism_file</span><span class="p">:</span>
+        <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;foc_file&#39;</span><span class="p">:</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;input_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">focal_mechanism_file</span><span class="p">,</span>
+            <span class="s1">&#39;foc_sep&#39;</span><span class="p">:</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;input_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">focal_mechanism_separator</span><span class="p">,</span>
+        <span class="p">})</span>
+    
+    <span class="c1"># Add node-specific parameters</span>
+    <span class="k">if</span> <span class="n">node_id</span> <span class="o">==</span> <span class="s1">&#39;fault_network&#39;</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;fault_network&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span>
+        
+        <span class="c1"># Core network parameters</span>
+        <span class="n">core_network</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;core_network&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;n_mc&#39;</span><span class="p">:</span> <span class="n">core_network</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;monte_carlo_simulations&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;monte_carlo_simulations&#39;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)),</span>
+            <span class="s1">&#39;r_nn&#39;</span><span class="p">:</span> <span class="n">core_network</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search_radius_meters&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search_radius_meters&#39;</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">)),</span>
+            <span class="s1">&#39;dt_nn&#39;</span><span class="p">:</span> <span class="n">core_network</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search_time_window_hours&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search_time_window_hours&#39;</span><span class="p">,</span> <span class="mi">9999999</span><span class="p">)),</span>
+            <span class="s1">&#39;mag_type&#39;</span><span class="p">:</span> <span class="n">core_network</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;magnitude_type&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;magnitude_type&#39;</span><span class="p">,</span> <span class="s1">&#39;ML&#39;</span><span class="p">)),</span>
+        <span class="p">})</span>
+        
+        <span class="c1"># Outlier detection parameters</span>
+        <span class="n">outlier_detection</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;outlier_detection&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;remove_outliers&#39;</span><span class="p">:</span> <span class="n">outlier_detection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;remove_outliers&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;remove_outliers&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span>
+            <span class="s1">&#39;outlier_method&#39;</span><span class="p">:</span> <span class="n">outlier_detection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;outlier_method&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;outlier_method&#39;</span><span class="p">,</span> <span class="s1">&#39;DBSCAN&#39;</span><span class="p">)),</span>
+            <span class="s1">&#39;lof_n_neighbors&#39;</span><span class="p">:</span> <span class="n">outlier_detection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lof_n_neighbors&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lof_n_neighbors&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+            <span class="s1">&#39;lof_contamination&#39;</span><span class="p">:</span> <span class="n">outlier_detection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lof_contamination&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lof_contamination&#39;</span><span class="p">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">)),</span>
+            <span class="s1">&#39;if_n_estimators&#39;</span><span class="p">:</span> <span class="n">outlier_detection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;if_n_estimators&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;if_n_estimators&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)),</span>
+            <span class="s1">&#39;if_max_samples&#39;</span><span class="p">:</span> <span class="n">outlier_detection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;if_max_samples&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;if_max_samples&#39;</span><span class="p">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">)),</span>
+            <span class="s1">&#39;if_contamination&#39;</span><span class="p">:</span> <span class="n">outlier_detection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;if_contamination&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;if_contamination&#39;</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)),</span>
+            <span class="s1">&#39;if_random_state&#39;</span><span class="p">:</span> <span class="n">outlier_detection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;if_random_state&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;if_random_state&#39;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)),</span>
+        <span class="p">})</span>
+        
+        <span class="c1"># Focal mechanism constraints</span>
+        <span class="n">focal_constraints</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;focal_mechanism_constraints&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;use_focal_constraints&#39;</span><span class="p">:</span> <span class="n">focal_constraints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_focal_constraints&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_focal_constraints&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span>
+        <span class="p">})</span>
+        
+        <span class="c1"># Automatic parameter optimization</span>
+        <span class="n">auto_opt</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;automatic_parameter_optimization&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;auto_optimize_parameters&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_optimize_parameters&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_optimize_parameters&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_method&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_method&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_method&#39;</span><span class="p">,</span> <span class="s1">&#39;optuna&#39;</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_random_state&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_random_state&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_random_state&#39;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_n_trials&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_n_trials&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_n_trials&#39;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_grid_points&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_grid_points&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_grid_points&#39;</span><span class="p">,</span> <span class="mi">25</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_plot_results&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_plot_results&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_plot_results&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_r_nn_range&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_r_nn_range&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_r_nn_range&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_dt_nn_range&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_dt_nn_range&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_dt_nn_range&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_n_startup_trials&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_n_startup_trials&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_n_startup_trials&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_pareto_sampler&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_pareto_sampler&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_pareto_sampler&#39;</span><span class="p">,</span> <span class="s1">&#39;nsga2&#39;</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_pareto_population&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_pareto_population&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_pareto_population&#39;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)),</span>
+            <span class="s1">&#39;optimization_sampler&#39;</span><span class="p">:</span> <span class="n">auto_opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_sampler&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_sampler&#39;</span><span class="p">,</span> <span class="s1">&#39;tpe&#39;</span><span class="p">)),</span>
+        <span class="p">})</span>
+        
+        <span class="c1"># Node enable/disable flags</span>
+        <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;validation_bool&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;model_validation&#39;</span><span class="p">),</span> <span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="s1">&#39;autoclass_bool&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_classification&#39;</span><span class="p">),</span> <span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="s1">&#39;stress_bool&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stress_analysis&#39;</span><span class="p">),</span> <span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="p">})</span>
+        
+        <span class="c1"># Add validation parameters</span>
+        <span class="k">if</span> <span class="s1">&#39;model_validation&#39;</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">mv_params</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;model_validation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span>
+            <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;foc_mag_check&#39;</span><span class="p">:</span> <span class="n">mv_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;check_magnitude_consistency&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                <span class="s1">&#39;foc_loc_check&#39;</span><span class="p">:</span> <span class="n">mv_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;check_location_consistency&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                <span class="s1">&#39;foc_max_mag_diff&#39;</span><span class="p">:</span> <span class="n">mv_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;maximum_magnitude_difference&#39;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+                <span class="s1">&#39;foc_max_dist_km&#39;</span><span class="p">:</span> <span class="n">mv_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;maximum_distance_km&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+            <span class="p">})</span>
+            
+        <span class="c1"># Add classification parameters</span>
+        <span class="k">if</span> <span class="s1">&#39;auto_classification&#39;</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">ac_params</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;auto_classification&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span>
+            
+            <span class="c1"># Orientation clustering parameters</span>
+            <span class="n">orientation_clustering</span> <span class="o">=</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;orientation_clustering&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;auto_determine_clusters&#39;</span><span class="p">:</span> <span class="n">orientation_clustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_determine_clusters&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_determine_clusters&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+                <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="n">orientation_clustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_clusters&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_clusters&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)),</span>
+                <span class="s1">&#39;n_clusters&#39;</span><span class="p">:</span> <span class="n">orientation_clustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;number_of_clusters&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;number_of_clusters&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+                <span class="s1">&#39;algorithm&#39;</span><span class="p">:</span> <span class="n">orientation_clustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;clustering_algorithm&#39;</span><span class="p">,</span> <span class="s1">&#39;vmf_soft&#39;</span><span class="p">)),</span>
+                <span class="s1">&#39;rotation&#39;</span><span class="p">:</span> <span class="n">orientation_clustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rotate_poles_before_analysis&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rotate_poles_before_analysis&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+                <span class="s1">&#39;convergence_tolerance&#39;</span><span class="p">:</span> <span class="n">orientation_clustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;convergence_tolerance&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;convergence_tolerance&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span>
+                <span class="s1">&#39;maximum_iterations&#39;</span><span class="p">:</span> <span class="n">orientation_clustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;maximum_iterations&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;maximum_iterations&#39;</span><span class="p">,</span> <span class="mi">300</span><span class="p">)),</span>
+            <span class="p">})</span>
+            
+            <span class="c1"># Spatial sub-clustering parameters (consolidated structure)</span>
+            <span class="n">spatial_subclustering</span> <span class="o">=</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;spatial_sub_clustering&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;enable_spatial_clustering&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enable_spatial_clustering&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enable_spatial_clustering&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+                <span class="s1">&#39;spatial_clustering_method&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;spatial_clustering_method&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;spatial_clustering_method&#39;</span><span class="p">,</span> <span class="s1">&#39;dbscan&#39;</span><span class="p">)),</span>
+                <span class="s1">&#39;min_points_per_subcluster&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_events_per_cluster&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_events_per_cluster&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)),</span>
+                <span class="s1">&#39;min_events_per_cluster&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_events_per_cluster&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_events_per_cluster&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)),</span>
+                <span class="s1">&#39;use_fault_plane_points_for_clustering&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_fault_plane_points_for_clustering&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_fault_plane_points_for_clustering&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span>
+                <span class="s1">&#39;fault_plane_point_density_meters&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fault_plane_point_density_meters&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fault_plane_point_density_meters&#39;</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)),</span>
+                <span class="s1">&#39;fault_plane_radius_interval_meters&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fault_plane_radius_interval_meters&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fault_plane_radius_interval_meters&#39;</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)),</span>
+                <span class="s1">&#39;fault_plane_clustering_eps_meters&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fault_plane_clustering_eps_meters&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fault_plane_clustering_eps_meters&#39;</span><span class="p">,</span> <span class="mf">200.0</span><span class="p">)),</span>
+                <span class="s1">&#39;fault_plane_clustering_min_samples&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fault_plane_clustering_min_samples&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fault_plane_clustering_min_samples&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)),</span>
+                <span class="c1"># Anisotropic clustering parameters</span>
+                <span class="s1">&#39;use_anisotropic_eps&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_anisotropic_eps&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_anisotropic_eps&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span>
+                <span class="s1">&#39;in_plane_eps_meters&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_plane_eps_meters&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;in_plane_eps_meters&#39;</span><span class="p">,</span> <span class="mf">500.0</span><span class="p">)),</span>
+                <span class="s1">&#39;out_of_plane_eps_meters&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;out_of_plane_eps_meters&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;out_of_plane_eps_meters&#39;</span><span class="p">,</span> <span class="mf">50.0</span><span class="p">)),</span>
+                <span class="s1">&#39;anisotropic_min_samples&#39;</span><span class="p">:</span> <span class="n">spatial_subclustering</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;anisotropic_min_samples&#39;</span><span class="p">,</span> <span class="n">ac_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;anisotropic_min_samples&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)),</span>
+            <span class="p">})</span>
+            
+        <span class="c1"># Add stress analysis parameters  </span>
+        <span class="k">if</span> <span class="s1">&#39;stress_analysis&#39;</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">sa_params</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;stress_analysis&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span>
+            <span class="n">stress_field</span> <span class="o">=</span> <span class="n">sa_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stress_field&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">mech_props</span> <span class="o">=</span> <span class="n">sa_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mechanical_properties&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;S1_trend&#39;</span><span class="p">:</span> <span class="n">stress_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sigma1_trend_degrees&#39;</span><span class="p">,</span> <span class="mi">301</span><span class="p">),</span>
+                <span class="s1">&#39;S1_plunge&#39;</span><span class="p">:</span> <span class="n">stress_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sigma1_plunge_degrees&#39;</span><span class="p">,</span> <span class="mi">23</span><span class="p">),</span>
+                <span class="s1">&#39;S3_trend&#39;</span><span class="p">:</span> <span class="n">stress_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sigma3_trend_degrees&#39;</span><span class="p">,</span> <span class="mi">43</span><span class="p">),</span>
+                <span class="s1">&#39;S3_plunge&#39;</span><span class="p">:</span> <span class="n">stress_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sigma3_plunge_degrees&#39;</span><span class="p">,</span> <span class="mi">26</span><span class="p">),</span>
+                <span class="s1">&#39;stress_R&#39;</span><span class="p">:</span> <span class="n">stress_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stress_shape_ratio&#39;</span><span class="p">,</span> <span class="mf">0.35</span><span class="p">),</span>
+                <span class="s1">&#39;PP&#39;</span><span class="p">:</span> <span class="n">mech_props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pore_pressure_mpa&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                <span class="s1">&#39;fric_coeff&#39;</span><span class="p">:</span> <span class="n">mech_props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;friction_coefficient&#39;</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">),</span>
+                <span class="s1">&#39;use_shapefile_stress&#39;</span><span class="p">:</span> <span class="n">stress_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_shapefile&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                <span class="s1">&#39;stress_field_shapefile&#39;</span><span class="p">:</span> <span class="n">stress_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;shapefile_path&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="p">})</span>
+        
+        <span class="c1"># Add visualization parameters</span>
+        <span class="k">if</span> <span class="s1">&#39;visualization&#39;</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">vis_params</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;visualization&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span>
+            
+            <span class="c1"># Basic visualization parameters</span>
+            <span class="n">basic_vis</span> <span class="o">=</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;basic_visualization&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;generate_3d_model&#39;</span><span class="p">:</span> <span class="n">basic_vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;generate_3d_model&#39;</span><span class="p">,</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;generate_3d_model&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+                <span class="s1">&#39;generate_stereonet&#39;</span><span class="p">:</span> <span class="n">basic_vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;generate_stereonet&#39;</span><span class="p">,</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;generate_stereonet&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+            <span class="p">})</span>
+            
+            <span class="c1"># Fault surface interpolation parameters</span>
+            <span class="n">interpolation</span> <span class="o">=</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fault_surface_interpolation&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;enable_plane_interpolation&#39;</span><span class="p">:</span> <span class="n">interpolation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enable_plane_interpolation&#39;</span><span class="p">,</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enable_plane_interpolation&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+                <span class="s1">&#39;poisson_depth&#39;</span><span class="p">:</span> <span class="n">interpolation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;poisson_depth&#39;</span><span class="p">,</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;poisson_depth&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)),</span>
+                <span class="s1">&#39;density_threshold&#39;</span><span class="p">:</span> <span class="n">interpolation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;density_threshold&#39;</span><span class="p">,</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;density_threshold&#39;</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)),</span>
+                <span class="s1">&#39;max_distance_factor&#39;</span><span class="p">:</span> <span class="n">interpolation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_distance_factor&#39;</span><span class="p">,</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_distance_factor&#39;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">)),</span>
+                <span class="s1">&#39;min_fault_planes_for_interpolation&#39;</span><span class="p">:</span> <span class="n">interpolation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_fault_planes_for_interpolation&#39;</span><span class="p">,</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_fault_planes_for_interpolation&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)),</span>
+            <span class="p">})</span>
+            
+            <span class="c1"># 3D export parameters</span>
+            <span class="n">vtk_export</span> <span class="o">=</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;3d_export&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">input_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;export_vtp&#39;</span><span class="p">:</span> <span class="n">vtk_export</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;export_vtp&#39;</span><span class="p">,</span> <span class="n">vis_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;export_vtp&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+            <span class="p">})</span>
+    
+    <span class="k">return</span> <span class="n">input_params</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">trendplunge_to_vector</span><span class="p">(</span><span class="n">trend</span><span class="p">,</span> <span class="n">plunge</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert from trend/plunge to x/y/z coordinate system.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    trend : DataFrame</span>
+<span class="sd">        Trend.</span>
+<span class="sd">    plunge : DataFrame</span>
+<span class="sd">        Plunge.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    XYZ coordinates.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert to radians</span>
+    <span class="n">trend</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">trend</span><span class="p">)</span>
+    <span class="n">plunge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">plunge</span><span class="p">)</span>
+    <span class="c1"># Calculate the normal unit vector components</span>
+    <span class="n">nor_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">plunge</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">trend</span><span class="p">)</span>
+    <span class="n">nor_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">plunge</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">trend</span><span class="p">)</span>
+    <span class="n">nor_z</span> <span class="o">=</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">plunge</span><span class="p">)</span>
+    
+    <span class="k">return</span><span class="p">(</span><span class="n">nor_x</span><span class="p">,</span> <span class="n">nor_y</span><span class="p">,</span> <span class="n">nor_z</span><span class="p">)</span>
+
+
+<span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rake_to_trendplunge</span><span class="p">(</span><span class="n">plane_strike</span><span class="p">,</span> <span class="n">plane_dip</span><span class="p">,</span> <span class="n">rake</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert from Strike-Dip-Rake to lineation trend and plunge.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    plane_strike : int</span>
+<span class="sd">        Plane strike (right-hand rule (RHR)).</span>
+<span class="sd">    plane_dip : int</span>
+<span class="sd">        Plane dip.</span>
+<span class="sd">    rake : int</span>
+<span class="sd">        Rake in RHR format (0-180° measured from RHR strike direction).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Trend and plunge.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Convert degrees to radians</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">plane_strike</span><span class="p">)</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">plane_dip</span><span class="p">)</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">rake</span><span class="p">)</span>
+    
+    <span class="c1"># Calculate beta in dependence of rake</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">D</span><span class="p">)))</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">beta</span> <span class="k">if</span> <span class="n">R</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="k">else</span> <span class="n">beta</span>
+    
+    <span class="c1"># Calculate lineation trend and plunge</span>
+    <span class="n">trend</span> <span class="o">=</span> <span class="n">S</span> <span class="o">+</span> <span class="n">beta</span>
+    <span class="n">plunge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">D</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">R</span><span class="p">))</span>
+    
+    <span class="c1"># Convert to degrees and round</span>
+    <span class="n">trend</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">trend</span><span class="p">)))</span> <span class="o">%</span> <span class="mi">360</span>
+    <span class="n">plunge</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">plunge</span><span class="p">)))</span>
+
+    <span class="k">return</span><span class="p">(</span><span class="n">trend</span><span class="p">,</span> <span class="n">plunge</span><span class="p">)</span>
+
+
+<span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plane_azidip_to_normal</span><span class="p">(</span><span class="n">azi</span><span class="p">,</span> <span class="n">dip</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert plane azimuth and dip (spherical) to normal vector (cartesian).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    azi : int</span>
+<span class="sd">        Plane azimuth in degrees.</span>
+<span class="sd">    dip : int</span>
+<span class="sd">        Plane dip in degrees.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Normal unit vector to the plane in cartesian coordinates.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Calculate the orientation of the pole to the plane</span>
+    <span class="n">pole_azi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">azi</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">%</span> <span class="mi">360</span>
+    <span class="n">pole_dip</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">dip</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the normal unit vector components</span>
+    <span class="n">nor_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">pole_dip</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">pole_azi</span><span class="p">)</span>
+    <span class="n">nor_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">pole_dip</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">pole_azi</span><span class="p">)</span>
+    <span class="n">nor_z</span> <span class="o">=</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">pole_dip</span><span class="p">)</span>
+
+    <span class="k">return</span><span class="p">(</span><span class="n">nor_x</span><span class="p">,</span> <span class="n">nor_y</span><span class="p">,</span> <span class="n">nor_z</span><span class="p">)</span>
+
+
+<span class="nd">@numba</span><span class="o">.</span><span class="n">njit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plane_normal_to_azidip</span><span class="p">(</span><span class="n">nor_x</span><span class="p">,</span> <span class="n">nor_y</span><span class="p">,</span> <span class="n">nor_z</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert plane normal vector (cartesian) to azimuth and dip (cartesian).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nor_x : float</span>
+<span class="sd">        X component of normal unit vector.</span>
+<span class="sd">    nor_y : float</span>
+<span class="sd">        Y component of normal unit vector.</span>
+<span class="sd">    nor_z : float</span>
+<span class="sd">        Z component of normal unit vector.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Plane azimuth and dip .</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Calulate the plane orientation from the normal vector</span>
+    <span class="n">pole_azi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">nor_x</span><span class="p">,</span> <span class="n">nor_y</span><span class="p">)</span>
+    <span class="n">azi</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">pole_azi</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)))</span> <span class="o">%</span> <span class="mi">360</span>
+
+    <span class="c1"># Calculate the plane dip from the normal vector</span>
+    <span class="n">pole_dip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">nor_z</span><span class="p">)</span>
+    <span class="n">dip</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">pole_dip</span><span class="p">)))</span>
+
+    <span class="k">return</span><span class="p">(</span><span class="n">azi</span><span class="p">,</span> <span class="n">dip</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">circular_mean_azimuth</span><span class="p">(</span><span class="n">azimuths</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate circular mean of azimuth angles (0-360°).</span>
+<span class="sd">    </span>
+<span class="sd">    Uses vector averaging to properly handle circular nature of angles.</span>
+<span class="sd">    For example, the mean of 5° and 355° is 0°, not 180°.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    azimuths : array-like</span>
+<span class="sd">        Array of azimuth values in degrees (0-360)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float or None</span>
+<span class="sd">        Circular mean azimuth in degrees (0-360), or None if input is empty/all NaN</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">azimuths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">azimuths</span><span class="p">)</span>
+    <span class="c1"># Remove NaN values</span>
+    <span class="n">azimuths</span> <span class="o">=</span> <span class="n">azimuths</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">azimuths</span><span class="p">)]</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">azimuths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    
+    <span class="c1"># Convert to radians</span>
+    <span class="n">angles_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">azimuths</span><span class="p">)</span>
+    
+    <span class="c1"># Calculate mean of unit vectors</span>
+    <span class="n">mean_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles_rad</span><span class="p">))</span>
+    <span class="n">mean_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angles_rad</span><span class="p">))</span>
+    
+    <span class="c1"># Convert back to angle</span>
+    <span class="n">mean_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">mean_x</span><span class="p">,</span> <span class="n">mean_y</span><span class="p">))</span>
+    
+    <span class="c1"># Ensure result is in [0, 360) range</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">mean_angle</span> <span class="o">%</span> <span class="mi">360</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">circular_mean_orientation_from_azimuth_dip</span><span class="p">(</span><span class="n">azimuths</span><span class="p">,</span> <span class="n">dips</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate mean orientation by averaging normal vectors, then converting back.</span>
+<span class="sd">    </span>
+<span class="sd">    This is the proper way to average fault plane orientations, as it accounts</span>
+<span class="sd">    for the 3D geometry and avoids circular statistics issues.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    azimuths : array-like</span>
+<span class="sd">        Array of azimuth values in degrees (0-360)</span>
+<span class="sd">    dips : array-like</span>
+<span class="sd">        Array of dip values in degrees (0-90)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple of (float, float) or (None, None)</span>
+<span class="sd">        Mean azimuth and dip in degrees, or (None, None) if input is empty/all NaN</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">azimuths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">azimuths</span><span class="p">)</span>
+    <span class="n">dips</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dips</span><span class="p">)</span>
+    
+    <span class="c1"># Remove NaN values</span>
+    <span class="n">valid_mask</span> <span class="o">=</span> <span class="o">~</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">azimuths</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">dips</span><span class="p">))</span>
+    <span class="n">azimuths</span> <span class="o">=</span> <span class="n">azimuths</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">]</span>
+    <span class="n">dips</span> <span class="o">=</span> <span class="n">dips</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">azimuths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    
+    <span class="c1"># Convert azimuth/dip to normal vectors</span>
+    <span class="n">normals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">azi</span><span class="p">,</span> <span class="n">dip</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">azimuths</span><span class="p">,</span> <span class="n">dips</span><span class="p">):</span>
+        <span class="c1"># Convert to radians</span>
+        <span class="n">azi_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">azi</span><span class="p">)</span>
+        <span class="n">dip_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">dip</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate normal vector (pointing upward)</span>
+        <span class="c1"># Dip direction is the azimuth, dip angle is measured from horizontal</span>
+        <span class="n">nx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dip_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">azi_rad</span><span class="p">)</span>
+        <span class="n">ny</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dip_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">azi_rad</span><span class="p">)</span>
+        <span class="n">nz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dip_rad</span><span class="p">)</span>
+        
+        <span class="n">normals</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">])</span>
+    
+    <span class="c1"># Average the normal vectors</span>
+    <span class="n">mean_normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">normals</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    
+    <span class="c1"># Normalize</span>
+    <span class="n">mean_normal</span> <span class="o">=</span> <span class="n">mean_normal</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">mean_normal</span><span class="p">)</span>
+    
+    <span class="c1"># Convert back to azimuth/dip</span>
+    <span class="n">mean_azi</span><span class="p">,</span> <span class="n">mean_dip</span> <span class="o">=</span> <span class="n">plane_normal_to_azidip</span><span class="p">(</span><span class="n">mean_normal</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mean_normal</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mean_normal</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">mean_azi</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">mean_dip</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">angle_between</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the angle in degrees between two vectors.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    v1 : list</span>
+<span class="sd">        Vector with XYZ components of vector 1.</span>
+<span class="sd">    v2 : list</span>
+<span class="sd">        Vector with XYZ components of vector 2.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Angle between the two vectors (in degrees) .</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">v1_u</span> <span class="o">=</span> <span class="n">v1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
+    <span class="n">v2_u</span> <span class="o">=</span> <span class="n">v2</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v1_u</span><span class="p">,</span> <span class="n">v2_u</span><span class="p">),</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">angle</span>
+
+
+<div class="viewcode-block" id="save_data">
+<a class="viewcode-back" href="../../../api/hyfi.utils.html#hyfi.save_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_data</span><span class="p">(</span><span class="n">input_params</span><span class="p">,</span> <span class="n">data_input</span><span class="p">,</span> <span class="n">data_output</span><span class="p">,</span> <span class="n">per_X</span><span class="p">,</span> <span class="n">per_Y</span><span class="p">,</span> <span class="n">per_Z</span><span class="p">,</span> <span class="n">config_source_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save data in txt-files.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_params : DataFrame</span>
+<span class="sd">        Input parameters.</span>
+<span class="sd">    data_input : DataFrame</span>
+<span class="sd">        Input data (includes outliers marked with clust_labels = -1).</span>
+<span class="sd">    data_output : DataFrame</span>
+<span class="sd">        Output data.</span>
+<span class="sd">    per_X : DataFrame</span>
+<span class="sd">        X coordinates of MC datasets.</span>
+<span class="sd">    per_Y : DataFrame</span>
+<span class="sd">        Y coordinates of MC datasets.</span>
+<span class="sd">    per_Z : DataFrame</span>
+<span class="sd">        Z coordinates of MC datasets.</span>
+<span class="sd">    config_source_file : str, optional</span>
+<span class="sd">        Path to the original configuration file to copy to output.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Unpack input parameters from dictionary</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">input_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="c1"># Create output folder</span>
+    <span class="n">out_path</span> <span class="o">=</span> <span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">]</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+    <span class="c1"># Save only the meaningful merged data (renamed)</span>
+    <span class="c1"># Merge data_input and data_output</span>
+    <span class="c1"># First, ensure no duplicate columns between data_input and data_output</span>
+    <span class="c1"># Remove any columns from data_output that already exist in data_input (except &#39;ID&#39;)</span>
+    <span class="n">duplicate_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">data_output</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">data_input</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="n">col</span> <span class="o">!=</span> <span class="s1">&#39;ID&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">duplicate_cols</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Removing duplicate columns from data_output before merge: </span><span class="si">{</span><span class="n">duplicate_cols</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">data_output_clean</span> <span class="o">=</span> <span class="n">data_output</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">duplicate_cols</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data_output_clean</span> <span class="o">=</span> <span class="n">data_output</span>
+    
+    <span class="n">df_merge</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">data_input</span><span class="p">,</span> <span class="n">data_output_clean</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+    <span class="n">df_merge</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">out_path</span> <span class="o">+</span> <span class="s1">&#39;/HyFI_results.csv&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S.</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Save the input data outliers if they exist</span>
+    <span class="k">if</span> <span class="s1">&#39;DBSCAN_outliers&#39;</span> <span class="ow">in</span> <span class="n">input_params</span><span class="p">:</span>
+        <span class="n">DBSCAN_outliers</span> <span class="o">=</span> <span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;DBSCAN_outliers&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">DBSCAN_outliers</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># Note: Outliers are now included in data_input with clust_labels = -1</span>
+    <span class="c1"># No separate outliers file is saved</span>
+    
+    <span class="c1"># Copy the original DAG configuration file to the output directory</span>
+    <span class="k">if</span> <span class="n">config_source_file</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">source_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config_source_file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">source_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">dest_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_path</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">source_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">dest_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not copy configuration file: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">reduced_stress_tens</span><span class="p">(</span><span class="n">fric_coeff</span><span class="p">,</span> <span class="n">stress_R</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize the slip tendency according to Lisle &amp; Srivastava (2004).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fric_coeff : float</span>
+<span class="sd">        Coeffifient of friction.</span>
+<span class="sd">    stress_R : float</span>
+<span class="sd">        Stress shape ratio R.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Normalized stress magnitudes.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Calculate stress magnitudes for normalized slip and dilation tendency if</span>
+    <span class="c1"># defined</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">fric_coeff</span><span class="p">)</span>
+    <span class="n">S1_mag</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">k</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rho</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">S2_mag</span> <span class="o">=</span> <span class="n">S1_mag</span> <span class="o">-</span> <span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">stress_R</span><span class="p">)</span>
+    <span class="n">S3_mag</span> <span class="o">=</span> <span class="n">S1_mag</span> <span class="o">-</span> <span class="n">k</span>
+    <span class="n">PP</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">return</span><span class="p">(</span><span class="n">S1_mag</span><span class="p">,</span> <span class="n">S2_mag</span><span class="p">,</span> <span class="n">S3_mag</span><span class="p">,</span> <span class="n">PP</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_plane_corners</span><span class="p">(</span><span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">center_z</span><span class="p">,</span> <span class="n">strike</span><span class="p">,</span> <span class="n">dip</span><span class="p">,</span> <span class="n">plane_size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate corners of a fault plane for 3D visualization.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    center_x, center_y, center_z : float</span>
+<span class="sd">        Center coordinates of the fault plane</span>
+<span class="sd">    strike : float</span>
+<span class="sd">        Strike angle in degrees (0-360)</span>
+<span class="sd">    dip : float</span>
+<span class="sd">        Dip angle in degrees (0-90)</span>
+<span class="sd">    plane_size : float</span>
+<span class="sd">        Size of the fault plane (half-width/height) in meters</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of tuples</span>
+<span class="sd">        Four corner coordinates [(x1,y1,z1), (x2,y2,z2), (x3,y3,z3), (x4,y4,z4)]</span>
+<span class="sd">        or None if calculation fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Convert angles to radians</span>
+        <span class="n">strike_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span>
+        <span class="n">dip_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">dip</span><span class="p">)</span>
+        
+        <span class="c1"># Define unit vectors</span>
+        <span class="c1"># Strike vector (horizontal, along strike direction)</span>
+        <span class="n">strike_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">strike_rad</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">strike_rad</span><span class="p">),</span> <span class="mi">0</span><span class="p">])</span>
+        
+        <span class="c1"># Dip vector (down-dip direction)</span>
+        <span class="n">dip_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">strike_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dip_rad</span><span class="p">),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">strike_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dip_rad</span><span class="p">),</span> 
+            <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dip_rad</span><span class="p">)</span>
+        <span class="p">])</span>
+        
+        <span class="c1"># Calculate four corners of the fault plane</span>
+        <span class="n">corners</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># Corner offsets relative to center</span>
+        <span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="o">-</span><span class="n">plane_size</span><span class="p">,</span> <span class="o">-</span><span class="n">plane_size</span><span class="p">),</span>  <span class="c1"># Bottom left</span>
+            <span class="p">(</span><span class="n">plane_size</span><span class="p">,</span> <span class="o">-</span><span class="n">plane_size</span><span class="p">),</span>   <span class="c1"># Bottom right  </span>
+            <span class="p">(</span><span class="n">plane_size</span><span class="p">,</span> <span class="n">plane_size</span><span class="p">),</span>    <span class="c1"># Top right</span>
+            <span class="p">(</span><span class="o">-</span><span class="n">plane_size</span><span class="p">,</span> <span class="n">plane_size</span><span class="p">)</span>    <span class="c1"># Top left</span>
+        <span class="p">]</span>
+        
+        <span class="k">for</span> <span class="n">strike_offset</span><span class="p">,</span> <span class="n">dip_offset</span> <span class="ow">in</span> <span class="n">offsets</span><span class="p">:</span>
+            <span class="n">corner</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">center_z</span><span class="p">])</span> <span class="o">+</span> \
+                    <span class="n">strike_offset</span> <span class="o">*</span> <span class="n">strike_vec</span> <span class="o">+</span> \
+                    <span class="n">dip_offset</span> <span class="o">*</span> <span class="n">dip_vec</span>
+            <span class="n">corners</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">corner</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">corner</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">corner</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        
+        <span class="k">return</span> <span class="n">corners</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not calculate plane corners: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="fault_network_with_optimization">
+<a class="viewcode-back" href="../../../api/hyfi.utils.html#hyfi.fault_network_with_optimization">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fault_network_with_optimization</span><span class="p">(</span><span class="n">input_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute fault network reconstruction with automatic parameter optimization if enabled.</span>
+<span class="sd">    </span>
+<span class="sd">    This function serves as a wrapper around the original faultnetwork3D function,</span>
+<span class="sd">    adding automatic parameter optimization capabilities when requested.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_params : dict</span>
+<span class="sd">        Input parameters dictionary. May contain optimization settings:</span>
+<span class="sd">        - auto_optimize_parameters: bool, enable automatic optimization</span>
+<span class="sd">        - optimization_method: str, optimization method (&#39;grid_search&#39;, &#39;heuristic&#39;)</span>
+<span class="sd">        - optimization_grid_points: int, grid points for grid search</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Same as faultnetwork3D: (data_input, data_output, df_per_X, df_per_Y, df_per_Z)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..core</span><span class="w"> </span><span class="kn">import</span> <span class="n">fault_network</span><span class="p">,</span> <span class="n">model_validation</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.parameter_optimization</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParameterOptimizer</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+    
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+    
+    <span class="c1"># Check if parameter optimization is requested</span>
+    <span class="n">auto_optimize</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_optimize_parameters&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">r_nn_auto</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;r_nn&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span>
+    <span class="n">dt_nn_auto</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dt_nn&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span>
+    
+    <span class="k">if</span> <span class="n">auto_optimize</span> <span class="ow">or</span> <span class="n">r_nn_auto</span> <span class="ow">or</span> <span class="n">dt_nn_auto</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;AUTOMATIC PARAMETER OPTIMIZATION&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+        
+        <span class="c1"># Load hypocenter data</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">hypo_file</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hypo_file&#39;</span><span class="p">)</span>
+            <span class="n">hypo_sep</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hypo_sep&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">hypo_file</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;hypo_file must be specified for parameter optimization&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Load hypocenter data (using same logic as fault_network.py)</span>
+            <span class="n">data_input</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">hypo_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">hypo_sep</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ID&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">},</span> <span class="n">usecols</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">17</span><span class="p">))</span>
+            
+            <span class="c1"># Extract date and time information</span>
+            <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;Date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;YR&#39;</span><span class="p">],</span>
+                                <span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;MO&#39;</span><span class="p">],</span>
+                                <span class="s1">&#39;day&#39;</span><span class="p">:</span> <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;DY&#39;</span><span class="p">],</span>
+                                <span class="s1">&#39;hour&#39;</span><span class="p">:</span> <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;HR&#39;</span><span class="p">],</span>
+                                <span class="s1">&#39;minute&#39;</span><span class="p">:</span> <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;MI&#39;</span><span class="p">],</span>
+                                <span class="s1">&#39;second&#39;</span><span class="p">:</span> <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;SC&#39;</span><span class="p">]}))</span>
+            <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span>
+            <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span>
+            <span class="c1"># Use Z coordinate directly as provided in input data</span>
+            
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data_input</span><span class="p">)</span><span class="si">}</span><span class="s2"> events for parameter optimization&quot;</span><span class="p">)</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load hypocenter data for optimization: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Falling back to default parameters&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">fault_network</span><span class="o">.</span><span class="n">faultnetwork3D</span><span class="p">(</span><span class="n">input_params</span><span class="p">)</span>
+        
+        <span class="c1"># Load focal mechanism data if available</span>
+        <span class="n">focal_mechanisms</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">n_matched_focals</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Count of focal mechanisms that match hypocenters</span>
+        <span class="k">if</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;validation_bool&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_file&#39;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">foc_file</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_file&#39;</span><span class="p">)</span>
+                <span class="n">foc_sep</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_sep&#39;</span><span class="p">,</span> <span class="s1">&#39;;&#39;</span><span class="p">)</span>
+                <span class="n">focal_mechanisms</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">foc_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">foc_sep</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">focal_mechanisms</span><span class="p">)</span><span class="si">}</span><span class="s2"> focal mechanisms for validation&quot;</span><span class="p">)</span>
+                
+                <span class="c1"># Count how many focal mechanisms match hypocenters in this dataset</span>
+                <span class="k">if</span> <span class="s1">&#39;ID&#39;</span> <span class="ow">in</span> <span class="n">focal_mechanisms</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="s1">&#39;ID&#39;</span> <span class="ow">in</span> <span class="n">data_input</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="c1"># Ensure both ID columns have the same data type for matching</span>
+                    <span class="n">focal_ids</span> <span class="o">=</span> <span class="n">focal_mechanisms</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+                    <span class="n">data_ids</span> <span class="o">=</span> <span class="n">data_input</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+                    <span class="n">matched_focals</span> <span class="o">=</span> <span class="n">focal_mechanisms</span><span class="p">[</span><span class="n">focal_ids</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">data_ids</span><span class="p">)]</span>
+                    <span class="n">n_matched_focals</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched_focals</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">n_matched_focals</span><span class="si">}</span><span class="s2"> focal mechanisms found in the current dataset&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    Warning: Could not match focal mechanisms to hypocenters (missing ID column)&quot;</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load focal mechanism data: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">focal_mechanisms</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">n_matched_focals</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="c1"># Set up parameter optimizer</span>
+        <span class="n">optimization_method</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_method&#39;</span><span class="p">,</span> <span class="s1">&#39;optuna&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Extract custom optimization ranges if provided</span>
+        <span class="n">custom_r_nn_range</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_r_nn_range&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">custom_dt_nn_range</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_dt_nn_range&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        
+        <span class="c1"># Convert ranges from list to tuple if provided</span>
+        <span class="k">if</span> <span class="n">custom_r_nn_range</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">custom_r_nn_range</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">custom_r_nn_range</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">custom_r_nn_range</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">custom_r_nn_range</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">custom_r_nn_range</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">custom_r_nn_range</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid r_nn range format: </span><span class="si">{</span><span class="n">custom_r_nn_range</span><span class="si">}</span><span class="s2">. Expected [min, max] or (min, max)&quot;</span><span class="p">)</span>
+            <span class="n">custom_r_nn_range</span> <span class="o">=</span> <span class="kc">None</span>
+            
+        <span class="k">if</span> <span class="n">custom_dt_nn_range</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">custom_dt_nn_range</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">custom_dt_nn_range</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">custom_dt_nn_range</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">custom_dt_nn_range</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">custom_dt_nn_range</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">custom_dt_nn_range</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid dt_nn range format: </span><span class="si">{</span><span class="n">custom_dt_nn_range</span><span class="si">}</span><span class="s2">. Expected [min, max] or (min, max)&quot;</span><span class="p">)</span>
+            <span class="n">custom_dt_nn_range</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Get adaptive weights setting (default: True for improved variable dataset handling)</span>
+        <span class="n">use_adaptive_weights</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_use_adaptive_weights&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">ParameterOptimizer</span><span class="p">(</span><span class="n">data_input</span><span class="p">,</span> <span class="n">focal_mechanisms</span><span class="p">,</span> <span class="n">optimization_method</span><span class="p">,</span>
+                                       <span class="n">custom_r_nn_range</span><span class="p">,</span> <span class="n">custom_dt_nn_range</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                       <span class="n">use_adaptive_weights</span><span class="o">=</span><span class="n">use_adaptive_weights</span><span class="p">,</span>
+                                       <span class="n">n_matched_focals</span><span class="o">=</span><span class="n">n_matched_focals</span><span class="p">,</span>
+                                       <span class="n">original_input_params</span><span class="o">=</span><span class="n">input_params</span><span class="p">)</span>
+        
+        <span class="c1"># Perform optimization</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">optimization_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">optimization_method</span> <span class="o">==</span> <span class="s1">&#39;grid_search&#39;</span><span class="p">:</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;n_points&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_grid_points&#39;</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;plot_results&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_plot_results&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                
+                <span class="c1"># Set up plot save path if output directory is available</span>
+                <span class="k">if</span> <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;plot_results&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="s1">&#39;out_dir&#39;</span> <span class="ow">in</span> <span class="n">input_params</span><span class="p">:</span>
+                        <span class="n">plot_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">],</span> <span class="s1">&#39;parameter_optimization_grid.png&#39;</span><span class="p">)</span>
+                        <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;save_plot_path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">plot_path</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Default plot path if no output directory specified</span>
+                        <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;save_plot_path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;parameter_optimization_grid.png&#39;</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No output directory specified, saving plot to current directory&quot;</span><span class="p">)</span>
+                        
+            <span class="k">elif</span> <span class="n">optimization_method</span> <span class="o">==</span> <span class="s1">&#39;optuna&#39;</span><span class="p">:</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;n_trials&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_n_trials&#39;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;sampler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_sampler&#39;</span><span class="p">,</span> <span class="s1">&#39;tpe&#39;</span><span class="p">)</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;n_startup_trials&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_n_startup_trials&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;early_stopping_rounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_early_stopping_rounds&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;early_stopping_threshold&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_early_stopping_threshold&#39;</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;plot_results&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_plot_results&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                
+                <span class="c1"># Set up plot save path if output directory is available</span>
+                <span class="k">if</span> <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;plot_results&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="s1">&#39;out_dir&#39;</span> <span class="ow">in</span> <span class="n">input_params</span><span class="p">:</span>
+                        <span class="n">plot_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">],</span> <span class="s1">&#39;parameter_optimization.png&#39;</span><span class="p">)</span>
+                        <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;save_plot_path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">plot_path</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Default plot path if no output directory specified</span>
+                        <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;save_plot_path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;parameter_optimization.png&#39;</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No output directory specified, saving plot to current directory&quot;</span><span class="p">)</span>
+            
+            <span class="k">elif</span> <span class="n">optimization_method</span> <span class="o">==</span> <span class="s1">&#39;pareto&#39;</span><span class="p">:</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;n_trials&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_n_trials&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>  <span class="c1"># More trials for Pareto</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;sampler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_pareto_sampler&#39;</span><span class="p">,</span> <span class="s1">&#39;nsga2&#39;</span><span class="p">)</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;n_startup_trials&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_n_startup_trials&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;population_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_pareto_population&#39;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+                <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;plot_results&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_plot_results&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                
+                <span class="c1"># Set up plot save path if output directory is available</span>
+                <span class="k">if</span> <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;plot_results&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="s1">&#39;out_dir&#39;</span> <span class="ow">in</span> <span class="n">input_params</span><span class="p">:</span>
+                        <span class="n">plot_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">],</span> <span class="s1">&#39;parameter_optimization_pareto.png&#39;</span><span class="p">)</span>
+                        <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;save_plot_path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">plot_path</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Default plot path if no output directory specified</span>
+                        <span class="n">optimization_kwargs</span><span class="p">[</span><span class="s1">&#39;save_plot_path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;parameter_optimization_pareto.png&#39;</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No output directory specified, saving plot to current directory&quot;</span><span class="p">)</span>
+            
+            <span class="n">results</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">optimization_method</span><span class="p">,</span> <span class="o">**</span><span class="n">optimization_kwargs</span><span class="p">)</span>
+            <span class="n">recommended_params</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">get_recommended_parameters</span><span class="p">()</span>
+            
+            <span class="c1"># Update input_params with optimized values</span>
+            <span class="k">if</span> <span class="n">r_nn_auto</span> <span class="ow">or</span> <span class="n">auto_optimize</span><span class="p">:</span>
+                <span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;r_nn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">recommended_params</span><span class="p">[</span><span class="s1">&#39;search_radius_meters&#39;</span><span class="p">]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimized search radius: </span><span class="si">{</span><span class="n">recommended_params</span><span class="p">[</span><span class="s1">&#39;search_radius_meters&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> m&quot;</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">dt_nn_auto</span> <span class="ow">or</span> <span class="n">auto_optimize</span><span class="p">:</span>
+                <span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;dt_nn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">recommended_params</span><span class="p">[</span><span class="s1">&#39;search_time_window_hours&#39;</span><span class="p">]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimized time window: </span><span class="si">{</span><span class="n">recommended_params</span><span class="p">[</span><span class="s1">&#39;search_time_window_hours&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> h&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Log optimization results</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Calculated fault planes: </span><span class="si">{</span><span class="n">recommended_params</span><span class="p">[</span><span class="s1">&#39;calculated fault planes&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plane recovery rate: </span><span class="si">{</span><span class="n">recommended_params</span><span class="p">[</span><span class="s1">&#39;plane_recovery_rate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="s1">&#39;expected_angular_difference&#39;</span> <span class="ow">in</span> <span class="n">recommended_params</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean angular difference: </span><span class="si">{</span><span class="n">recommended_params</span><span class="p">[</span><span class="s1">&#39;expected_angular_difference&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Save optimization results</span>
+            <span class="k">if</span> <span class="s1">&#39;out_dir&#39;</span> <span class="ow">in</span> <span class="n">input_params</span><span class="p">:</span>
+                <span class="n">optimization_report_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">],</span> <span class="s1">&#39;parameter_optimization_report.json&#39;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">],</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">optimization_report_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="c1"># Convert numpy types to native Python for JSON serialization</span>
+                        <span class="n">json_results</span> <span class="o">=</span> <span class="p">{}</span>
+                        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">recommended_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">)):</span>
+                                <span class="n">json_results</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">json_results</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                        
+                        <span class="c1"># Include the full optimization results for heuristic method</span>
+                        <span class="n">optimization_data</span> <span class="o">=</span> <span class="p">{</span>
+                            <span class="s1">&#39;optimization_results&#39;</span><span class="p">:</span> <span class="n">json_results</span><span class="p">,</span>
+                            <span class="s1">&#39;optimization_method&#39;</span><span class="p">:</span> <span class="n">optimization_method</span><span class="p">,</span>
+                            <span class="s1">&#39;catalog_statistics&#39;</span><span class="p">:</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">catalog_stats</span>
+                        <span class="p">}</span>
+                        
+                        <span class="c1"># Add detailed results if available (mainly for grid_search)</span>
+                        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="s1">&#39;optimization_results&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">optimization_results</span><span class="p">:</span>
+                            <span class="c1"># Convert optimization_results for JSON serialization</span>
+                            <span class="n">opt_results</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">optimization_results</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                            <span class="c1"># Remove non-serializable objects like DataFrames</span>
+                            <span class="k">if</span> <span class="s1">&#39;all_results&#39;</span> <span class="ow">in</span> <span class="n">opt_results</span><span class="p">:</span>
+                                <span class="n">clean_results</span> <span class="o">=</span> <span class="p">[]</span>
+                                <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">opt_results</span><span class="p">[</span><span class="s1">&#39;all_results&#39;</span><span class="p">]:</span>
+                                    <span class="n">clean_result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                                    <span class="k">if</span> <span class="s1">&#39;data_output&#39;</span> <span class="ow">in</span> <span class="n">clean_result</span><span class="p">:</span>
+                                        <span class="k">del</span> <span class="n">clean_result</span><span class="p">[</span><span class="s1">&#39;data_output&#39;</span><span class="p">]</span>  <span class="c1"># Remove DataFrame</span>
+                                    <span class="n">clean_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">clean_result</span><span class="p">)</span>
+                                <span class="n">opt_results</span><span class="p">[</span><span class="s1">&#39;all_results&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">clean_results</span>
+                            
+                            <span class="k">if</span> <span class="s1">&#39;best_details&#39;</span> <span class="ow">in</span> <span class="n">opt_results</span> <span class="ow">and</span> <span class="s1">&#39;data_output&#39;</span> <span class="ow">in</span> <span class="n">opt_results</span><span class="p">[</span><span class="s1">&#39;best_details&#39;</span><span class="p">]:</span>
+                                <span class="k">del</span> <span class="n">opt_results</span><span class="p">[</span><span class="s1">&#39;best_details&#39;</span><span class="p">][</span><span class="s1">&#39;data_output&#39;</span><span class="p">]</span>  <span class="c1"># Remove DataFrame</span>
+                            
+                            <span class="n">optimization_data</span><span class="p">[</span><span class="s1">&#39;detailed_results&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">opt_results</span>
+                        
+                        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">optimization_data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to save optimization report: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Full error: </span><span class="si">{</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter optimization failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Falling back to default parameters&quot;</span><span class="p">)</span>
+            <span class="c1"># Use default values if optimization fails</span>
+            <span class="k">if</span> <span class="n">r_nn_auto</span><span class="p">:</span>
+                <span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;r_nn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1000.0</span>
+            <span class="k">if</span> <span class="n">dt_nn_auto</span><span class="p">:</span>
+                <span class="n">input_params</span><span class="p">[</span><span class="s1">&#39;dt_nn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">876000.0</span>
+    
+    <span class="c1"># Execute fault network reconstruction with (possibly optimized) parameters</span>
+    <span class="k">return</span> <span class="n">fault_network</span><span class="o">.</span><span class="n">faultnetwork3D</span><span class="p">(</span><span class="n">input_params</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

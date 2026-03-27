@@ -1,0 +1,435 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HyFI Database Querying &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Single-Sequence Examples" href="single_examples.html" />
+    <link rel="prev" title="HyFI Output" href="output.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            HyFI
+              <img src="_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output.html">HyFI Output</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">HyFI Database Querying</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#query-methods">Query Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hyfi-query-cli">HyFI Query CLI</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#available-cli-commands">Available CLI commands</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#commands-quick-overview">Commands Quick Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#overview-fault-systems-overview"><code class="docutils literal notranslate"><span class="pre">overview</span></code> - Fault Systems Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#summary-database-summary"><code class="docutils literal notranslate"><span class="pre">summary</span></code> - Database Summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#instability-high-instability-faults"><code class="docutils literal notranslate"><span class="pre">instability</span></code> - High Instability Faults</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spatial-spatial-query"><code class="docutils literal notranslate"><span class="pre">spatial</span></code> - Spatial Query</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fault-detail-detailed-fault-information"><code class="docutils literal notranslate"><span class="pre">fault-detail</span></code> - Detailed Fault Information</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#list-faults-list-all-fault-ids"><code class="docutils literal notranslate"><span class="pre">list-faults</span></code> - List All Fault IDs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#query-custom-sql-query"><code class="docutils literal notranslate"><span class="pre">query</span></code> - Custom SQL Query</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tables-show-table-structure"><code class="docutils literal notranslate"><span class="pre">tables</span></code> - Show Table Structure</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start-with-direct-sql-queries">Quick Start with Direct SQL Queries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-query">Basic Query</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">HyFI Database Querying</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/querying.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="hyfi-database-querying">
+<h1>HyFI Database Querying<a class="headerlink" href="#hyfi-database-querying" title="Link to this heading"></a></h1>
+<p>This guide explains how to query <strong>HyFI</strong> CSV output files using DuckDB and SQL. DuckDB is a fast, embeddable analytical database that can query CSV files directly without loading them into memory. It is especially useful to query large-scale datasets (as e.g. possible with the multi-sequence processing).</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Multi-sequence <strong>HyFI</strong> analysis produces a database (CSV files) containing earthquake analysis results:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>CSV File</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Location</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>HyFI_database_metadata.csv</strong></p></td>
+<td><p>Main database that incorporates all detected active faults, as well as the corresponding key attributes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">output_dir/HyFI_Database/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>HyFI_database_segmentation.csv</strong></p></td>
+<td><p>Results of the multi-sequence segmentation that lists all detected clustered earthquake sequences</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">output_dir/HyFI_Database/</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>HyFI_database_hypocenters.csv</strong></p></td>
+<td><p>Original hypocenter catalog with added key results of HyFI</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">output_dir/HyFI_Database/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>HyFI_database_focals.csv</strong></p></td>
+<td><p>Original focal mechanism catalog with added key results of HyFI</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">output_dir/HyFI_Database/</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<p>xxx TODO: check that duckdb is installed by default in the hyfi environment! then remove installation instructions here</p>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>duckdb
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="query-methods">
+<h2>Query Methods<a class="headerlink" href="#query-methods" title="Link to this heading"></a></h2>
+<p>HyFI provides different ways to query results:</p>
+<ol class="arabic simple">
+<li><p><strong>HyFI Query CLI</strong> - Command-line tool for common queries (easiest)</p></li>
+<li><p><strong>Custom SQL</strong> - Direct DuckDB SQL queries (most flexible)</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="hyfi-query-cli">
+<h2>HyFI Query CLI<a class="headerlink" href="#hyfi-query-cli" title="Link to this heading"></a></h2>
+<p>The HyFI query CLI provides easy command-line access to common database queries for multi-sequence workflows.</p>
+<section id="basic-usage">
+<h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h3>
+<p>All commands require specifying the database directory (<code class="docutils literal notranslate"><span class="pre">--database-dir</span> <span class="pre">PATH</span></code>), followed by the respective command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>hyfi.query.cli<span class="w"> </span>--database-dir<span class="w"> </span>output_SECOS_VS/HyFI_Database<span class="w"> </span>&lt;command&gt;
+</pre></div>
+</div>
+</section>
+<section id="available-cli-commands">
+<h3>Available CLI commands<a class="headerlink" href="#available-cli-commands" title="Link to this heading"></a></h3>
+<section id="commands-quick-overview">
+<h4>Commands Quick Overview<a class="headerlink" href="#commands-quick-overview" title="Link to this heading"></a></h4>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Command</p></th>
+<th class="head"><p>Purpose</p></th>
+<th class="head"><p>Key Options</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">overview</span></code></p></td>
+<td><p>Fault systems overview</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--min-events</span> <span class="pre">N</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">summary</span></code></p></td>
+<td><p>Database-wide statistics</p></td>
+<td><p>-</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">instability</span></code></p></td>
+<td><p>High instability faults</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--limit</span> <span class="pre">N</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">spatial</span></code></p></td>
+<td><p>Events within radius</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--x</span> <span class="pre">X</span> <span class="pre">--y</span> <span class="pre">Y</span> <span class="pre">--radius</span> <span class="pre">R</span> <span class="pre">--limit</span> <span class="pre">N</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fault-detail</span></code></p></td>
+<td><p>Complete fault information</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--fault-id</span> <span class="pre">ID</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">list-faults</span></code></p></td>
+<td><p>All fault system IDs</p></td>
+<td><p>-</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">query</span></code></p></td>
+<td><p>Custom SQL query</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">--sql</span> <span class="pre">&quot;SQL_QUERY&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tables</span></code></p></td>
+<td><p>Show table structure</p></td>
+<td><p>-</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Common Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--limit</span> <span class="pre">N</span></code> - Limit number of results</p></li>
+</ul>
+</section>
+<section id="overview-fault-systems-overview">
+<h4><code class="docutils literal notranslate"><span class="pre">overview</span></code> - Fault Systems Overview<a class="headerlink" href="#overview-fault-systems-overview" title="Link to this heading"></a></h4>
+<p>Show overview of all identified fault systems:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>hyfi.query.cli<span class="w"> </span>--database-dir<span class="w"> </span>output_SECOS_VS/HyFI_Database<span class="w"> </span>overview
+
+<span class="c1"># With minimum event filter</span>
+python<span class="w"> </span>-m<span class="w"> </span>hyfi.query.cli<span class="w"> </span>--database-dir<span class="w"> </span>output_SECOS_VS/HyFI_Database<span class="w"> </span>overview<span class="w"> </span>--min-events<span class="w"> </span><span class="m">20</span>
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Fault</span> <span class="n">Systems</span> <span class="n">Overview</span><span class="p">:</span>
+<span class="n">fault_id</span>  <span class="n">sequence_label</span>  <span class="n">n_events</span>  <span class="n">azimuth</span>  <span class="n">dip</span>  <span class="n">area_km2</span>  <span class="n">max_mag</span>  <span class="n">instability</span>
+<span class="n">A1</span>        <span class="n">Class_A</span>         <span class="mi">145</span>       <span class="mf">85.2</span>     <span class="mi">65</span>   <span class="mf">2.34</span>      <span class="mf">3.5</span>      <span class="mf">0.456</span>
+<span class="n">A2</span>        <span class="n">Class_A</span>         <span class="mi">98</span>        <span class="mf">112.5</span>    <span class="mi">58</span>   <span class="mf">1.89</span>      <span class="mf">3.2</span>      <span class="mf">0.423</span>
+<span class="n">B1</span>        <span class="n">Class_B</span>         <span class="mi">45</span>        <span class="mf">95.8</span>     <span class="mi">72</span>   <span class="mf">0.85</span>      <span class="mf">2.8</span>      <span class="mf">0.512</span>
+</pre></div>
+</div>
+</section>
+<section id="summary-database-summary">
+<h4><code class="docutils literal notranslate"><span class="pre">summary</span></code> - Database Summary<a class="headerlink" href="#summary-database-summary" title="Link to this heading"></a></h4>
+<p>Get overall statistics:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>hyfi.query.cli<span class="w"> </span>--database-dir<span class="w"> </span>output_SECOS_VS/HyFI_Database<span class="w"> </span>summary
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Database</span> <span class="n">Summary</span><span class="p">:</span>
+<span class="n">total_fault_systems</span>  <span class="n">total_events_in_faults</span>  <span class="n">avg_events_per_fault</span>  <span class="n">total_area_km2</span>  <span class="n">avg_instability</span>  <span class="n">max_potential_mag</span>
+<span class="mi">15</span>                   <span class="mi">1245</span>                    <span class="mf">83.0</span>                  <span class="mf">25.6</span>            <span class="mf">0.445</span>            <span class="mf">4.2</span>
+</pre></div>
+</div>
+</section>
+<section id="instability-high-instability-faults">
+<h4><code class="docutils literal notranslate"><span class="pre">instability</span></code> - High Instability Faults<a class="headerlink" href="#instability-high-instability-faults" title="Link to this heading"></a></h4>
+<p>Show faults with highest instability indices:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>hyfi.query.cli<span class="w"> </span>--database-dir<span class="w"> </span>output_SECOS_VS/HyFI_Database<span class="w"> </span>instability<span class="w"> </span>--limit<span class="w"> </span><span class="m">5</span>
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Top</span> <span class="mi">5</span> <span class="n">High</span> <span class="n">Instability</span> <span class="n">Fault</span> <span class="n">Systems</span><span class="p">:</span>
+<span class="n">fault_id</span>  <span class="n">n_events</span>  <span class="n">instability</span>  <span class="n">slip_tendency</span>  <span class="n">dilation_tendency</span>  <span class="n">mesh_instability</span>
+<span class="n">B3</span>        <span class="mi">52</span>        <span class="mf">0.612</span>        <span class="mf">0.645</span>          <span class="mf">0.234</span>              <span class="mf">0.598</span>
+<span class="n">A5</span>        <span class="mi">78</span>        <span class="mf">0.587</span>        <span class="mf">0.612</span>          <span class="mf">0.198</span>              <span class="mf">0.571</span>
+</pre></div>
+</div>
+</section>
+<section id="spatial-spatial-query">
+<h4><code class="docutils literal notranslate"><span class="pre">spatial</span></code> - Spatial Query<a class="headerlink" href="#spatial-spatial-query" title="Link to this heading"></a></h4>
+<p>Find events within radius of coordinates:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>hyfi.query.cli<span class="w"> </span>--database-dir<span class="w"> </span>output_SECOS_VS/HyFI_Database<span class="w"> </span>spatial<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--x<span class="w"> </span><span class="m">592500</span><span class="w"> </span>--y<span class="w"> </span><span class="m">130500</span><span class="w"> </span>--radius<span class="w"> </span><span class="m">2</span>.0<span class="w"> </span>--limit<span class="w"> </span><span class="m">20</span>
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Events</span> <span class="n">within</span> <span class="mf">2.0</span><span class="n">km</span> <span class="n">of</span> <span class="p">(</span><span class="mf">592500.0</span><span class="p">,</span> <span class="mf">130500.0</span><span class="p">):</span>
+<span class="n">ID</span>           <span class="n">fault_id</span>  <span class="n">magnitude</span>  <span class="n">x</span>       <span class="n">y</span>       <span class="n">z</span>      <span class="n">distance_km</span>
+<span class="n">EV20230415</span>   <span class="n">A1</span>        <span class="mf">2.8</span>        <span class="mi">592750</span>  <span class="mi">130250</span>  <span class="o">-</span><span class="mi">5200</span>  <span class="mf">0.35</span>
+<span class="n">EV20230418</span>   <span class="n">A1</span>        <span class="mf">2.5</span>        <span class="mi">593100</span>  <span class="mi">130800</span>  <span class="o">-</span><span class="mi">4800</span>  <span class="mf">0.82</span>
+</pre></div>
+</div>
+</section>
+<section id="fault-detail-detailed-fault-information">
+<h4><code class="docutils literal notranslate"><span class="pre">fault-detail</span></code> - Detailed Fault Information<a class="headerlink" href="#fault-detail-detailed-fault-information" title="Link to this heading"></a></h4>
+<p>Get comprehensive details for a specific fault:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>hyfi.query.cli<span class="w"> </span>--database-dir<span class="w"> </span>output_SECOS_VS/HyFI_Database<span class="w"> </span>fault-detail<span class="w"> </span>--fault-id<span class="w"> </span>A1
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Fault</span> <span class="n">System</span> <span class="n">A1</span> <span class="n">Details</span><span class="p">:</span>
+
+<span class="n">Metadata</span><span class="p">:</span>
+<span class="n">fault_id</span>  <span class="n">sequence_label</span>  <span class="n">n_events</span>  <span class="n">rupture_mean_azimuth</span>  <span class="n">rupture_mean_dip</span>  <span class="n">mesh_area_m2</span>
+<span class="n">A1</span>        <span class="n">Class_A</span>         <span class="mi">145</span>       <span class="mf">85.2</span>                  <span class="mf">65.3</span>              <span class="mi">2340000</span>
+
+<span class="n">Events</span> <span class="p">(</span><span class="n">top</span> <span class="mi">10</span> <span class="n">by</span> <span class="n">magnitude</span><span class="p">):</span>
+<span class="n">ID</span>           <span class="n">MAG</span>   <span class="n">X</span>       <span class="n">Y</span>       <span class="n">Z</span>      <span class="n">rupture_plane_azimuth</span>  <span class="n">instability_index</span>
+<span class="n">EV20230415</span>   <span class="mf">3.5</span>   <span class="mi">592750</span>  <span class="mi">130250</span>  <span class="o">-</span><span class="mi">5200</span>  <span class="mf">87.5</span>                   <span class="mf">0.523</span>
+<span class="n">EV20230418</span>   <span class="mf">3.2</span>   <span class="mi">593100</span>  <span class="mi">130800</span>  <span class="o">-</span><span class="mi">4800</span>  <span class="mf">82.1</span>                   <span class="mf">0.489</span>
+<span class="o">...</span>
+
+<span class="n">Focal</span> <span class="n">Mechanisms</span><span class="p">:</span>
+<span class="n">ID</span>           <span class="n">Strike1</span>  <span class="n">Dip1</span>  <span class="n">Rake1</span>  <span class="n">Strike2</span>  <span class="n">Dip2</span>  <span class="n">Rake2</span>  <span class="n">A</span>
+<span class="n">EV20230415</span>   <span class="mi">85</span>       <span class="mi">67</span>    <span class="o">-</span><span class="mi">15</span>    <span class="mi">178</span>      <span class="mi">76</span>    <span class="o">-</span><span class="mi">157</span>   <span class="mi">1</span>
+</pre></div>
+</div>
+</section>
+<section id="list-faults-list-all-fault-ids">
+<h4><code class="docutils literal notranslate"><span class="pre">list-faults</span></code> - List All Fault IDs<a class="headerlink" href="#list-faults-list-all-fault-ids" title="Link to this heading"></a></h4>
+<p>List all available fault systems across tables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>hyfi.query.cli<span class="w"> </span>--database-dir<span class="w"> </span>output_SECOS_VS/HyFI_Database<span class="w"> </span>list-faults
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Fault</span> <span class="n">System</span> <span class="n">IDs</span> <span class="n">by</span> <span class="n">table</span><span class="p">:</span>
+
+<span class="n">Metadata</span> <span class="n">table</span> <span class="p">(</span><span class="mi">12</span> <span class="n">faults</span><span class="p">):</span>
+<span class="n">fault_id</span>  <span class="n">n_events</span>
+<span class="n">A1</span>        <span class="mi">145</span>
+<span class="n">A2</span>        <span class="mi">98</span>
+<span class="n">A3</span>        <span class="mi">76</span>
+<span class="o">...</span>
+
+<span class="n">Hypocenters</span> <span class="n">table</span> <span class="p">(</span><span class="mi">12</span> <span class="n">faults</span><span class="p">):</span>
+<span class="n">fault_id</span>  <span class="n">event_count</span>
+<span class="n">A1</span>        <span class="mi">145</span>
+<span class="n">A2</span>        <span class="mi">98</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="query-custom-sql-query">
+<h4><code class="docutils literal notranslate"><span class="pre">query</span></code> - Custom SQL Query<a class="headerlink" href="#query-custom-sql-query" title="Link to this heading"></a></h4>
+<p>Execute custom SQL queries:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>hyfi.query.cli<span class="w"> </span>--database-dir<span class="w"> </span>output_SECOS_VS/HyFI_Database<span class="w"> </span>query<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--sql<span class="w"> </span><span class="s2">&quot;SELECT COUNT(*) as total FROM hypocenters WHERE MAG &gt; 3.0&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="tables-show-table-structure">
+<h4><code class="docutils literal notranslate"><span class="pre">tables</span></code> - Show Table Structure<a class="headerlink" href="#tables-show-table-structure" title="Link to this heading"></a></h4>
+<p>List loaded tables and their structure:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>hyfi.query.cli<span class="w"> </span>--database-dir<span class="w"> </span>output_SECOS_VS/HyFI_Database<span class="w"> </span>tables
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Loaded Tables:
+✓ metadata
+column_name              column_type
+fault_id                 VARCHAR
+sequence_label           VARCHAR
+n_events                 INTEGER
+...
+
+✓ hypocenters
+column_name              column_type
+ID                       VARCHAR
+fault_id                 VARCHAR
+MAG                      DOUBLE
+...
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="quick-start-with-direct-sql-queries">
+<h2>Quick Start with Direct SQL Queries<a class="headerlink" href="#quick-start-with-direct-sql-queries" title="Link to this heading"></a></h2>
+<p>For complete flexibility, query CSV files directly with DuckDB SQL:</p>
+<section id="basic-query">
+<h3>Basic Query<a class="headerlink" href="#basic-query" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">duckdb</span>
+
+<span class="c1"># Query CSV file directly</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">duckdb</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    SELECT </span>
+<span class="s2">        COUNT(*) as total_events,</span>
+<span class="s2">        ROUND(AVG(MAG), 2) as avg_magnitude,</span>
+<span class="s2">        ROUND(MAX(MAG), 2) as max_magnitude</span>
+<span class="s2">    FROM read_csv_auto(&#39;output_A0/HyFI_results.csv&#39;)</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">df</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>Happy fault imaging! 🎉</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="output.html" class="btn btn-neutral float-left" title="HyFI Output" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="single_examples.html" class="btn btn-neutral float-right" title="Single-Sequence Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

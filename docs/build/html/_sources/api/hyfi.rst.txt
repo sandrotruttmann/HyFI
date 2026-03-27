@@ -1,0 +1,29 @@
+hyfi package
+============
+
+.. automodule:: hyfi
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   hyfi.config
+   hyfi.core
+   hyfi.utils
+   hyfi.visualization
+
+Submodules
+----------
+
+hyfi.cli module
+---------------
+
+.. automodule:: hyfi.cli
+   :members:
+   :undoc-members:
+   :show-inheritance:

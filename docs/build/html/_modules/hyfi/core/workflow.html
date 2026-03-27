@@ -1,0 +1,432 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hyfi.core.workflow &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            HyFI
+              <img src="../../../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">hyfi.core.workflow</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for hyfi.core.workflow</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Main workflow class for hypocenter-based fault imaging.</span>
+
+<span class="sd">This module provides a high-level API for running the complete fault imaging</span>
+<span class="sd">workflow with proper state management and error handling.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..config.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProjectConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">fault_network</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">model_validation</span>  
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">auto_class</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">stress_analysis</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">visualisation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">utilities</span>
+
+
+<div class="viewcode-block" id="FaultImagingWorkflow">
+<a class="viewcode-back" href="../../../api/hyfi.core.html#hyfi.FaultImagingWorkflow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FaultImagingWorkflow</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main workflow class for hypocenter-based 3D fault imaging.</span>
+<span class="sd">    </span>
+<span class="sd">    This class manages the complete workflow including:</span>
+<span class="sd">    - Fault network reconstruction</span>
+<span class="sd">    - Model validation with focal mechanisms</span>
+<span class="sd">    - Automatic classification</span>
+<span class="sd">    - Stress analysis</span>
+<span class="sd">    - Visualization and data saving</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="FaultImagingWorkflow.__init__">
+<a class="viewcode-back" href="../../../api/hyfi.core.html#hyfi.FaultImagingWorkflow.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ProjectConfig</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the workflow with configuration.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config : ProjectConfig</span>
+<span class="sd">            Configuration object containing all parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>  <span class="c1"># Validate configuration on initialization</span>
+        
+        <span class="c1"># Results storage</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_input_outliers</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_per_X</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_per_Y</span> <span class="o">=</span> <span class="kc">None</span>  
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_per_Z</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">S2_trend</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">S2_plunge</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Timing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+    
+<div class="viewcode-block" id="FaultImagingWorkflow.run_full_analysis">
+<a class="viewcode-back" href="../../../api/hyfi.core.html#hyfi.FaultImagingWorkflow.run_full_analysis">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_full_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the complete fault imaging workflow.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary containing all results from the analysis</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;###   HYPOCENTER-BASED 3D IMAGING OF ACTIVE FAULTS   ###&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Calculation started...&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="c1"># Step 1: Fault network reconstruction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_fault_network_reconstruction</span><span class="p">()</span>
+        
+        <span class="c1"># Step 2: Model validation (if enabled)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">validation_bool</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_run_model_validation</span><span class="p">()</span>
+        
+        <span class="c1"># Step 3: Automatic classification (if enabled)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">auto_class</span><span class="o">.</span><span class="n">autoclass_bool</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_run_auto_classification</span><span class="p">()</span>
+        
+        <span class="c1"># Step 4: Stress analysis (if enabled)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">stress_bool</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_run_stress_analysis</span><span class="p">()</span>
+        
+        <span class="c1"># Step 5: Visualization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_visualization</span><span class="p">()</span>
+        
+        <span class="c1"># Step 6: Save results</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_results</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">))</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Calculation done!&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Model runtime: &#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">runtime</span><span class="p">))</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span></div>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_fault_network_reconstruction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run fault network reconstruction module.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running fault network reconstruction...&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Convert config to dictionary for backward compatibility</span>
+        <span class="n">input_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        
+        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_per_X</span><span class="p">,</span> 
+         <span class="bp">self</span><span class="o">.</span><span class="n">df_per_Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_per_Z</span><span class="p">)</span> <span class="o">=</span> <span class="n">fault_network</span><span class="o">.</span><span class="n">faultnetwork3D</span><span class="p">(</span><span class="n">input_params</span><span class="p">)</span>
+        
+        <span class="c1"># The function now returns the enriched dataframe as data_output, </span>
+        <span class="c1"># we need to extract data_input from it</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="c1"># Extract outliers from data_output using clust_labels == -1</span>
+        <span class="k">if</span> <span class="s1">&#39;clust_labels&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_input_outliers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">[</span><span class="s1">&#39;clust_labels&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_input_outliers</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>  <span class="c1"># Empty DataFrame if no outliers</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;fault_network&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;data_input&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="p">,</span>
+            <span class="s1">&#39;data_input_outliers&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input_outliers</span><span class="p">,</span>
+            <span class="s1">&#39;data_output&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">,</span>
+            <span class="s1">&#39;df_per_X&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_per_X</span><span class="p">,</span>
+            <span class="s1">&#39;df_per_Y&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_per_Y</span><span class="p">,</span>
+            <span class="s1">&#39;df_per_Z&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_per_Z</span>
+        <span class="p">}</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fault network reconstruction completed. Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">)</span><span class="si">}</span><span class="s2"> fault planes.&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_model_validation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run model validation module.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running model validation...&quot;</span><span class="p">)</span>
+        
+        <span class="n">input_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span> <span class="o">=</span> <span class="n">model_validation</span><span class="o">.</span><span class="n">focal_validation</span><span class="p">(</span>
+            <span class="n">input_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span>
+        <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;model_validation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;data_input&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="p">,</span>
+            <span class="s1">&#39;data_output&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span>
+        <span class="p">}</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model validation completed.&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_auto_classification</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run automatic classification module.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running automatic classification...&quot;</span><span class="p">)</span>
+        
+        <span class="n">input_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span> <span class="o">=</span> <span class="n">auto_class</span><span class="o">.</span><span class="n">auto_classification</span><span class="p">(</span><span class="n">input_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;auto_classification&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;data_output&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span>
+        <span class="p">}</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Automatic classification completed.&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_stress_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run stress analysis module.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running stress analysis...&quot;</span><span class="p">)</span>
+        
+        <span class="n">input_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">S2_trend</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">S2_plunge</span> <span class="o">=</span> <span class="n">stress_analysis</span><span class="o">.</span><span class="n">fault_stress</span><span class="p">(</span>
+            <span class="n">input_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span>
+        <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;stress_analysis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;data_output&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">,</span>
+            <span class="s1">&#39;S2_trend&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">S2_trend</span><span class="p">,</span>
+            <span class="s1">&#39;S2_plunge&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">S2_plunge</span>
+        <span class="p">}</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Stress analysis completed.&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_visualization</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run visualization module.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating visualizations...&quot;</span><span class="p">)</span>
+        
+        <span class="n">input_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        
+        <span class="c1"># Standard 3D visualization</span>
+        <span class="n">visualisation</span><span class="o">.</span><span class="n">model_3d</span><span class="p">(</span><span class="n">input_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">)</span>
+        
+        <span class="c1"># Check if interpolation is enabled</span>
+        <span class="n">viz_params</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;visualization&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">if</span> <span class="n">viz_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enable_plane_interpolation&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running Poisson surface reconstruction for fault plane interpolation...&quot;</span><span class="p">)</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Create interpolated fault planes</span>
+                <span class="c1"># Combine data_input and data_output into a single dataframe for the new function</span>
+                <span class="n">df_combined</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># Start with data_output (has fault planes)</span>
+                <span class="c1"># Add any missing columns from data_input if needed</span>
+                <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;ML&#39;</span><span class="p">,</span> <span class="s1">&#39;Date&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df_combined</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                        <span class="n">df_combined</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+                
+                <span class="n">combined_mesh</span><span class="p">,</span> <span class="n">individual_meshes</span><span class="p">,</span> <span class="n">point_cloud</span><span class="p">,</span> <span class="n">fault_disc_meshes</span><span class="p">,</span> <span class="n">interpolation_metadata</span><span class="p">,</span> <span class="n">next_fault_counter</span><span class="p">,</span> <span class="n">temp_to_fault_mapping</span> <span class="o">=</span> <span class="n">visualisation</span><span class="o">.</span><span class="n">create_interpolated_fault_planes</span><span class="p">(</span>
+                    <span class="n">df_combined</span><span class="p">,</span> <span class="n">viz_params</span><span class="p">,</span> <span class="n">starting_fault_counter</span><span class="o">=</span><span class="mi">1</span>  <span class="c1"># Legacy workflow always starts from 1</span>
+                <span class="p">)</span>
+                
+                <span class="c1"># Export to VTK if requested</span>
+                <span class="k">if</span> <span class="n">viz_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;export_vtp&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">combined_mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">visualisation</span><span class="o">.</span><span class="n">export_interpolated_planes_vtp</span><span class="p">(</span>
+                        <span class="n">combined_mesh</span><span class="p">,</span> <span class="n">individual_meshes</span><span class="p">,</span> <span class="n">point_cloud</span><span class="p">,</span> 
+                        <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;out_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;./output&#39;</span><span class="p">),</span> <span class="n">fault_disc_meshes</span><span class="p">,</span> <span class="n">df_combined</span><span class="p">,</span>
+                        <span class="n">use_focal_constraints</span><span class="o">=</span><span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_focal_constraints&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+                        <span class="n">export_obj</span><span class="o">=</span><span class="n">viz_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;export_obj&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                    <span class="p">)</span>
+                
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Fault plane interpolation completed successfully&quot;</span><span class="p">)</span>
+                
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Fault plane interpolation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Continuing with standard visualization...&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;visualization&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;completed&#39;</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Visualization completed.&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save results to output directory.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving results...&quot;</span><span class="p">)</span>
+        
+        <span class="n">input_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        
+        <span class="n">utilities</span><span class="o">.</span><span class="n">save_data</span><span class="p">(</span><span class="n">input_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input_outliers</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_per_X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_per_Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_per_Z</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Results saved to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="FaultImagingWorkflow.run_fault_network_only">
+<a class="viewcode-back" href="../../../api/hyfi.core.html#hyfi.FaultImagingWorkflow.run_fault_network_only">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_fault_network_only</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> 
+                                             <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run only the fault network reconstruction module.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            (data_input, data_input_outliers, data_output, df_per_X, df_per_Y, df_per_Z)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_fault_network_reconstruction</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input_outliers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">df_per_X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_per_Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_per_Z</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="FaultImagingWorkflow.get_results_summary">
+<a class="viewcode-back" href="../../../api/hyfi.core.html#hyfi.FaultImagingWorkflow.get_results_summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_results_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a summary of the analysis results.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Summary statistics and key results</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;No analysis has been run yet&quot;</span><span class="p">}</span>
+        
+        <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;Analysis completed&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;modules_run&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+            <span class="s2">&quot;runtime_seconds&quot;</span><span class="p">:</span> <span class="kc">None</span>
+        <span class="p">}</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span><span class="p">:</span>
+            <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;runtime_seconds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;input_events&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_input</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;fault_planes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_output</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_input_outliers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;outlier_events&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_input_outliers</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">summary</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

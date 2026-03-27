@@ -1,0 +1,481 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hyfi.config.parameters &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            HyFI
+              <img src="../../../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">hyfi.config.parameters</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for hyfi.config.parameters</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Configuration classes for fault imaging parameters.</span>
+
+<span class="sd">This module provides structured configuration management using dataclasses</span>
+<span class="sd">to replace the dictionary-based parameter system.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.validation</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ConfigValidationError</span><span class="p">,</span>
+    <span class="n">validate_file_exists</span><span class="p">,</span>
+    <span class="n">validate_positive_number</span><span class="p">,</span>
+    <span class="n">validate_range</span><span class="p">,</span>
+    <span class="n">validate_choice</span><span class="p">,</span>
+    <span class="n">validate_separator</span><span class="p">,</span>
+    <span class="n">validate_project_title</span><span class="p">,</span>
+    <span class="n">validate_output_directory</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="FaultNetworkConfig">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.FaultNetworkConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FaultNetworkConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for fault network reconstruction module.&quot;&quot;&quot;</span>
+    <span class="n">n_mc</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span>                    <span class="c1"># number of Monte Carlo simulations</span>
+    <span class="n">r_nn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="mf">100.0</span>     <span class="c1"># search radius [m] of nearest neighbor search or &#39;auto&#39;</span>
+    <span class="n">dt_nn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="mf">26298.0</span>  <span class="c1"># search time window [h] or &#39;auto&#39;</span>
+    <span class="n">mag_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;ML&#39;</span>                <span class="c1"># magnitude type: &#39;ML&#39; or &#39;Mw&#39;</span>
+    
+    <span class="c1"># Parameter optimization settings</span>
+    <span class="n">auto_optimize_parameters</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>      <span class="c1"># enable automatic parameter optimization</span>
+    <span class="n">optimization_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;optuna&#39;</span>        <span class="c1"># optimization method: &#39;grid_search&#39;, &#39;optuna&#39;, &#39;pareto&#39;, or &#39;heuristic&#39;</span>
+    <span class="n">optimization_grid_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span>         <span class="c1"># number of grid points per dimension for grid search</span>
+    
+    <span class="c1"># Optuna optimization specific settings</span>
+    <span class="n">optimization_n_trials</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span>             <span class="c1"># total trials for Optuna optimization</span>
+    <span class="n">optimization_sampler</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;tpe&#39;</span>           <span class="c1"># Optuna sampler: &#39;tpe&#39;, &#39;cmaes&#39;, &#39;random&#39;</span>
+    <span class="n">optimization_n_startup_trials</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>     <span class="c1"># random trials before sampler optimization</span>
+    <span class="n">optimization_early_stopping_rounds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># stop if no improvement for N trials (None = disabled)</span>
+    <span class="n">optimization_early_stopping_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span>  <span class="c1"># minimum improvement threshold</span>
+    
+    <span class="c1"># Pareto multi-objective optimization parameters</span>
+    <span class="n">optimization_pareto_sampler</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;nsga2&#39;</span>  <span class="c1"># Pareto sampler: &#39;nsga2&#39;, &#39;nsga3&#39;, &#39;random&#39;</span>
+    <span class="n">optimization_pareto_population</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span>    <span class="c1"># population size for evolutionary algorithms</span>
+    
+<div class="viewcode-block" id="FaultNetworkConfig.validate">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.FaultNetworkConfig.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate configuration parameters.&quot;&quot;&quot;</span>
+        <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_mc</span><span class="p">,</span> <span class="s2">&quot;n_mc&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Validate r_nn (can be numeric or &#39;auto&#39;)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r_nn</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">r_nn</span> <span class="o">!=</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;r_nn must be a positive number or &#39;auto&#39;&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r_nn</span><span class="p">,</span> <span class="s2">&quot;r_nn&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Validate dt_nn (can be numeric or &#39;auto&#39;)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_nn</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_nn</span> <span class="o">!=</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dt_nn must be a positive number or &#39;auto&#39;&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_nn</span><span class="p">,</span> <span class="s2">&quot;dt_nn&quot;</span><span class="p">)</span>
+            
+        <span class="n">validate_choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mag_type</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ML&#39;</span><span class="p">,</span> <span class="s1">&#39;Mw&#39;</span><span class="p">],</span> <span class="s2">&quot;mag_type&quot;</span><span class="p">)</span>
+        <span class="n">validate_choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_method</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="s1">&#39;optuna&#39;</span><span class="p">,</span> <span class="s1">&#39;pareto&#39;</span><span class="p">,</span> <span class="s1">&#39;heuristic&#39;</span><span class="p">],</span> <span class="s2">&quot;optimization_method&quot;</span><span class="p">)</span>
+        <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_grid_points</span><span class="p">,</span> <span class="s2">&quot;optimization_grid_points&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Validate Optuna optimization parameters</span>
+        <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_n_trials</span><span class="p">,</span> <span class="s2">&quot;optimization_n_trials&quot;</span><span class="p">)</span>
+        <span class="n">validate_choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_sampler</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;tpe&#39;</span><span class="p">,</span> <span class="s1">&#39;cmaes&#39;</span><span class="p">,</span> <span class="s1">&#39;random&#39;</span><span class="p">],</span> <span class="s2">&quot;optimization_sampler&quot;</span><span class="p">)</span>
+        <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_n_startup_trials</span><span class="p">,</span> <span class="s2">&quot;optimization_n_startup_trials&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimization_early_stopping_rounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_early_stopping_rounds</span><span class="p">,</span> <span class="s2">&quot;optimization_early_stopping_rounds&quot;</span><span class="p">)</span>
+        <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_early_stopping_threshold</span><span class="p">,</span> <span class="s2">&quot;optimization_early_stopping_threshold&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Validate Pareto optimization parameters</span>
+        <span class="n">validate_choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_pareto_sampler</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;nsga2&#39;</span><span class="p">,</span> <span class="s1">&#39;nsga3&#39;</span><span class="p">,</span> <span class="s1">&#39;random&#39;</span><span class="p">],</span> <span class="s2">&quot;optimization_pareto_sampler&quot;</span><span class="p">)</span>
+        <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimization_pareto_population</span><span class="p">,</span> <span class="s2">&quot;optimization_pareto_population&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Auto-enable optimization if &#39;auto&#39; parameters are specified</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r_nn</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_nn</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_optimize_parameters</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auto_optimize_parameters</span> <span class="o">=</span> <span class="kc">True</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ModelValidationConfig">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.ModelValidationConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModelValidationConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for model validation module.&quot;&quot;&quot;</span>
+    <span class="n">validation_bool</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">foc_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">foc_sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;;&#39;</span>
+    <span class="n">foc_mag_check</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>          <span class="c1"># check focal magnitude (recommended)</span>
+    <span class="n">foc_loc_check</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>          <span class="c1"># check focal location (recommended)</span>
+    
+<div class="viewcode-block" id="ModelValidationConfig.validate">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.ModelValidationConfig.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate configuration parameters.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validation_bool</span><span class="p">:</span>
+            <span class="n">validate_file_exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">foc_file</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># Also validate the focal mechanism file format</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">foc_file</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.input_validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">InputFileValidator</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">validator</span> <span class="o">=</span> <span class="n">InputFileValidator</span><span class="p">()</span>
+                    <span class="n">focal_validation</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate_focal_mechanism_file</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">foc_file</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">foc_sep</span><span class="p">)</span>
+                    
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">focal_validation</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]:</span>
+                        <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Focal mechanism file validation failed: </span><span class="si">{</span><span class="n">focal_validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Unknown error&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="k">if</span> <span class="n">focal_validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;missing_columns&#39;</span><span class="p">):</span>
+                            <span class="n">error_msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Missing columns: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">focal_validation</span><span class="p">[</span><span class="s1">&#39;missing_columns&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="k">if</span> <span class="n">focal_validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;recommendations&#39;</span><span class="p">):</span>
+                            <span class="n">error_msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Recommendations: </span><span class="si">{</span><span class="s1">&#39;; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">focal_validation</span><span class="p">[</span><span class="s1">&#39;recommendations&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+                    
+                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Focal mechanism file format validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;To disable focal mechanism validation, set &#39;validation_bool&#39;: false in your configuration.&quot;</span>
+                    <span class="p">)</span>
+        <span class="n">validate_separator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">foc_sep</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AutoClassConfig">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.AutoClassConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AutoClassConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for automatic classification module.&quot;&quot;&quot;</span>
+    <span class="n">autoclass_bool</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">n_clusters</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>                 <span class="c1"># number of expected classes</span>
+    <span class="n">algorithm</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;vmf_soft&#39;</span>         <span class="c1"># clustering algorithm</span>
+    <span class="n">rotation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>               <span class="c1"># rotate poles before analysis</span>
+    
+<div class="viewcode-block" id="AutoClassConfig.validate">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.AutoClassConfig.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate configuration parameters.&quot;&quot;&quot;</span>
+        <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_clusters</span><span class="p">,</span> <span class="s2">&quot;n_clusters&quot;</span><span class="p">)</span>
+        <span class="n">validate_choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;vmf_soft&#39;</span><span class="p">,</span> <span class="s1">&#39;vmf_hard&#39;</span><span class="p">,</span> <span class="s1">&#39;spherical_kmeans&#39;</span><span class="p">],</span> <span class="s2">&quot;algorithm&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StressAnalysisConfig">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.StressAnalysisConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">StressAnalysisConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for fault stress analysis module.&quot;&quot;&quot;</span>
+    <span class="n">stress_bool</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">S1_trend</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">301</span>               <span class="c1"># σ1 trend</span>
+    <span class="n">S1_plunge</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">23</span>               <span class="c1"># σ1 plunge</span>
+    <span class="n">S3_trend</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">43</span>                <span class="c1"># σ3 trend</span>
+    <span class="n">S3_plunge</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">26</span>               <span class="c1"># σ3 plunge</span>
+    <span class="n">stress_R</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.35</span>              <span class="c1"># Stress shape ratio</span>
+    <span class="n">PP</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>                       <span class="c1"># Pore pressure</span>
+    <span class="n">fric_coeff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.75</span>            <span class="c1"># Friction coefficient</span>
+    <span class="n">use_shapefile_stress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Whether to use shapefile for stress field</span>
+    <span class="n">stress_field_shapefile</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Path to shapefile with spatially-varying stress field</span>
+    
+<div class="viewcode-block" id="StressAnalysisConfig.validate">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.StressAnalysisConfig.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate configuration parameters.&quot;&quot;&quot;</span>
+        <span class="c1"># If shapefile is enabled and provided, validate it exists</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_shapefile_stress</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">stress_field_shapefile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+            <span class="n">shapefile_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stress_field_shapefile</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">shapefile_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="n">ConfigValidationError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Stress field shapefile not found: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">stress_field_shapefile</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+        
+        <span class="c1"># Always validate fixed stress field parameters (used as fallback)</span>
+        <span class="n">validate_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S1_trend</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">,</span> <span class="s2">&quot;S1_trend&quot;</span><span class="p">)</span>
+        <span class="n">validate_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S1_plunge</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="s2">&quot;S1_plunge&quot;</span><span class="p">)</span>
+        <span class="n">validate_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S3_trend</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">,</span> <span class="s2">&quot;S3_trend&quot;</span><span class="p">)</span>
+        <span class="n">validate_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S3_plunge</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="s2">&quot;S3_plunge&quot;</span><span class="p">)</span>
+        <span class="n">validate_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stress_R</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;stress_R&quot;</span><span class="p">)</span>
+        <span class="n">validate_positive_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fric_coeff</span><span class="p">,</span> <span class="s2">&quot;fric_coeff&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ProjectConfig">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.ProjectConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProjectConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main configuration class containing all module configurations.&quot;&quot;&quot;</span>
+    
+    <span class="c1"># General settings</span>
+    <span class="n">project_title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Fault Imaging Analysis&quot;</span>
+    
+    <span class="c1"># Input files</span>
+    <span class="n">hypo_file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">hypo_sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span>
+    
+    <span class="c1"># Output settings</span>
+    <span class="n">out_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">)</span>
+    
+    <span class="c1"># Module configurations</span>
+    <span class="n">fault_network</span><span class="p">:</span> <span class="n">FaultNetworkConfig</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">FaultNetworkConfig</span><span class="p">)</span>
+    <span class="n">model_validation</span><span class="p">:</span> <span class="n">ModelValidationConfig</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">ModelValidationConfig</span><span class="p">)</span>
+    <span class="n">auto_class</span><span class="p">:</span> <span class="n">AutoClassConfig</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">AutoClassConfig</span><span class="p">)</span>
+    <span class="n">stress_analysis</span><span class="p">:</span> <span class="n">StressAnalysisConfig</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">StressAnalysisConfig</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="ProjectConfig.__post_init__">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.ProjectConfig.__post_init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert string paths to Path objects and validate basic properties.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hypo_file</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hypo_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hypo_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">)</span>
+        
+        <span class="c1"># Basic validation on initialization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_title</span> <span class="o">=</span> <span class="n">validate_project_title</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_title</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hypo_sep</span> <span class="o">=</span> <span class="n">validate_separator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hypo_sep</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="ProjectConfig.validate">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.ProjectConfig.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate all configuration parameters.&quot;&quot;&quot;</span>
+        <span class="c1"># Validate file paths</span>
+        <span class="n">validate_file_exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hypo_file</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span> <span class="o">=</span> <span class="n">validate_output_directory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">)</span>
+        
+        <span class="c1"># Validate all subconfigurations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_class</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="ProjectConfig.from_dict">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.ProjectConfig.from_dict">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ProjectConfig&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create ProjectConfig from dictionary (for backward compatibility).&quot;&quot;&quot;</span>
+        <span class="c1"># Extract nested configurations</span>
+        <span class="n">fault_network_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;n_mc&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;n_mc&#39;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+            <span class="s1">&#39;r_nn&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;r_nn&#39;</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">),</span>
+            <span class="s1">&#39;dt_nn&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dt_nn&#39;</span><span class="p">,</span> <span class="mf">26298.0</span><span class="p">),</span>
+            <span class="s1">&#39;mag_type&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mag_type&#39;</span><span class="p">,</span> <span class="s1">&#39;ML&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;auto_optimize_parameters&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_optimize_parameters&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="s1">&#39;optimization_method&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_method&#39;</span><span class="p">,</span> <span class="s1">&#39;optuna&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;optimization_grid_points&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_grid_points&#39;</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+            <span class="s1">&#39;optimization_n_trials&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_n_trials&#39;</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>
+            <span class="s1">&#39;optimization_sampler&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_sampler&#39;</span><span class="p">,</span> <span class="s1">&#39;tpe&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;optimization_n_startup_trials&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_n_startup_trials&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+            <span class="s1">&#39;optimization_pareto_sampler&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_pareto_sampler&#39;</span><span class="p">,</span> <span class="s1">&#39;nsga2&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;optimization_pareto_population&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimization_pareto_population&#39;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="n">model_validation_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;validation_bool&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;validation_bool&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="s1">&#39;foc_file&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_file&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;foc_sep&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_sep&#39;</span><span class="p">,</span> <span class="s1">&#39;;&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;foc_mag_check&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_mag_check&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="s1">&#39;foc_loc_check&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;foc_loc_check&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="n">auto_class_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;autoclass_bool&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;autoclass_bool&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="s1">&#39;n_clusters&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;n_clusters&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="s1">&#39;algorithm&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;algorithm&#39;</span><span class="p">,</span> <span class="s1">&#39;vmf_soft&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;rotation&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rotation&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="n">stress_analysis_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;stress_bool&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stress_bool&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="s1">&#39;S1_trend&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S1_trend&#39;</span><span class="p">,</span> <span class="mi">301</span><span class="p">),</span>
+            <span class="s1">&#39;S1_plunge&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S1_plunge&#39;</span><span class="p">,</span> <span class="mi">23</span><span class="p">),</span>
+            <span class="s1">&#39;S3_trend&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S3_trend&#39;</span><span class="p">,</span> <span class="mi">43</span><span class="p">),</span>
+            <span class="s1">&#39;S3_plunge&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S3_plunge&#39;</span><span class="p">,</span> <span class="mi">26</span><span class="p">),</span>
+            <span class="s1">&#39;stress_R&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stress_R&#39;</span><span class="p">,</span> <span class="mf">0.35</span><span class="p">),</span>
+            <span class="s1">&#39;PP&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;PP&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="s1">&#39;fric_coeff&#39;</span><span class="p">:</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fric_coeff&#39;</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">project_title</span><span class="o">=</span><span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project_title&#39;</span><span class="p">,</span> <span class="s1">&#39;Fault Imaging Analysis&#39;</span><span class="p">),</span>
+            <span class="n">hypo_file</span><span class="o">=</span><span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hypo_file&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="n">hypo_sep</span><span class="o">=</span><span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hypo_sep&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">),</span>
+            <span class="n">out_dir</span><span class="o">=</span><span class="n">config_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;out_dir&#39;</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()),</span>
+            <span class="n">fault_network</span><span class="o">=</span><span class="n">FaultNetworkConfig</span><span class="p">(</span><span class="o">**</span><span class="n">fault_network_params</span><span class="p">),</span>
+            <span class="n">model_validation</span><span class="o">=</span><span class="n">ModelValidationConfig</span><span class="p">(</span><span class="o">**</span><span class="n">model_validation_params</span><span class="p">),</span>
+            <span class="n">auto_class</span><span class="o">=</span><span class="n">AutoClassConfig</span><span class="p">(</span><span class="o">**</span><span class="n">auto_class_params</span><span class="p">),</span>
+            <span class="n">stress_analysis</span><span class="o">=</span><span class="n">StressAnalysisConfig</span><span class="p">(</span><span class="o">**</span><span class="n">stress_analysis_params</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="ProjectConfig.to_dict">
+<a class="viewcode-back" href="../../../api/hyfi.config.html#hyfi.ProjectConfig.to_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert ProjectConfig to dictionary (for backward compatibility).&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;project_title&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_title</span><span class="p">,</span>
+            <span class="s1">&#39;hypo_file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hypo_file</span><span class="p">),</span>
+            <span class="s1">&#39;hypo_sep&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">hypo_sep</span><span class="p">,</span>
+            <span class="s1">&#39;out_dir&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_dir</span><span class="p">),</span>
+            
+            <span class="c1"># Fault network parameters</span>
+            <span class="s1">&#39;n_mc&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">n_mc</span><span class="p">,</span>
+            <span class="s1">&#39;r_nn&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">r_nn</span><span class="p">,</span>
+            <span class="s1">&#39;dt_nn&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">dt_nn</span><span class="p">,</span>
+            <span class="s1">&#39;mag_type&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">mag_type</span><span class="p">,</span>
+            <span class="s1">&#39;auto_optimize_parameters&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">auto_optimize_parameters</span><span class="p">,</span>
+            <span class="s1">&#39;optimization_method&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">optimization_method</span><span class="p">,</span>
+            <span class="s1">&#39;optimization_grid_points&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">optimization_grid_points</span><span class="p">,</span>
+            <span class="s1">&#39;optimization_n_trials&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">optimization_n_trials</span><span class="p">,</span>
+            <span class="s1">&#39;optimization_sampler&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">optimization_sampler</span><span class="p">,</span>
+            <span class="s1">&#39;optimization_n_startup_trials&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fault_network</span><span class="o">.</span><span class="n">optimization_n_startup_trials</span><span class="p">,</span>
+            
+            <span class="c1"># Model validation parameters</span>
+            <span class="s1">&#39;validation_bool&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">validation_bool</span><span class="p">,</span>
+            <span class="s1">&#39;foc_file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">foc_file</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">foc_file</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;foc_sep&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">foc_sep</span><span class="p">,</span>
+            <span class="s1">&#39;foc_mag_check&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">foc_mag_check</span><span class="p">,</span>
+            <span class="s1">&#39;foc_loc_check&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_validation</span><span class="o">.</span><span class="n">foc_loc_check</span><span class="p">,</span>
+            
+            <span class="c1"># Auto classification parameters</span>
+            <span class="s1">&#39;autoclass_bool&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_class</span><span class="o">.</span><span class="n">autoclass_bool</span><span class="p">,</span>
+            <span class="s1">&#39;n_clusters&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_class</span><span class="o">.</span><span class="n">n_clusters</span><span class="p">,</span>
+            <span class="s1">&#39;algorithm&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_class</span><span class="o">.</span><span class="n">algorithm</span><span class="p">,</span>
+            <span class="s1">&#39;rotation&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_class</span><span class="o">.</span><span class="n">rotation</span><span class="p">,</span>
+            
+            <span class="c1"># Stress analysis parameters</span>
+            <span class="s1">&#39;stress_bool&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">stress_bool</span><span class="p">,</span>
+            <span class="s1">&#39;S1_trend&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">S1_trend</span><span class="p">,</span>
+            <span class="s1">&#39;S1_plunge&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">S1_plunge</span><span class="p">,</span>
+            <span class="s1">&#39;S3_trend&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">S3_trend</span><span class="p">,</span>
+            <span class="s1">&#39;S3_plunge&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">S3_plunge</span><span class="p">,</span>
+            <span class="s1">&#39;stress_R&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">stress_R</span><span class="p">,</span>
+            <span class="s1">&#39;PP&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">PP</span><span class="p">,</span>
+            <span class="s1">&#39;fric_coeff&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stress_analysis</span><span class="o">.</span><span class="n">fric_coeff</span>
+        <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="n">result</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

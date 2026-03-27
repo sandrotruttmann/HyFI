@@ -1,0 +1,173 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HyFI Core Modules &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Fault Network Reconstruction" href="fault_network.html" />
+    <link rel="prev" title="HyFI Input Parameters" href="../input_parameters.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HyFI
+              <img src="../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">HyFI Core Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#core-module-execution-order">Core Module Execution Order</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core-analysis-modules">Core Analysis Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fault_network.html">Fault Network Reconstruction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="model_validation.html">Model Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auto_classification.html">Automatic Classification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stress_analysis.html">Stress Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="visualization.html">Visualization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">HyFI Core Modules</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/index.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="hyfi-core-modules">
+<h1>HyFI Core Modules<a class="headerlink" href="#hyfi-core-modules" title="Link to this heading"></a></h1>
+<p><strong>HyFI</strong> consists of several interconnected analysis modules that work together to reconstruct 3D fault geometry from earthquake hypocenter data.</p>
+<section id="core-module-execution-order">
+<h2>Core Module Execution Order<a class="headerlink" href="#core-module-execution-order" title="Link to this heading"></a></h2>
+<p>A typical single-sequence HyFI analysis follows this sequence of module execution:</p>
+<ol class="arabic simple">
+<li><p><strong>Fault Network Reconstruction</strong>: Generate 3D rupture planes from hypocenter distributions for each earthquake individually</p></li>
+<li><p><strong>Model Validation</strong> (optional): Compare results of rupture planes with focal planes for earthquakes with a focal mechanism solution</p></li>
+<li><p><strong>Automatic Classification</strong> (optional): Group earthquakes into clusters that likely belong to the same active fault by clustering both the rupture plane orientations as well as spatial attributes</p></li>
+<li><p><strong>Stress Analysis</strong> (optional): Calculate stress parameters (e.g. slip and dilation tendencies) under the given (regional) stress field</p></li>
+<li><p><strong>Visualization</strong>: Interpolate the grouped rupture planes to produce active fault meshes, generate interactive 3D models and export the results (e.g. as VTP)</p></li>
+</ol>
+</section>
+<section id="core-analysis-modules">
+<h2>Core Analysis Modules<a class="headerlink" href="#core-analysis-modules" title="Link to this heading"></a></h2>
+<p>Please refer to the following detailed descriptions of the <strong>HyFI</strong> core analysis modules:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fault_network.html">Fault Network Reconstruction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model_validation.html">Model Validation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auto_classification.html">Automatic Classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stress_analysis.html">Stress Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+</ul>
+</div>
+<p>Each module can be configured independently through the JSON configuration file. See <strong><a class="reference internal" href="../configuration.html"><span class="doc std std-doc">HyFI Configuration</span></a></strong> for details.</p>
+<hr class="docutils" />
+<p>Happy fault imaging! 🎉</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../input_parameters.html" class="btn btn-neutral float-left" title="HyFI Input Parameters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fault_network.html" class="btn btn-neutral float-right" title="Fault Network Reconstruction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

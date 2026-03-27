@@ -1,0 +1,296 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automatic Classification &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Stress Analysis" href="stress_analysis.html" />
+    <link rel="prev" title="Model Validation" href="model_validation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HyFI
+              <img src="../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HyFI Core Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-module-execution-order">Core Module Execution Order</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#core-analysis-modules">Core Analysis Modules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="fault_network.html">Fault Network Reconstruction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="model_validation.html">Model Validation</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Automatic Classification</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#core-concepts">Core Concepts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#computational-workflow">Computational Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main-outputs">Main Outputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="stress_analysis.html">Stress Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="visualization.html">Visualization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">HyFI Core Modules</a></li>
+      <li class="breadcrumb-item active">Automatic Classification</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/auto_classification.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="automatic-classification">
+<h1>Automatic Classification<a class="headerlink" href="#automatic-classification" title="Link to this heading"></a></h1>
+<p>The automatic classification module groups rupture planes into clusters representing distinct fault sets. It identifies active faults with similar orientations and spatial proximity using both orientation-based clustering and optional spatial sub-clustering. For details, see the original <strong>HyFI</strong> publication (Truttmann et al., 2023).</p>
+<hr class="docutils" />
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading"></a></h2>
+<section id="fisher-distribution">
+<h3>Fisher Distribution<a class="headerlink" href="#fisher-distribution" title="Link to this heading"></a></h3>
+<p>The von Mises-Fisher distribution models directional data and is reflected by the concentration parameter <strong>κ</strong> that measures how clustered the vectors of the rupture planes are:</p>
+<ul class="simple">
+<li><p>κ = 0: Uniform distribution (no preferred direction)</p></li>
+<li><p>κ = 10: Moderate clustering</p></li>
+<li><p>κ &gt; 100: Very tight clustering</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="computational-workflow">
+<h2>Computational Workflow<a class="headerlink" href="#computational-workflow" title="Link to this heading"></a></h2>
+<p>The auto classification module follows a structured multi-stage pipeline:</p>
+<section id="step-1-data-validation-preparation">
+<h3>Step 1: Data Validation &amp; Preparation<a class="headerlink" href="#step-1-data-validation-preparation" title="Link to this heading"></a></h3>
+<p>Check if the required fault plane data is available:</p>
+<ol class="arabic simple">
+<li><p><strong>Check required columns</strong>: rupt_plane_azi, rupt_plane_dip</p></li>
+<li><p><strong>Filter valid data</strong>: Remove events with NaN fault plane parameters</p></li>
+<li><p><strong>Output</strong>: Subset DataFrame with only valid fault planes for clustering</p></li>
+</ol>
+<p><strong>Quality gate</strong>: Skip classification if fewer than 3 valid events</p>
+</section>
+<section id="step-2-enhanced-point-cloud-generation-optional-recommended">
+<h3>Step 2: Enhanced Point Cloud Generation (Optional, RECOMMENDED)<a class="headerlink" href="#step-2-enhanced-point-cloud-generation-optional-recommended" title="Link to this heading"></a></h3>
+<p>If enabled (<code class="docutils literal notranslate"><span class="pre">use_fault_plane_points_for_clustering;</span> <span class="pre">true</span></code>), generate additional synthetic points (“hypocenters”) along the calculated rupture planes to enhance the relatively sparse hypocenter catalog For each valid rupture plane:</p>
+<ul class="simple">
+<li><p>Generate circular rupture plane using magnitude-based radius (Leonard 2014)</p></li>
+<li><p>Create concentric rings at fixed intervals (<code class="docutils literal notranslate"><span class="pre">fault_plane_radius_interval_meters</span></code>: Spacing between concentric circles (typically 10-25 m))</p></li>
+<li><p>Fill circles with points at specified density (<code class="docutils literal notranslate"><span class="pre">fault_plane_point_density_meters</span></code>: Point spacing along circles (typically 10-25 m))</p></li>
+<li><p>Maintain mapping to source fault index</p></li>
+</ul>
+<p>This generates a new hypocenter point cloud called “enhanced point cloud” with ~100-1000× more points than the original one while preserving full 3D rupture plane geometry. This can improve both spatial separation of nearby faults, as well as later interpolation.</p>
+</section>
+<section id="step-3-hemispherical-consistency">
+<h3>Step 3: Hemispherical Consistency<a class="headerlink" href="#step-3-hemispherical-consistency" title="Link to this heading"></a></h3>
+<p>Ensures that all fault plane normal vectors point to same hemisphere to prevent ambiguous clustering.</p>
+<ol class="arabic simple">
+<li><p><strong>Reference vector</strong>: Take first fault plane normal as reference</p></li>
+<li><p><strong>Flip if needed</strong>: For each other fault plane, check if angular distance &gt; 90°</p></li>
+<li><p><strong>Correction</strong>: If flipped, negate all components (x, y, z) → (-x, -y, -z)</p></li>
+<li><p><strong>Result</strong>: All vectors on same hemisphere, consistent for clustering</p></li>
+</ol>
+</section>
+<section id="step-4-automatic-cluster-number-determination-optional">
+<h3>Step 4: Automatic Cluster Number Determination (Optional)<a class="headerlink" href="#step-4-automatic-cluster-number-determination-optional" title="Link to this heading"></a></h3>
+<p>If enabled, this step determines the optimal number of orientation clusters automatically:</p>
+<ol class="arabic simple">
+<li><p><strong>Test range</strong>: Evaluate k = 2 to <code class="docutils literal notranslate"><span class="pre">max_clusters</span></code></p></li>
+<li><p><strong>Scoring for each k</strong>:</p>
+<ul class="simple">
+<li><p>Apply clustering algorithm</p></li>
+<li><p>Calculate Fisher concentration (κ) for each cluster</p></li>
+<li><p>Compute the silhouette score or dispersion metric</p></li>
+</ul>
+</li>
+<li><p><strong>Selection strategy</strong>:</p>
+<ul class="simple">
+<li><p>Choose k with highest score</p></li>
+<li><p>Penalize k &gt; 3 to prefer simpler solutions</p></li>
+<li><p>Only accept complex solution if &gt;40% better than simple alternatives</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="step-5-orientation-clustering">
+<h3>Step 5: Orientation Clustering<a class="headerlink" href="#step-5-orientation-clustering" title="Link to this heading"></a></h3>
+<p>Group fault planes by similar orientations using one of the following directional clustering algorithms:</p>
+<p><strong>A. Spherical K-Means (SKM)</strong></p>
+<ul class="simple">
+<li><p>Optimizes cluster centers on unit sphere</p></li>
+<li><p>Minimizes within-cluster angular distances</p></li>
+<li><p>Fast, deterministic (seeded)</p></li>
+<li><p>Good for roughly equal-sized clusters</p></li>
+<li><p>Convergence: max_iter=300, tol=1e-4 (default)</p></li>
+</ul>
+<p><strong>B. Von Mises-Fisher Soft (VMF Soft)</strong></p>
+<ul class="simple">
+<li><p>Probabilistic mixture model on sphere</p></li>
+<li><p>Assigns soft membership probabilities</p></li>
+<li><p>Better for overlapping clusters</p></li>
+<li><p>Fisher concentration (κ) parameter auto-tuned</p></li>
+<li><p>Convergence: max_iter=300, tol=1e-6 (default)</p></li>
+</ul>
+<p><strong>C. Von Mises-Fisher Hard (VMF Hard)</strong></p>
+<ul class="simple">
+<li><p>Deterministic variant of VMF</p></li>
+<li><p>Hard cluster assignments (one cluster per event)</p></li>
+<li><p>Better for distinct clusters</p></li>
+<li><p>Convergence: max_iter=300, tol=1e-6 (default)</p></li>
+</ul>
+<p>This generates orientation cluster labels (0, 1, 2, …, n_clusters-1) in the DataFrame column <code class="docutils literal notranslate"><span class="pre">orient_cluster</span></code>.</p>
+</section>
+<section id="step-6-spatial-sub-clustering-optional">
+<h3>Step 6: Spatial Sub-Clustering (Optional)<a class="headerlink" href="#step-6-spatial-sub-clustering-optional" title="Link to this heading"></a></h3>
+<p>The rupture planes were grouped into sets of similar orientations in step 5. In this step, the algorithm now allows to separate nearby groups of rupture planes from the same orientation set into distinct fault segments. This can either be done on the original hypocenter locations alone, or including the enhanced point cloud if generated in step 2 using <code class="docutils literal notranslate"><span class="pre">use_fault_plane_points_for_clustering:</span> <span class="pre">true</span></code></p>
+<p>This generates spatial sub-cluster IDs within each orientation cluster in the column <code class="docutils literal notranslate"><span class="pre">spatial_cluster</span></code>, and the <code class="docutils literal notranslate"><span class="pre">final_cluster_id</span></code> that is the temporary global fault identifier (e.g., “0.1”, “0.2”, “1.0”).</p>
+</section>
+<section id="step-7-post-clustering-quality-control">
+<h3>Step 7: Post-Clustering Quality Control<a class="headerlink" href="#step-7-post-clustering-quality-control" title="Link to this heading"></a></h3>
+<p>This step checks the minimum cluster size to remove spurious small clusters that contain less events than <code class="docutils literal notranslate"><span class="pre">min_events_per_cluster</span></code> to prevent over-segmentation.</p>
+</section>
+<section id="step-8-results-mapping-output">
+<h3>Step 8: Results Mapping &amp; Output<a class="headerlink" href="#step-8-results-mapping-output" title="Link to this heading"></a></h3>
+<p>The clustering results are finally mapped backed to the full DataFrame <code class="docutils literal notranslate"><span class="pre">df_hyfi</span></code>.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="main-outputs">
+<h2>Main Outputs<a class="headerlink" href="#main-outputs" title="Link to this heading"></a></h2>
+<p>The following columns are added to the <code class="docutils literal notranslate"><span class="pre">HyFI_results.csv</span></code> output file:</p>
+<p><strong>Orientation Clustering</strong>:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">orient_cluster</span></code></strong>: Fault system ID based on orientation</p></li>
+</ul>
+<p><strong>Spatial Clustering</strong> (if enabled):</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">spatial_cluster</span></code></strong>: Sub-cluster within each orientation group</p></li>
+</ul>
+<p><strong>Final Fault Identifiers</strong>:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">final_cluster_id</span></code></strong>: Global fault system identifier</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">final_cluster_id_local</span></code></strong>: Sequence-specific fault identifier</p></li>
+</ul>
+<p><strong>Metadata</strong>:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">sequence_label</span></code></strong>: Which sequence this event belongs to (multi-sequence context)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">segmentation_level</span></code></strong>: Hierarchical level (A, B, C, etc.)</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Truttmann, S., Diehl, T., &amp; Herwegh, M. (2023). Hypocenter-based 3D imaging of active faults: Method and applications in the Southwestern Swiss Alps. Journal of Geophysical Research: Solid Earth, 128, e2023JB026352. https://doi.org/10.1029/2023JB026352</p></li>
+</ul>
+<hr class="docutils" />
+<p>Happy fault imaging! 🎉</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="model_validation.html" class="btn btn-neutral float-left" title="Model Validation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="stress_analysis.html" class="btn btn-neutral float-right" title="Stress Analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

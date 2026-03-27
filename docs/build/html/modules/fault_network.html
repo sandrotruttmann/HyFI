@@ -1,0 +1,698 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fault Network Reconstruction &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Model Validation" href="model_validation.html" />
+    <link rel="prev" title="HyFI Core Modules" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HyFI
+              <img src="../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HyFI Core Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-module-execution-order">Core Module Execution Order</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#core-analysis-modules">Core Analysis Modules</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Fault Network Reconstruction</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#core-concepts">Core Concepts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#computational-workflow">Computational Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main-outputs">Main Outputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="model_validation.html">Model Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auto_classification.html">Automatic Classification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stress_analysis.html">Stress Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="visualization.html">Visualization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">HyFI Core Modules</a></li>
+      <li class="breadcrumb-item active">Fault Network Reconstruction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/fault_network.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="fault-network-reconstruction">
+<h1>Fault Network Reconstruction<a class="headerlink" href="#fault-network-reconstruction" title="Link to this heading"></a></h1>
+<p>The fault network reconstruction module is the core computational engine of <strong>HyFI</strong> that performs 3D fault imaging from earthquake hypocenter data. It combines nearest neighbor search, machine learning-based outlier detection, and principal component analysis (PCA) to reconstruct 3D rupture plane geometries from distributed seismic events. For details, see the original <strong>HyFI</strong> publication (Truttmann et al., 2023).</p>
+<hr class="docutils" />
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading"></a></h2>
+<section id="relocation-uncertainty-propagation">
+<h3>Relocation Uncertainty Propagation<a class="headerlink" href="#relocation-uncertainty-propagation" title="Link to this heading"></a></h3>
+<p>The module implements Monte Carlo simulation to propagate hypocenter location uncertainties through the fault plane estimation process. For each event:</p>
+<ul class="simple">
+<li><p><strong>Input</strong>: Hypocenter location (X, Y, Z) with associated errors (EX, EY, EZ)</p></li>
+<li><p><strong>Process</strong>: Random perturbations drawn from normal distributions with standard deviation equal to the reported location error</p></li>
+<li><p><strong>Iterations</strong>: Multiple independent iterations (n_mc) generate ensemble of possible hypocenters</p></li>
+<li><p><strong>Result</strong>: Probabilistic fault plane estimates accounting for full uncertainty</p></li>
+</ul>
+<p>When <code class="docutils literal notranslate"><span class="pre">n_mc=1</span></code>, the original coordinates are used without perturbation, effectively disabling Monte Carlo simulation.</p>
+</section>
+<section id="nearest-neighbor-search">
+<h3>Nearest Neighbor Search<a class="headerlink" href="#nearest-neighbor-search" title="Link to this heading"></a></h3>
+<p>For each master event, the algorithm finds neighboring earthquakes using scikit-learn (Pedregosa et al, 2011). Two criteria need be specified, which are the key parameters of <strong>HyFI</strong>:</p>
+<ul class="simple">
+<li><p><strong>Spatial</strong>: All events within <code class="docutils literal notranslate"><span class="pre">search_radius_meters</span></code> (<code class="docutils literal notranslate"><span class="pre">r_nn</span></code>) (typically 100-1000 m)</p></li>
+<li><p><strong>Temporal</strong>: All events within <code class="docutils literal notranslate"><span class="pre">search_time_window_hours</span></code> (<code class="docutils literal notranslate"><span class="pre">dt_nn</span></code>) of the master event (typically ±24 hours)</p></li>
+</ul>
+<p>This forms the basis to fit local planes around each earthquake event using PCA.</p>
+</section>
+<section id="principal-component-analysis-pca-for-plane-fitting">
+<h3>Principal Component Analysis (PCA) for Plane Fitting<a class="headerlink" href="#principal-component-analysis-pca-for-plane-fitting" title="Link to this heading"></a></h3>
+<p>The core fault plane estimation uses PCA on the point cloud of neighboring hypocenters (Shakarji, 1998):</p>
+<p><strong>Mathematical basis</strong>:</p>
+<ul class="simple">
+<li><p>Input: 3D coordinates of neighboring events (N × 3 matrix)</p></li>
+<li><p>Compute: Covariance matrix of the point cloud</p></li>
+<li><p>Decompose: Eigendecomposition yields eigenvalues (λ₁ ≥ λ₂ ≥ λ₃) and eigenvectors</p></li>
+<li><p>Plane normal: The eigenvector corresponding to the smallest eigenvalue (λ₃) gives the best-fit plane normal</p></li>
+<li><p>Quality metrics: Ratios of eigenvalues quantify how well-fit the plane is</p></li>
+</ul>
+<p><strong>Physical interpretation</strong>:</p>
+<ul class="simple">
+<li><p>Points strongly distributed around a plane → λ₃ much smaller than λ₁, λ₂ (good planarity)</p></li>
+<li><p>Points distributed along a line → λ₂ similar to λ₁, much larger than λ₃ (poor planarity)</p></li>
+<li><p>Points scattered isotropically → λ₁ ≈ λ₂ ≈ λ₃ (no clear structure)</p></li>
+</ul>
+</section>
+<section id="quality-control-through-eigenvalue-ratios">
+<h3>Quality Control Through Eigenvalue Ratios<a class="headerlink" href="#quality-control-through-eigenvalue-ratios" title="Link to this heading"></a></h3>
+<p>The quality of each plane estimate is evaluated using two key metrics (Jones et al., 2016):</p>
+<ol class="arabic simple">
+<li><p><strong>Planarity (λ₂/λ₃ ratio)</strong>:</p>
+<ul class="simple">
+<li><p>Compares intermediate to smallest eigenvalue</p></li>
+<li><p>Threshold: typically λ₂/λ₃ &gt; 3-5</p></li>
+<li><p>High ratio → points tightly distributed around the plane</p></li>
+<li><p>Low ratio → points scattered, no clear plane</p></li>
+</ul>
+</li>
+<li><p><strong>Collinearity (λ₂ threshold)</strong>:</p>
+<ul class="simple">
+<li><p>Absolute threshold based on mean location error squared</p></li>
+<li><p>Prevents fitting planes when all points are nearly collinear</p></li>
+<li><p>Rejects poor-quality point clouds with insufficient spatial extent</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="focal-mechanism-constraints-optional">
+<h3>Focal Mechanism Constraints (Optional)<a class="headerlink" href="#focal-mechanism-constraints-optional" title="Link to this heading"></a></h3>
+<p>When focal mechanism data is available, the module can optionally enhance the point cloud before PCA:</p>
+<ul class="simple">
+<li><p><strong>Synthetic Point Generation</strong>: For each event with known active focal plane, generates synthetic points distributed on the expected nodal plane</p></li>
+<li><p><strong>Magnitude-Based Scaling</strong>: Uses Leonard (2014) scaling relationships to estimate rupture radius from magnitude</p></li>
+<li><p><strong>Plane Parameterization</strong>: Creates circular fault planes in 3D space with multiple concentric rings of points</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="computational-workflow">
+<h2>Computational Workflow<a class="headerlink" href="#computational-workflow" title="Link to this heading"></a></h2>
+<p>The module executes a well-defined pipeline of steps. Understanding this workflow is essential for appropriate parameterization, interpreting results, and troubleshooting issues:</p>
+<section id="step-1-data-loading-input-validation">
+<h3>Step 1: Data Loading &amp; Input Validation<a class="headerlink" href="#step-1-data-loading-input-validation" title="Link to this heading"></a></h3>
+<p>In this step, data is loaded and the structure of the input dataset is validated.</p>
+<ul class="simple">
+<li><p><strong>Load hypocenter data</strong>: Read catalog file as pandas DataFrame</p></li>
+<li><p><strong>Validate hypocenter catalog format</strong>: Check for required columns (ID, YR, MO, DY, HR, MI, SC, X, Y, Z, EX, EY, EZ, MAG)</p></li>
+<li><p><strong>Parse datetime</strong>: Construct datetime from year/month/day/hour/minute/second columns</p></li>
+<li><p><strong>Handle missing relocation uncertainties</strong>: Replace missing location errors with default of 0 m (no error)</p></li>
+<li><p><strong>Output</strong>: Single DataFrame <code class="docutils literal notranslate"><span class="pre">df_hyfi</span></code> that will be augmented through the pipeline</p></li>
+</ul>
+<p><strong>Example columns at this stage</strong>: ID, Date, X, Y, Z, EX, EY, EZ, MAG, YR, MO, DY, HR, MI, SC</p>
+</section>
+<section id="step-2-automatic-parameter-optimization-optional">
+<h3>Step 2: Automatic Parameter Optimization (Optional)<a class="headerlink" href="#step-2-automatic-parameter-optimization-optional" title="Link to this heading"></a></h3>
+<p>Next, automatic parameter optimization can be used to define optimal nearest-neighbor parameters <code class="docutils literal notranslate"><span class="pre">r_nn</span></code> and <code class="docutils literal notranslate"><span class="pre">dt_nn</span></code>. For this, <code class="docutils literal notranslate"><span class="pre">auto_optimize_parameters</span></code> needs to be set to <code class="docutils literal notranslate"><span class="pre">true</span></code>:</p>
+<ol class="arabic">
+<li><p><strong>Initialize optimizer</strong>: Create <code class="docutils literal notranslate"><span class="pre">ParameterOptimizer</span></code> instance with catalog and optional focal mechanisms</p></li>
+<li><p><strong>Analyze catalog characteristics</strong>:</p>
+<ul class="simple">
+<li><p>Calculate spatial density (nearest neighbor distances, pairwise distances)</p></li>
+<li><p>Calculate temporal distribution (inter-event times, sequence duration, event rates)</p></li>
+<li><p>Analyze magnitude distribution (if available)</p></li>
+<li><p>Estimate initial parameter ranges</p></li>
+</ul>
+</li>
+<li><p><strong>Select optimization method</strong> (configurable):</p>
+<p><strong>Option A: Grid Search</strong> (<code class="docutils literal notranslate"><span class="pre">optimization_method:</span> <span class="pre">'grid_search'</span></code>)</p>
+<ul class="simple">
+<li><p>Evaluate parameter combinations on regular grid</p></li>
+<li><p>Default: 5×5 = 25 evaluations</p></li>
+<li><p>Advantages: Comprehensive, interpretable, parallelizable</p></li>
+<li><p>Execution time: ~5-60 seconds (depending on grid size and catalog)</p></li>
+</ul>
+<p><strong>Option B: Heuristic</strong> (<code class="docutils literal notranslate"><span class="pre">optimization_method:</span> <span class="pre">'heuristic'</span></code>)</p>
+<ul class="simple">
+<li><p>Fast rule-based parameter estimation from catalog statistics</p></li>
+<li><p>Execution time: ~1 second</p></li>
+<li><p>Advantages: Minimal computation, good initial guess</p></li>
+<li><p>Output: Single parameter pair (not a full scan)</p></li>
+</ul>
+<p><strong>Option C: Optuna (RECOMMENDED)</strong> (<code class="docutils literal notranslate"><span class="pre">optimization_method:</span> <span class="pre">'optuna'</span></code>)</p>
+<ul class="simple">
+<li><p>State-of-the-art hyperparameter optimization framework</p></li>
+<li><p>Intelligent sampling: Tree-structured Parzen Estimator (TPE) by default</p></li>
+<li><p>Default: 50 trials with 10 startup random trials</p></li>
+<li><p>Optional: Early stopping if no improvement for N trials</p></li>
+<li><p>Advantages: Efficient exploration, handles complex objectives, produces beautiful visualizations</p></li>
+<li><p>Execution time: ~30-120 seconds (depending on n_trials and catalog)</p></li>
+</ul>
+<p><strong>Option D: Pareto</strong> (<code class="docutils literal notranslate"><span class="pre">optimization_method:</span> <span class="pre">'pareto'</span></code>)</p>
+<ul class="simple">
+<li><p>Multi-objective optimization (plane recovery vs. focal mechanism fit)</p></li>
+<li><p>Default: 100 trials using NSGA-II algorithm</p></li>
+<li><p>Advantages: Balances multiple criteria, generates Pareto frontier</p></li>
+<li><p>Execution time: ~60-180 seconds</p></li>
+<li><p>Output: Pareto-optimal solutions + single “best balanced” recommendation</p></li>
+</ul>
+</li>
+<li><p><strong>Objective function evaluation</strong> (same for all methods):</p>
+<ul class="simple">
+<li><p>For each parameter pair (<code class="docutils literal notranslate"><span class="pre">r_nn</span></code>, <code class="docutils literal notranslate"><span class="pre">dt_nn</span></code>):</p>
+<ol class="arabic simple">
+<li><p>Run fault network reconstruction with those parameters.</p></li>
+<li><p>Count the number of recovered fault planes.</p></li>
+<li><p>If focal mechanisms are available: calculate angular differences with focal solutions.</p></li>
+<li><p>If focal mechanisms are available: compute fit-quality metrics (λ₂/λ₃ ratio).</p></li>
+<li><p>Combine the individual metrics into a single objective score (lower = better, range 0–1).</p></li>
+</ol>
+</li>
+</ul>
+<p><strong>Objective function components</strong> (all converted to minimisation):</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Lower score =</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Focal angular difference</strong></p></td>
+<td><p>Mean angular difference ε between recovered fault plane and best-matching focal nodal plane</p></td>
+<td><p>Smaller ε (better focal fit)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Active plane match rate</strong></p></td>
+<td><p>Fraction of pre-specified focal planes (A=1 or A=2) where the correct nodal plane is selected</p></td>
+<td><p>Higher match rate</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Plane recovery rate</strong></p></td>
+<td><p>Fraction of events for which a fault plane could be recovered</p></td>
+<td><p>Higher recovery</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>λ₂/λ₃ planarity ratio</strong></p></td>
+<td><p>Mean eigenvalue-ratio quality of recovered planes; scaled non-linearly (ratio &lt; 5 → 0, ratio = 5 → 0.7, ratio ≥ 20 → 1.0, capped to avoid domination)</p></td>
+<td><p>Higher planarity</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Adaptive weighting</strong> (<code class="docutils literal notranslate"><span class="pre">optimization_use_adaptive_weights:</span> <span class="pre">true</span></code>, default): weights shift automatically based on the number of matched focal mechanisms, since statistical confidence in the focal fit increases with sample size:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p># matched focals</p></th>
+<th class="head"><p>Angular diff</p></th>
+<th class="head"><p>Active plane</p></th>
+<th class="head"><p>Recovery</p></th>
+<th class="head"><p>Planarity (λ₂/λ₃)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0 (no focals)</p></td>
+<td><p>0%</p></td>
+<td><p>0%</p></td>
+<td><p><strong>70%</strong></p></td>
+<td><p>30%</p></td>
+</tr>
+<tr class="row-odd"><td><p>≤ 5</p></td>
+<td><p>35%</p></td>
+<td><p>3%</p></td>
+<td><p><strong>50%</strong></p></td>
+<td><p>15%</p></td>
+</tr>
+<tr class="row-even"><td><p>≤ 20</p></td>
+<td><p>50%</p></td>
+<td><p>4%</p></td>
+<td><p>35%</p></td>
+<td><p>13%</p></td>
+</tr>
+<tr class="row-odd"><td><p>&gt; 20</p></td>
+<td><p><strong>65%</strong></p></td>
+<td><p>5%</p></td>
+<td><p>25%</p></td>
+<td><p>10%</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Fixed weighting</strong> (<code class="docutils literal notranslate"><span class="pre">optimization_use_adaptive_weights:</span> <span class="pre">false</span></code>): uses the “&gt; 20 focals” column above regardless of actual focal count.</p>
+</li>
+<li><p><strong>Results processing</strong>:</p>
+<ul class="simple">
+<li><p>Extract best parameters (minimum objective score)</p></li>
+<li><p>Generate parameter importance plots (if <code class="docutils literal notranslate"><span class="pre">plot_results:</span> <span class="pre">true</span></code>)</p></li>
+<li><p>Generate summary CSV with all trial results</p></li>
+</ul>
+</li>
+<li><p><strong>Parameter application</strong>:</p>
+<ul class="simple">
+<li><p>Use optimized <code class="docutils literal notranslate"><span class="pre">r_nn</span></code> and <code class="docutils literal notranslate"><span class="pre">dt_nn</span></code> for subsequent fault plane fitting</p></li>
+<li><p>Log optimization results and selected parameters</p></li>
+<li><p>Store results in <code class="docutils literal notranslate"><span class="pre">optimization_summary.csv</span></code> (location: output directory)</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="step-3-focal-mechanism-integration-optional">
+<h3>Step 3: Focal Mechanism Integration (Optional)<a class="headerlink" href="#step-3-focal-mechanism-integration-optional" title="Link to this heading"></a></h3>
+<p>In this step, focal mechanism data is loaded and merged with the hypocenters to include additional knowledge from known nodal planes already in the fault network module (only if <code class="docutils literal notranslate"><span class="pre">use_focal_constraints:</span> <span class="pre">true</span></code>).</p>
+<ul class="simple">
+<li><p><strong>Load focal mechanism catalog</strong>: If provided, read strike/dip and focal plane data</p></li>
+<li><p><strong>Merge by event ID</strong>: Align focal mechanism data with hypocenters using ID matching</p></li>
+<li><p><strong>Add columns</strong>: Strike1, Dip1, Rake1, Strike2, Dip2, Rake2, A (active plane indicator)</p></li>
+<li><p><strong>Validation</strong>: Check data consistency and completeness</p></li>
+</ul>
+<p><strong>Output columns added</strong>: Strike1, Dip1, Rake1, Strike2, Dip2, Rake2, A (filled with NaN if no focal data)</p>
+</section>
+<section id="step-4-outlier-detection">
+<h3>Step 4: Outlier Detection<a class="headerlink" href="#step-4-outlier-detection" title="Link to this heading"></a></h3>
+<p>Identify outliers in the hypocenter catalog (individual sequence) to clean up the catalog. This ensures that outliers in the sequence don’t influence/disturbt the PCA fitting. Three different methods are available:</p>
+<section id="option-a-dbscan-density-based-spatial-clustering-recommended">
+<h4>Option A: DBSCAN (Density-Based Spatial Clustering; RECOMMENDED)<a class="headerlink" href="#option-a-dbscan-density-based-spatial-clustering-recommended" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p><strong>Method</strong>: Groups points by density, marks isolated points as outliers</p></li>
+<li><p><strong>Advantages</strong>: Finds clusters of arbitrary shape, automatic cluster count</p></li>
+<li><p><strong>Parameters</strong>: Auto-tuned based on k-distance graph (75th percentile distance)</p></li>
+<li><p><strong>Use Case</strong>: Best for identifying spatially separated event clusters or regional anomalies</p></li>
+</ul>
+<ol class="arabic simple">
+<li><p><strong>Calculate k-distance graph</strong>: Find distance to k-th nearest neighbor for each event</p></li>
+<li><p><strong>Auto-tune eps parameter</strong>: Use 75th percentile of k-distances × 1.5 for search radius</p></li>
+<li><p><strong>Apply DBSCAN clustering</strong>: Group events by spatial density (min_samples=5)</p></li>
+<li><p><strong>Identify isolated events</strong>: Mark events with cluster label -1 as outliers</p></li>
+<li><p><strong>Protect focal mechanisms</strong>: Events with valid focal mechanisms (A=1 or A=2) reassigned to largest cluster</p></li>
+</ol>
+<p><strong>Output</strong>: <code class="docutils literal notranslate"><span class="pre">clust_labels</span></code> column (-1 for outliers, 0+ for clusters)</p>
+</section>
+<section id="option-b-local-outlier-factor-lof">
+<h4>Option B: Local Outlier Factor (LOF)<a class="headerlink" href="#option-b-local-outlier-factor-lof" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p><strong>Method</strong>: Compares local density of each point vs. its neighbors</p></li>
+<li><p><strong>Advantages</strong>: Sensitive to local density variations, detects contextual outliers</p></li>
+<li><p><strong>Parameters</strong>: n_neighbors (auto-tuned based on √N), contamination rate</p></li>
+<li><p><strong>Use Case</strong>: Best for continuous density variations, detecting events isolated from their neighborhood</p></li>
+</ul>
+<ol class="arabic simple">
+<li><p><strong>Auto-tune n_neighbors</strong>: Set to √(N) if not specified, capped at 10-50</p></li>
+<li><p><strong>Calculate local density</strong>: Compute LOF scores based on neighbor density ratios</p></li>
+<li><p><strong>Set contamination threshold</strong>: Expected outlier fraction (default=’auto’)</p></li>
+<li><p><strong>Mark outliers</strong>: Events with LOF score below threshold flagged as -1</p></li>
+<li><p><strong>Protect focal mechanisms</strong>: Reassign constrained events to inliers (cluster 0)</p></li>
+</ol>
+<p><strong>Output</strong>: <code class="docutils literal notranslate"><span class="pre">clust_labels</span></code> column (-1 for outliers, 0 for inliers), <code class="docutils literal notranslate"><span class="pre">lof_score</span></code> column</p>
+</section>
+<section id="option-c-isolation-forest">
+<h4>Option C: Isolation Forest<a class="headerlink" href="#option-c-isolation-forest" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p><strong>Method</strong>: Recursively isolates points using random feature selection</p></li>
+<li><p><strong>Advantages</strong>: Fast, scalable, works in high dimensions, no distance metrics</p></li>
+<li><p><strong>Parameters</strong>: Conservative default contamination (5%), configurable estimator count</p></li>
+<li><p><strong>Use Case</strong>: Best for high-dimensional problems and very large datasets</p></li>
+</ul>
+<ol class="arabic simple">
+<li><p><strong>Build ensemble</strong>: Train 100 isolation trees (configurable)</p></li>
+<li><p><strong>Set contamination</strong>: Default 0.05 (5%, conservative) or user-specified</p></li>
+<li><p><strong>Isolate anomalies</strong>: Events requiring fewer splits to isolate → more anomalous</p></li>
+<li><p><strong>Score events</strong>: Negative scores indicate outliers</p></li>
+<li><p><strong>Protect focal mechanisms</strong>: Reassign constrained events to inliers (cluster 0)</p></li>
+</ol>
+<p><strong>Output</strong>: <code class="docutils literal notranslate"><span class="pre">clust_labels</span></code> column (-1 for outliers, 0 for inliers), <code class="docutils literal notranslate"><span class="pre">isolation_score</span></code> column</p>
+<p><strong>If no outlier detection</strong>: All events assigned <code class="docutils literal notranslate"><span class="pre">clust_labels=0</span></code>
+<strong>Focal Mechanism Protection</strong>: Events with valid focal mechanisms (A=1 or A=2) are protected from outlier removal and reassigned to the largest cluster.</p>
+</section>
+</section>
+<section id="step-5-hypocenter-perturbation-monte-carlo-iterations">
+<h3>Step 5: Hypocenter Perturbation (Monte Carlo Iterations)<a class="headerlink" href="#step-5-hypocenter-perturbation-monte-carlo-iterations" title="Link to this heading"></a></h3>
+<p>This step creates a dataset of shifted hypocenter that are perturbed within their relocation errors (EX, EY, EZ). For each iteration k = 1 to n_mc:</p>
+<p><strong>For n_mc = 1</strong>: Use original coordinates without perturbation (fast, uncertainty ignored)</p>
+<p><strong>For n_mc &gt; 1</strong>: Create perturbed copies</p>
+<ol class="arabic simple">
+<li><p><strong>Random sampling</strong>: For each coordinate (X, Y, Z)</p></li>
+<li><p><strong>Normal distribution</strong>: Draw from N(location, error_std)</p></li>
+<li><p><strong>Standard deviation</strong>: Set to reported location error</p></li>
+<li><p><strong>Repeat</strong>: Generate n_mc independent realizations</p></li>
+<li><p><strong>Output arrays</strong>: Shape = (n_events, n_mc)</p></li>
+</ol>
+<p><strong>Example</strong>: Event with X=2683500±10m generates n_mc different X values around 2683500</p>
+<p><strong>Mathematical basis</strong>:</p>
+<ul class="simple">
+<li><p>Error interpretation: Reported error ≈ 1-sigma uncertainty (standard deviation)</p></li>
+<li><p>Normal assumption: Location uncertainty follows normal distribution</p></li>
+</ul>
+</section>
+<section id="step-6-neighbor-search-point-cloud-creation">
+<h3>Step 6: Neighbor Search &amp; Point Cloud Creation<a class="headerlink" href="#step-6-neighbor-search-point-cloud-creation" title="Link to this heading"></a></h3>
+<p>In this step, for each iteration and each earthquake event i, the nearest neighbors are extracted:</p>
+<ol class="arabic simple">
+<li><p><strong>Spatial radius search</strong>:</p>
+<ul class="simple">
+<li><p>Find all events j within <code class="docutils literal notranslate"><span class="pre">search_radius_meters</span></code> of event i</p></li>
+<li><p>Use k-d tree for efficient nearest-neighbor lookup</p></li>
+<li><p>Return indices and distances</p></li>
+</ul>
+</li>
+<li><p><strong>Temporal window filtering</strong>:</p>
+<ul class="simple">
+<li><p>Calculate time difference between event i and each neighbor j</p></li>
+<li><p>Remove neighbors with |date_i - date_j| &gt; <code class="docutils literal notranslate"><span class="pre">search_time_window_hours</span></code></p></li>
+<li><p>Keep only temporally coherent neighbors</p></li>
+</ul>
+</li>
+<li><p><strong>Point cloud assembly</strong>:</p>
+<ul class="simple">
+<li><p>Collect 3D coordinates of remaining neighbors</p></li>
+<li><p>Optional: Add synthetic points from focal mechanism constraints</p></li>
+<li><p>Result: N×3 matrix of neighbor coordinates</p></li>
+</ul>
+</li>
+<li><p><strong>Quality check</strong>:</p>
+<ul class="simple">
+<li><p>Require minimum N ≥ <code class="docutils literal notranslate"><span class="pre">min_neighbor_count</span></code> (typically 5)</p></li>
+<li><p>Skip plane fitting if threshold not met (return NaN)</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Output</strong>: List of point clouds, one per event</p>
+</section>
+<section id="step-7-principal-component-analysis-pca-plane-fitting">
+<h3>Step 7: Principal Component Analysis (PCA) - Plane Fitting<a class="headerlink" href="#step-7-principal-component-analysis-pca-plane-fitting" title="Link to this heading"></a></h3>
+<p>For each event i and the extracted neighbors from step 6, a rupture plane is calculated using PCA:</p>
+<ol class="arabic simple">
+<li><p><strong>Covariance matrix</strong>:</p>
+<ul class="simple">
+<li><p>Input: N×3 matrix of neighbor coordinates</p></li>
+<li><p>Center data to origin</p></li>
+<li><p>Compute: Cov = (X^T X) / (N-1)</p></li>
+</ul>
+</li>
+<li><p><strong>Eigendecomposition</strong>:</p>
+<ul class="simple">
+<li><p>Calculate eigenvalues: λ₁ ≥ λ₂ ≥ λ₃ ≥ 0</p></li>
+<li><p>Calculate eigenvectors: e₁, e₂, e₃ (orthonormal)</p></li>
+</ul>
+</li>
+<li><p><strong>Plane extraction</strong>:</p>
+<ul class="simple">
+<li><p><strong>Normal vector</strong>: n = e₃ (eigenvector of smallest eigenvalue)</p></li>
+<li><p><strong>In-plane vector 1</strong>: v₁ = e₁ (direction of maximum variance)</p></li>
+<li><p><strong>In-plane vector 2</strong>: v₂ = e₂ (direction of secondary variance)</p></li>
+</ul>
+</li>
+<li><p><strong>Orientation convention</strong>:</p>
+<ul class="simple">
+<li><p>Enforce lower-hemisphere convention: z-component of n &lt; 0</p></li>
+<li><p>Flip if needed: n → -n</p></li>
+</ul>
+</li>
+<li><p><strong>Quality metrics</strong>:</p>
+<ul class="simple">
+<li><p><strong>Planarity ratio</strong>: λ₂/λ₃ (higher = more planar)</p></li>
+<li><p><strong>Collinearity check</strong>: λ₂ &gt; threshold (based on location error)</p></li>
+<li><p><strong>Eigenvalue spread</strong>: λ₁, λ₂, λ₃ (characterize point distribution)</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Output per event</strong>: [n_x, n_y, n_z, v1_x, v1_y, v1_z, v2_x, v2_y, v2_z, λ₁, λ₂, λ₃, λ₂/λ₃, total_variance]</p>
+</section>
+<section id="step-8-repeat-for-all-monte-carlo-iterations">
+<h3>Step 8: Repeat for All Monte Carlo Iterations<a class="headerlink" href="#step-8-repeat-for-all-monte-carlo-iterations" title="Link to this heading"></a></h3>
+<p>Steps 5-7 repeat n_mc times, producing:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">plane_fit_list</span></code>: List of n_mc arrays, each with shape (n_events, 14)</p></li>
+<li><p>Ensemble of plane estimates representing uncertainty</p></li>
+</ul>
+</section>
+<section id="step-9-spherical-statistics-aggregation">
+<h3>Step 9: Spherical Statistics &amp; Aggregation<a class="headerlink" href="#step-9-spherical-statistics-aggregation" title="Link to this heading"></a></h3>
+<p>For each event i, all n_mc rupture plane estimates are aggregated and evaluated using directional statistics:</p>
+<ol class="arabic simple">
+<li><p><strong>Extract vectors</strong>:</p>
+<ul class="simple">
+<li><p>Collect all n normal vectors from n_mc iterations</p></li>
+<li><p>Remove NaN values (failed fits)</p></li>
+<li><p>Check success rate: require &gt;80% valid fits for statistics</p></li>
+</ul>
+</li>
+<li><p><strong>Hemispherical registration</strong>:</p>
+<ul class="simple">
+<li><p>Reference first valid vector</p></li>
+<li><p>Flip other vectors if angular distance &gt; 90° (ensure same hemisphere)</p></li>
+<li><p>Ensures consistent orientation across iterations</p></li>
+</ul>
+</li>
+<li><p><strong>Vector statistics</strong>:</p>
+<ul class="simple">
+<li><p><strong>Resultant vector</strong>: R = Σn_i (sum of all normal vectors)</p></li>
+<li><p><strong>Resultant length</strong>: |R|</p></li>
+<li><p><strong>Resultant norm</strong>: R/N (length normalized by count)</p></li>
+</ul>
+</li>
+<li><p><strong>Kent distribution fitting</strong> (if n_mc &gt; 1):</p>
+<ul class="simple">
+<li><p>Fit Kent (spherical bivariate normal) distribution</p></li>
+<li><p>Extract concentration parameter: κ (how clustered are the vectors)</p></li>
+<li><p>Extract ovalness parameter: β (how elliptical is the distribution)</p></li>
+<li><p>Physical meaning: κ &gt; 10 indicates well-constrained orientations</p></li>
+</ul>
+</li>
+<li><p><strong>Mean orientation</strong>:</p>
+<ul class="simple">
+<li><p>Calculate mean vector: m = R / |R|</p></li>
+<li><p>Convert to azimuth and dip angles</p></li>
+<li><p>These are the final fault plane parameters</p></li>
+</ul>
+</li>
+<li><p><strong>Quality summary</strong>:</p>
+<ul class="simple">
+<li><p><strong>nr_fits</strong>: Fraction of successful plane fits (0-1)</p></li>
+<li><p><strong>R, N, R/N</strong>: Resultant statistics</p></li>
+<li><p><strong>kappa, beta</strong>: Kent distribution parameters</p></li>
+<li><p><strong>mean_λ₂/λ₃</strong>: Average planarity across iterations</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Output per event</strong>:</p>
+<ul class="simple">
+<li><p>nor_x_mean, nor_y_mean, nor_z_mean: Mean normal vector components</p></li>
+<li><p>nr_fits: Fraction of successful fits</p></li>
+<li><p>R, N, R/N: Resultant statistics</p></li>
+<li><p>kappa, beta: Directional distribution parameters</p></li>
+<li><p>lambda_2_3: Mean planarity ratio</p></li>
+</ul>
+</section>
+<section id="step-10-normal-vector-to-fault-parameters">
+<h3>Step 10: Normal Vector to Fault Parameters<a class="headerlink" href="#step-10-normal-vector-to-fault-parameters" title="Link to this heading"></a></h3>
+<p>This converts the mean normal vector (n_x, n_y, n_z) to geological azimuth/dip angles:</p>
+<p><strong>Output columns</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rupt_plane_azi</span></code>: Dip direction azimuth (0-360°)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rupt_plane_dip</span></code>: Dip angle (0-90°)</p></li>
+</ul>
+</section>
+<section id="step-11-magnitude-based-rupture-scaling">
+<h3>Step 11: Magnitude-Based Rupture Scaling<a class="headerlink" href="#step-11-magnitude-based-rupture-scaling" title="Link to this heading"></a></h3>
+<p>In this step, the earthquake magnitude is translated into expected rupture size, assuming cirulcar ruptures. The module includes multiple empirical rupture scaling relationships:</p>
+<ul class="simple">
+<li><p><strong>Leonard (2014)</strong>:</p></li>
+<li><p><strong>Wells &amp; Coppersmith (1994)</strong></p></li>
+<li><p><strong>Thingbaijam (2017)</strong></p></li>
+</ul>
+<p>These convert moment magnitude (Mw) to rupture area and radius, enabling synthetic fault plane generation.</p>
+<ol class="arabic simple">
+<li><p><strong>Input magnitude</strong>: MAG column (ML or Mw)</p></li>
+<li><p><strong>Convert ML → Mw</strong>: If needed (Goertz-Allmann et al. 2011)</p></li>
+<li><p><strong>Scaling relationship</strong>: Apply Leonard (2014) for stable continental regions</p>
+<ul class="simple">
+<li><p>Mw = 4.18 + log(A)  where A = rupture area in km²</p></li>
+</ul>
+</li>
+<li><p><strong>Calculate rupture area</strong>: A = 10^(Mw - 4.18) km²</p></li>
+<li><p><strong>Calculate rupture radius</strong>: r = √(A/π) meters</p>
+<ul class="simple">
+<li><p>Assumes circular rupture plane</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Output columns</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Mw</span></code>: Moment magnitude (converted if input was ML)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rupt_area</span></code>: Rupture area in km²</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rupt_radius</span></code>: Rupture radius in meters</p></li>
+</ul>
+</section>
+<section id="step-12-final-output">
+<h3>Step 12: Final Output<a class="headerlink" href="#step-12-final-output" title="Link to this heading"></a></h3>
+<p>This returns the DataFrame <code class="docutils literal notranslate"><span class="pre">df_hyfi</span></code> populated with all computed parameters from the fault network module:</p>
+<p><strong>Original columns</strong>: ID, Date, X, Y, Z, EX, EY, EZ, MAG, YR, MO, DY, HR, MI, SC</p>
+<p><strong>Added columns from outlier detection</strong>:</p>
+<ul class="simple">
+<li><p>clust_labels: Cluster assignment (-1 for outliers)</p></li>
+</ul>
+<p><strong>Added columns from focal mechanism merge</strong> (if available):</p>
+<ul class="simple">
+<li><p>Strike1, Dip1, Rake1, Strike2, Dip2, Rake2, A</p></li>
+</ul>
+<p><strong>Added columns from plane fitting</strong>:</p>
+<ul class="simple">
+<li><p>nor_x_mean, nor_y_mean, nor_z_mean: Mean normal vector</p></li>
+<li><p>nr_fits: Fraction of successful MC fits</p></li>
+<li><p>R, N, R/N: Resultant statistics</p></li>
+<li><p>kappa, beta: Kent distribution parameters</p></li>
+<li><p>lambda_2_3: Mean planarity ratio</p></li>
+<li><p>rupt_plane_azi, rupt_plane_dip: Fault plane orientation</p></li>
+</ul>
+<p><strong>Added columns from magnitude scaling</strong>:</p>
+<ul class="simple">
+<li><p>Mw: Moment magnitude</p></li>
+<li><p>rupt_area: Rupture area (km²)</p></li>
+<li><p>rupt_radius: Rupture radius (m)</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="main-outputs">
+<h2>Main Outputs<a class="headerlink" href="#main-outputs" title="Link to this heading"></a></h2>
+<p>xxx Complement</p>
+</section>
+<hr class="docutils" />
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Goertz-Allmann, B. P., Edwards, B., Bethmann, F., Deichmann, N., Clinton, J., Fäh, D., &amp; Giardini, D. (2011). A new empirical magnitude scaling relation for Switzerland. Bulletin of the Seismological Society of America, 101(6), 3088–3095. https://doi.org/10.1785/0120100291</p></li>
+<li><p>Jones, R. R., Pearce, M. A., Jacquemyn, C., &amp; Watson, F. E. (2016). Robust best-fit planes from geospatial data. Geosphere, 12(1), 196–202. https://doi.org/10.1130/GES01247.1</p></li>
+<li><p>Leonard, M. (2014). Self-consistent earthquake fault-scaling relations: Update and extension to stable continental strike-slip faults. Bulletin of the Seismological Society of America, 104(6), 2953-2965.</p></li>
+<li><p>Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., &amp; Thirion, B. (2011). Scikit-learn: Machine learning in Python. Journal of Machine Learning Research, 12, 2825–2830. https://doi.org/10.1289/EHP4713</p></li>
+<li><p>Shakarji, C. M. (1998). Least-squares fitting algorithms of the NIST algorithm testing system. Journal of Research of the National Institute of Standards and Technology, 103(6), 633–641. https://doi.org/10.6028/jres.103.043</p></li>
+<li><p>Thingbaijam, K, Martin Mai, P., Goda, K. (2017). New Empirical Earthquake Source‐Scaling Laws. Bulletin of the Seismological Society of America 2017;; 107 (5): 2225–2246. doi: https://doi.org/10.1785/0120170017</p></li>
+<li><p>Wells, D. L., &amp; Coppersmith, K. J. (1994). New empical relationship between magnitude, rupture length, rupture width, rupture area, and surface displacement. Bulletin of the Seismological Society of America, 84(4), 974–1002.</p></li>
+<li><p>Truttmann, S., Diehl, T., &amp; Herwegh, M. (2023). Hypocenter-based 3D imaging of active faults: Method and applications in the Southwestern Swiss Alps. Journal of Geophysical Research: Solid Earth, 128, e2023JB026352. https://doi.org/10.1029/2023JB026352</p></li>
+</ul>
+<hr class="docutils" />
+<p>Happy fault imaging! 🎉</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="HyFI Core Modules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="model_validation.html" class="btn btn-neutral float-right" title="Model Validation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

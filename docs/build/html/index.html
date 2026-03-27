@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to HyFI’s documentation! &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation Guide" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            HyFI
+              <img src="_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to HyFI’s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="welcome-to-hyfi-s-documentation">
+<h1>Welcome to HyFI’s documentation!<a class="headerlink" href="#welcome-to-hyfi-s-documentation" title="Link to this heading"></a></h1>
+<p><a class="reference external" href="https://zenodo.org/badge/latestdoi/582537470"><img alt="DOI" src="https://zenodo.org/badge/582537470.svg" /></a>
+<a class="reference external" href="https://github.com/sandrotruttmann/HyFI"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-Repository-blue?logo=github" /></a></p>
+<p><strong>HyFI</strong> (Hypocenter-based 3D Imaging of Active Faults) is a Python package for imaging active faults in 3D based on relatively relocated hypocenter datasets.</p>
+<section id="scientific-publication">
+<h2>Scientific Publication<a class="headerlink" href="#scientific-publication" title="Link to this heading"></a></h2>
+<p>If you use the code in this repository please cite the following scientific publication:</p>
+<p>Truttmann, S., Diehl, T., Herwegh, M. (2023). Hypocenter-based 3D Imaging of Active Faults: Method and Applications in the Southwestern Swiss Alps. <em>Journal of Geophysical Research: Solid Earth</em>. https://doi.org/10.1029/2023JB026352</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-1-install-miniforge-mamba-package-manager">Step 1: Install Miniforge (Mamba Package Manager)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-2-download-hyfi">Step 2: Download HyFI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-3-create-the-mamba-environment">Step 3: Create the Mamba Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-4-install-hyfi">Step 4: Install HyFI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-5-verify-installation">Step 5: Verify Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-6-run-a-test-example">Step 6: Run a Test Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#step-7-install-paraview-optional-for-3d-visualization">Step 7: Install ParaView (Optional, for 3D Visualization)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#running-your-first-analysis">Running Your First Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#using-your-own-data">Using Your Own Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">HyFI Processing Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#single-sequence-processing">Single-Sequence Processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="workflows.html#when-to-use-single-sequence-processing">When to Use Single-Sequence Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workflows.html#configuration-structure">Configuration Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workflows.html#running-single-sequence-analysis">Running Single-Sequence Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#multi-sequence-processing">Multi-Sequence Processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="workflows.html#when-to-use-multi-sequence-processing">When to Use Multi-Sequence Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workflows.html#multi-sequence-processing-explained">Multi-Sequence Processing Explained</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workflows.html#id1">Configuration Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workflows.html#running-multi-sequence-analysis">Running Multi-Sequence Analysis</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">HyFI Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#configuration-file-structure">Configuration File Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#single-sequence-dag-configuration">Single-Sequence DAG Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#main-sections">Main Sections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#minimal-configuration-example">Minimal Configuration Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#multi-sequence-dag-configuration">Multi-Sequence DAG Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#id1">Main Sections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#id2">Minimal Configuration Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#complete-parameter-reference">Complete Parameter Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="input_parameters.html">HyFI Input Parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="input_parameters.html#table-of-contents">Table of Contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_parameters.html#metadata">Metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_parameters.html#global-settings">Global Settings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#common-settings-single-multi-sequence">Common Settings (Single &amp; Multi-Sequence)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#multi-sequence-only-settings">Multi-Sequence Only Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="input_parameters.html#input-data">Input Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#file-requirements">File Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#required-hypocenter-columns">Required Hypocenter Columns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#required-focal-mechanism-columns-optional">Required Focal Mechanism Columns (Optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#data-source-conversions">Data Source Conversions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#csv-example">CSV Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#data-validation">Data Validation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="input_parameters.html#fault-network">Fault Network</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#core-network-parameters">Core Network Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#outlier-detection">Outlier Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#focal-mechanism-constraints">Focal Mechanism Constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#automatic-parameter-optimization">Automatic Parameter Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="input_parameters.html#model-validation">Model Validation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#validation-parameters">Validation Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="input_parameters.html#auto-classification">Auto Classification</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#orientation-clustering-parameters">Orientation Clustering Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#spatial-sub-clustering-parameters">Spatial Sub-Clustering Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="input_parameters.html#stress-analysis">Stress Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#regional-stress-field-parameters">Regional Stress Field Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#mechanical-properties-parameters">Mechanical Properties Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="input_parameters.html#visualization">Visualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#basic-visualization-parameters">Basic Visualization Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#fault-surface-interpolation-parameters">Fault Surface Interpolation Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#d-export-parameters">3D Export Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="input_parameters.html#multi-sequence-processing">Multi-Sequence Processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#step-1-load-input-data">Step 1: Load Input Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#step-2-segmentation-configuration">Step 2: Segmentation Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#step-3-per-sequence-analysis-configuration">Step 3: Per-Sequence Analysis Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input_parameters.html#step-4-merge-and-export-configuration">Step 4: Merge and Export Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/index.html">HyFI Core Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules/index.html#core-module-execution-order">Core Module Execution Order</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/index.html#core-analysis-modules">Core Analysis Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="modules/fault_network.html">Fault Network Reconstruction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules/model_validation.html">Model Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules/auto_classification.html">Automatic Classification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules/stress_analysis.html">Stress Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules/visualization.html">Visualization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output.html">HyFI Output</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="output.html#single-sequence-output-structure">Single-Sequence Output Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output.html#multi-sequence-output-structure">Multi-Sequence Output Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="querying.html">HyFI Database Querying</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="querying.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="querying.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="querying.html#query-methods">Query Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="querying.html#hyfi-query-cli">HyFI Query CLI</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="querying.html#basic-usage">Basic Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="querying.html#available-cli-commands">Available CLI commands</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="querying.html#quick-start-with-direct-sql-queries">Quick Start with Direct SQL Queries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="querying.html#basic-query">Basic Query</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/hyfi.html">hyfi package</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+</ul>
+<ul class="simple">
+<li><p><strong><a class="reference internal" href="workflows.html"><span class="doc std std-doc">Processing Workflow</span></a></strong>: Understand the different processing workflows of HyFI to analyze simple or more complex earthquake catalogs</p></li>
+<li><p><strong><a class="reference internal" href="configuration.html"><span class="doc std std-doc">Configuration Guide</span></a></strong>: Learn how to set up JSON configuration files for your analysis</p></li>
+<li><p><strong><a class="reference internal" href="input_parameters.html"><span class="doc std std-doc">Input Parameters</span></a></strong>: Detailed documentation of all configuration parameters, including data source conversion</p></li>
+<li><p><strong><a class="reference internal" href="modules/index.html"><span class="doc std std-doc">HyFI Modules</span></a></strong>: Understand the different analysis modules (fault network, validation, classification, stress analysis)</p></li>
+<li><p><strong><a class="reference internal" href="output.html"><span class="doc std std-doc">Output Guide</span></a></strong>: Learn about the generated output files and visualizations</p></li>
+<li><p><strong><a class="reference internal" href="querying.html"><span class="doc std std-doc">Queries</span></a></strong>: Learn how to efficiently query the HyFI results using SQL and DuckDB.</p></li>
+<li><p><strong><a class="reference internal" href="#examples"><span class="xref myst">Examples</span></a></strong>: Explore example projects and use cases</p></li>
+</ul>
+<hr class="docutils" />
+<p>Happy fault imaging! 🎉</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

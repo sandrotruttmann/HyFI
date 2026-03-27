@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hyfi.core package &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="hyfi.utils package" href="hyfi.utils.html" />
+    <link rel="prev" title="hyfi.config package" href="hyfi.config.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HyFI
+              <img src="../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="hyfi.html">hyfi package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.AutoClassConfig"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.ConfigValidationError"><code class="docutils literal notranslate"><span class="pre">ConfigValidationError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.FaultImagingWorkflow"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.FaultNetworkConfig"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.ModelValidationConfig"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.ProjectConfig"><code class="docutils literal notranslate"><span class="pre">ProjectConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.StressAnalysisConfig"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.auto_classification"><code class="docutils literal notranslate"><span class="pre">auto_classification()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.auto_load_config"><code class="docutils literal notranslate"><span class="pre">auto_load_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.create_template_config"><code class="docutils literal notranslate"><span class="pre">create_template_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.fault_stress"><code class="docutils literal notranslate"><span class="pre">fault_stress()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.faultnetwork3D"><code class="docutils literal notranslate"><span class="pre">faultnetwork3D()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.faults_stereoplot"><code class="docutils literal notranslate"><span class="pre">faults_stereoplot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.focal_validation"><code class="docutils literal notranslate"><span class="pre">focal_validation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.model_3d"><code class="docutils literal notranslate"><span class="pre">model_3d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.save_config_to_json"><code class="docutils literal notranslate"><span class="pre">save_config_to_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.save_data"><code class="docutils literal notranslate"><span class="pre">save_data()</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="hyfi.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="hyfi.config.html">hyfi.config package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">hyfi.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hyfi.utils.html">hyfi.utils package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hyfi.visualization.html">hyfi.visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#module-hyfi.cli">hyfi.cli module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="hyfi.html">hyfi package</a></li>
+      <li class="breadcrumb-item active">hyfi.core package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/hyfi.core.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-hyfi.core">
+<span id="hyfi-core-package"></span><h1>hyfi.core package<a class="headerlink" href="#module-hyfi.core" title="Link to this heading"></a></h1>
+<p>Core analysis modules for hypocenter-based fault imaging.</p>
+<p>This module contains the main computational components:
+- Fault network reconstruction
+- Model validation
+- Automatic classification
+- Stress analysis</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="hyfi.core.FaultImagingWorkflow">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hyfi.core.</span></span><span class="sig-name descname"><span class="pre">FaultImagingWorkflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig" title="hyfi.config.parameters.ProjectConfig"><span class="pre">ProjectConfig</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/workflow.html#FaultImagingWorkflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.core.FaultImagingWorkflow" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Main workflow class for hypocenter-based 3D fault imaging.</p>
+<p>This class manages the complete workflow including:
+- Fault network reconstruction
+- Model validation with focal mechanisms
+- Automatic classification
+- Stress analysis
+- Visualization and data saving</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.core.FaultImagingWorkflow.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig" title="hyfi.config.parameters.ProjectConfig"><span class="pre">ProjectConfig</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/workflow.html#FaultImagingWorkflow.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.core.FaultImagingWorkflow.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the workflow with configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="hyfi.html#hyfi.ProjectConfig" title="hyfi.ProjectConfig"><em>ProjectConfig</em></a>) – Configuration object containing all parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.core.FaultImagingWorkflow.get_results_summary">
+<span class="sig-name descname"><span class="pre">get_results_summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/hyfi/core/workflow.html#FaultImagingWorkflow.get_results_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.core.FaultImagingWorkflow.get_results_summary" title="Link to this definition"></a></dt>
+<dd><p>Get a summary of the analysis results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Summary statistics and key results</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.core.FaultImagingWorkflow.run_fault_network_only">
+<span class="sig-name descname"><span class="pre">run_fault_network_only</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/hyfi/core/workflow.html#FaultImagingWorkflow.run_fault_network_only"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.core.FaultImagingWorkflow.run_fault_network_only" title="Link to this definition"></a></dt>
+<dd><p>Run only the fault network reconstruction module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(data_input, data_input_outliers, data_output, df_per_X, df_per_Y, df_per_Z)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.core.FaultImagingWorkflow.run_full_analysis">
+<span class="sig-name descname"><span class="pre">run_full_analysis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/hyfi/core/workflow.html#FaultImagingWorkflow.run_full_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.core.FaultImagingWorkflow.run_full_analysis" title="Link to this definition"></a></dt>
+<dd><p>Run the complete fault imaging workflow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing all results from the analysis</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.core.auto_classification">
+<span class="sig-prename descclassname"><span class="pre">hyfi.core.</span></span><span class="sig-name descname"><span class="pre">auto_classification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_hyfi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starting_fault_counter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmentation_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/auto_class.html#auto_classification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.core.auto_classification" title="Link to this definition"></a></dt>
+<dd><p>Automatic classification of point cloud based on fault orientations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Input parameters containing clustering configuration.</p></li>
+<li><p><strong>df_hyfi</strong> (<em>DataFrame</em>) – Input dataframe containing all hypocenter data and computed fault parameters.
+Clustering results will be added as new columns to this dataframe.</p></li>
+<li><p><strong>starting_fault_counter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Starting value for global fault counter (default: 1)</p></li>
+<li><p><strong>sequence_label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Label of the sequence being processed (e.g., ‘A1’, ‘B2’)</p></li>
+<li><p><strong>segmentation_level</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Segmentation level letter (e.g., ‘A’, ‘B’, ‘C’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>df_hyfi</strong> (<em>DataFrame</em>) – Input dataframe with added clustering columns and global fault IDs.</p></li>
+<li><p><strong>fault_metadata</strong> (<em>list</em>) – List of dictionaries containing metadata for each fault</p></li>
+<li><p><strong>next_fault_counter</strong> (<em>int</em>) – Next available fault counter value</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.core.fault_stress">
+<span class="sig-prename descclassname"><span class="pre">hyfi.core.</span></span><span class="sig-name descname"><span class="pre">fault_stress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_hyfi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/stress_analysis.html#fault_stress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.core.fault_stress" title="Link to this definition"></a></dt>
+<dd><p>Calculate the stress parameters for each individual earthquake.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df_hyfi</strong> (<em>DataFrame</em>) – Single dataframe containing fault plane data and results.</p></li>
+<li><p><strong>input_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Input parameters for stress analysis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>df_hyfi</strong> (<em>DataFrame</em>) – Input dataframe with added stress analysis columns.</p></li>
+<li><p><strong>S2_trend</strong> (<em>float</em>) – Trend of intermediate principal stress.</p></li>
+<li><p><strong>S2_plunge</strong> (<em>float</em>) – Plunge of intermediate principal stress.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.core.faultnetwork3D">
+<span class="sig-prename descclassname"><span class="pre">hyfi.core.</span></span><span class="sig-name descname"><span class="pre">faultnetwork3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/fault_network.html#faultnetwork3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.core.faultnetwork3D" title="Link to this definition"></a></dt>
+<dd><p>Calculate 3D fault network from hypocenters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hypo_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path of hypoDD input file.</p></li>
+<li><p><strong>hypo_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Separator for hypoDD input file.</p></li>
+<li><p><strong>out_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path for output folder.</p></li>
+<li><p><strong>n_mc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of MC simulations.</p></li>
+<li><p><strong>r_nn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Search radius for nearest neighbor search [m].</p></li>
+<li><p><strong>dt_nn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Search time for nearest neighbor search [h].</p></li>
+<li><p><strong>validation_bool</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True: perform model validation calculations.</p></li>
+<li><p><strong>foc_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path for focal mechanism catalog.</p></li>
+<li><p><strong>foc_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Separator for focal mechanism catalog.</p></li>
+<li><p><strong>stress_bool</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True: perform fault stress analysis.</p></li>
+<li><p><strong>S1_mag</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum principal stress magnitude [MPa].</p></li>
+<li><p><strong>S2_mag</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Intermediate principal stress magnitude [MPa].</p></li>
+<li><p><strong>S3_mag</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Minimum principal stress magnitude [MPa].</p></li>
+<li><p><strong>PP</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Pore fluid pressure [MPa].</p></li>
+<li><p><strong>S1_trend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Trend of maximum principal stress direction.</p></li>
+<li><p><strong>S1_plunge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Plunge of maximum principal stress direction.</p></li>
+<li><p><strong>S3_trend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Trend of minimum principal stress direction.</p></li>
+<li><p><strong>S3_plunge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Plunge of minimum principal stress direction.</p></li>
+<li><p><strong>stress_R</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Stress shape ratio R.</p></li>
+<li><p><strong>fric_coeff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Friction coefficient.</p></li>
+<li><p><strong>autoclass_bool</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True: perform autoclassification.</p></li>
+<li><p><strong>mag_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Type of magnitude (ML, Mw)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>DataFrames with the parameters of the input parameters (with/without detected outliers), the full 3D fault</em></p></li>
+<li><p><em>network model and the MC hypocenter locations.</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.core.focal_validation">
+<span class="sig-prename descclassname"><span class="pre">hyfi.core.</span></span><span class="sig-name descname"><span class="pre">focal_validation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_hyfi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/model_validation.html#focal_validation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.core.focal_validation" title="Link to this definition"></a></dt>
+<dd><p>Validate the fault network model with focal mechanism data using single dataframe approach.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df_hyfi</strong> (<em>DataFrame</em>) – Single dataframe containing hypocenter data and computed fault plane parameters</p></li>
+<li><p><strong>input_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Input parameters including validation settings and focal mechanism file info</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df_hyfi</strong> – Input dataframe with added focal mechanism validation columns</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hyfi.config.html" class="btn btn-neutral float-left" title="hyfi.config package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hyfi.utils.html" class="btn btn-neutral float-right" title="hyfi.utils package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

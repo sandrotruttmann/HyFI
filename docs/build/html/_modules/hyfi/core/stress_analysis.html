@@ -1,0 +1,844 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hyfi.core.stress_analysis &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            HyFI
+              <img src="../../../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">hyfi.core.stress_analysis</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for hyfi.core.stress_analysis</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">HYPOCENTER-BASED 3D IMAGING OF ACTIVE FAULTS: Fault Stress Analysis Module</span>
+
+<span class="sd">Please cite: Truttmann et al. (2023). Hypocenter-based 3D Imaging of Active Faults: Method and Applications in the Southwestern Swiss Alps.</span>
+
+<span class="sd">@author: Sandro Truttmann</span>
+<span class="sd">@contact: sandro.truttmann@gmail.com</span>
+<span class="sd">@license: GPL-3.0</span>
+<span class="sd">@date: April 2023</span>
+<span class="sd">@version: 0.1.1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Import modules</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">mplstereonet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">utilities</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">load_stress_field_from_shapefile</span><span class="p">(</span><span class="n">shapefile_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load stress field polygons from a shapefile.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shapefile_path : str</span>
+<span class="sd">        Path to the shapefile containing stress field polygons.</span>
+<span class="sd">        Expected columns: s1_trend, s1_plunge, s3_trend, s3_plunge, R (stress ratio)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing the stress field polygons with their attributes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">shapefile_path</span><span class="p">)</span>
+        
+        <span class="c1"># Validate required columns</span>
+        <span class="n">required_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;s1_trend&#39;</span><span class="p">,</span> <span class="s1">&#39;s1_plunge&#39;</span><span class="p">,</span> <span class="s1">&#39;s3_trend&#39;</span><span class="p">,</span> <span class="s1">&#39;s3_plunge&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">]</span>
+        <span class="n">missing_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">required_columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">gdf</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="n">missing_columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Shapefile is missing required columns: </span><span class="si">{</span><span class="n">missing_columns</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Expected columns: </span><span class="si">{</span><span class="n">required_columns</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded stress field shapefile with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">gdf</span><span class="p">)</span><span class="si">}</span><span class="s2"> polygons&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gdf</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load stress field shapefile: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_stress_field_for_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">stress_gdf</span><span class="p">,</span> <span class="n">source_crs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Query stress field parameters for a given point coordinate.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : float</span>
+<span class="sd">        X coordinate in source_crs</span>
+<span class="sd">    y : float</span>
+<span class="sd">        Y coordinate in source_crs</span>
+<span class="sd">    stress_gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing stress field polygons</span>
+<span class="sd">    source_crs : str, optional</span>
+<span class="sd">        CRS of the input coordinates (e.g. &#39;EPSG:21781&#39;). If the shapefile</span>
+<span class="sd">        has a different CRS the point is reprojected automatically.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict or None</span>
+<span class="sd">        Dictionary with stress field parameters (S1_trend, S1_plunge, S3_trend, S3_plunge, stress_R)</span>
+<span class="sd">        or None if point is not within any polygon</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">shapely.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">Point</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+            <span class="s2">&quot;shapely and geopandas are required for spatial queries.&quot;</span>
+        <span class="p">)</span>
+    
+    <span class="c1"># Create point geometry</span>
+    <span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="c1"># Reproject query point to shapefile CRS if CRS info is available and differs</span>
+    <span class="k">if</span> <span class="n">source_crs</span> <span class="ow">and</span> <span class="n">stress_gdf</span><span class="o">.</span><span class="n">crs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">point_gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="p">[</span><span class="n">point</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">source_crs</span><span class="p">)</span>
+            <span class="n">point_gdf</span> <span class="o">=</span> <span class="n">point_gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">stress_gdf</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
+            <span class="n">point</span> <span class="o">=</span> <span class="n">point_gdf</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Reprojected query point from </span><span class="si">{</span><span class="n">source_crs</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">stress_gdf</span><span class="o">.</span><span class="n">crs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">_e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Warning: Could not reproject point (</span><span class="si">{</span><span class="n">_e</span><span class="si">}</span><span class="s2">), using raw coordinates.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Find which polygon contains this point</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">stress_gdf</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="c1"># Get the first matching polygon</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">stress_gdf</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;S1_trend&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;s1_trend&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;S1_plunge&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;s1_plunge&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;S3_trend&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;s3_trend&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;S3_plunge&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;s3_plunge&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;stress_R&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="c1"># Add domain name if available</span>
+        <span class="k">if</span> <span class="s1">&#39;Domain&#39;</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;domain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Domain&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">stress_on_plane_I</span><span class="p">(</span><span class="n">S1_mag</span><span class="p">,</span> <span class="n">S2_mag</span><span class="p">,</span> <span class="n">S3_mag</span><span class="p">,</span>
+                    <span class="n">S1_trend</span><span class="p">,</span> <span class="n">S1_plunge</span><span class="p">,</span>
+                    <span class="n">S3_trend</span><span class="p">,</span> <span class="n">S3_plunge</span><span class="p">,</span>
+                    <span class="n">strike</span><span class="p">,</span> <span class="n">dip</span><span class="p">,</span>
+                    <span class="n">PP</span><span class="p">,</span> <span class="n">fric_coeff</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the stresses on a plane.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    S1_mag : int</span>
+<span class="sd">        Magnitude of maximum principal stress [MPa].</span>
+<span class="sd">    S2_mag : int</span>
+<span class="sd">        Magnitude of intermediate principal stress [MPa].</span>
+<span class="sd">    S3_mag : int</span>
+<span class="sd">        Magnitude of minimum principal stress [MPa].</span>
+<span class="sd">    S1_trend : int</span>
+<span class="sd">        Trend of maximum principal stress.</span>
+<span class="sd">    S1_plunge : int</span>
+<span class="sd">        Plunge of maximum principal stress.</span>
+<span class="sd">    S2_trend : int</span>
+<span class="sd">        Trend of intermediate principal stress.</span>
+<span class="sd">    S2_plunge : int</span>
+<span class="sd">        Plunge of intermediate principal stress.</span>
+<span class="sd">    S3_trend : int</span>
+<span class="sd">        Trend of minimum principal stress.</span>
+<span class="sd">    S3_plunge : int</span>
+<span class="sd">        Plunge of minimum principal stress.</span>
+<span class="sd">    strike : int</span>
+<span class="sd">        Strike of the plane.</span>
+<span class="sd">    dip : int</span>
+<span class="sd">        Dip of the plane.</span>
+<span class="sd">    PP : int</span>
+<span class="sd">        Pore fluid pressure [MPa].</span>
+<span class="sd">    fric_coeff : float</span>
+<span class="sd">        Friction coefficient.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Stresses on the plane: effective normal stress, shear stress, rake,</span>
+<span class="sd">    slip tendency, dilation tendency, trend and plunge of S2.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Vectorize S1 and S3</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">S1_plunge</span><span class="p">,</span> <span class="n">S1_trend</span><span class="p">)</span>
+    <span class="n">S1_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mplstereonet</span><span class="o">.</span><span class="n">stereonet2xyz</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">S3_plunge</span><span class="p">,</span> <span class="n">S3_trend</span><span class="p">)</span>
+    <span class="n">S3_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mplstereonet</span><span class="o">.</span><span class="n">stereonet2xyz</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Calculate S2 (vectorized and trend/plunge)</span>
+    <span class="n">S2_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">S1_vec</span><span class="p">,</span> <span class="n">S3_vec</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">S2_plunge</span><span class="p">,</span> <span class="n">S2_trend</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">vector2plunge_bearing</span><span class="p">(</span><span class="n">S2_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                             <span class="n">S2_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                             <span class="n">S2_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">S2_trend</span> <span class="o">=</span> <span class="n">S2_trend</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">S2_plunge</span> <span class="o">=</span> <span class="n">S2_plunge</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># Define the principal stress coordinate system</span>
+    <span class="n">PS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">S1_mag</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                   <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">S2_mag</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                   <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">S3_mag</span><span class="p">]</span>
+                   <span class="p">])</span>
+
+    <span class="c1"># Convert principal stresses from geographic to xyz orientations</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">S1_plunge</span><span class="p">,</span> <span class="n">S1_trend</span><span class="p">)</span>
+    <span class="n">S1_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mplstereonet</span><span class="o">.</span><span class="n">stereonet2xyz</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">S2_plunge</span><span class="p">,</span> <span class="n">S2_trend</span><span class="p">)</span>
+    <span class="n">S2_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mplstereonet</span><span class="o">.</span><span class="n">stereonet2xyz</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">S3_plunge</span><span class="p">,</span> <span class="n">S3_trend</span><span class="p">)</span>
+    <span class="n">S3_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mplstereonet</span><span class="o">.</span><span class="n">stereonet2xyz</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Invert z-axis (to make both coordinate systems right-handed)</span>
+    <span class="n">S1_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">S2_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">S3_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+    
+    <span class="c1"># Construct the transformation matrix A to convert from principal</span>
+    <span class="c1"># stress coordinates to geographical coordinate system</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">S1_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">S1_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">S1_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="n">S2_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">S2_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">S2_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="n">S3_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">S3_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">S3_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+                  <span class="p">])</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the stress tensor within the geographic coordinate system and</span>
+    <span class="c1"># round to 10 decimal numbers</span>
+    <span class="n">SG</span> <span class="o">=</span> <span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">PS</span> <span class="o">@</span> <span class="n">A</span><span class="p">)</span>
+
+    <span class="c1"># Define the fault plane coordinate system from fault strike and dip</span>
+    <span class="n">strike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span>
+    <span class="n">dip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">dip</span><span class="p">)</span>
+    <span class="c1"># Plane normal vector</span>
+    <span class="n">nn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dip</span><span class="p">),</span>
+                   <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dip</span><span class="p">),</span>
+                   <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dip</span><span class="p">)</span>
+                   <span class="p">])</span>
+    <span class="c1"># Plane strike vector</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">strike</span><span class="p">),</span>
+                   <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">strike</span><span class="p">),</span>
+                   <span class="mi">0</span>
+                   <span class="p">])</span>
+    <span class="c1"># Plane dip vector</span>
+    <span class="n">nd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dip</span><span class="p">),</span>
+                   <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dip</span><span class="p">),</span>
+                   <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dip</span><span class="p">)</span>
+                   <span class="p">])</span>
+
+    <span class="c1"># Project the stress tensor (geographical coordinate system) onto the</span>
+    <span class="c1"># normal vector of the fault</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">SG</span> <span class="o">@</span> <span class="n">nn</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the normal and shear stresses on the fault plane</span>
+    <span class="c1"># Total normal stress</span>
+    <span class="n">Sn_tot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">nn</span><span class="p">)</span>
+    <span class="c1"># Effective normal stress</span>
+    <span class="n">Sn_eff</span> <span class="o">=</span> <span class="p">(</span><span class="n">Sn_tot</span> <span class="o">-</span> <span class="n">PP</span><span class="p">)</span>
+    <span class="c1"># Absolute shear stress</span>
+    <span class="n">Tau_d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">nd</span><span class="p">)</span>
+    <span class="n">Tau_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">ns</span><span class="p">)</span>
+    <span class="n">Tau</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Tau_d</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">Tau_s</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the rake (direction of expected fault movement within the fault</span>
+    <span class="c1"># plane)</span>
+    <span class="c1"># Negative rake means normal movement, positive rake means reverse movement</span>
+    <span class="n">rake</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">Tau_d</span><span class="p">,</span> <span class="o">-</span><span class="n">Tau_s</span><span class="p">)</span>
+    <span class="n">rake</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">rake</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    
+    <span class="c1">##############################################################################</span>
+    
+    <span class="c1"># Calculate fault instability (Vavrycuk et al. (2014))</span>
+    <span class="n">I</span> <span class="o">=</span> <span class="p">(</span><span class="n">Tau</span> <span class="o">-</span> <span class="n">fric_coeff</span><span class="o">*</span><span class="p">(</span><span class="n">Sn_eff</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">fric_coeff</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">fric_coeff</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    
+    <span class="c1">##############################################################################</span>
+    
+    
+    <span class="k">return</span><span class="p">(</span><span class="n">Sn_eff</span><span class="p">,</span> <span class="n">Tau</span><span class="p">,</span> <span class="n">rake</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">S2_trend</span><span class="p">,</span> <span class="n">S2_plunge</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">stress_on_plane_slipdilatend</span><span class="p">(</span>
+                    <span class="n">S1_trend</span><span class="p">,</span> <span class="n">S1_plunge</span><span class="p">,</span>
+                    <span class="n">S3_trend</span><span class="p">,</span> <span class="n">S3_plunge</span><span class="p">,</span>
+                    <span class="n">strike</span><span class="p">,</span> <span class="n">dip</span><span class="p">,</span>
+                    <span class="n">PP</span><span class="p">,</span> <span class="n">fric_coeff</span><span class="p">,</span> <span class="n">stress_R</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the stresses on a plane.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    S1_trend : int</span>
+<span class="sd">        Trend of maximum principal stress.</span>
+<span class="sd">    S1_plunge : int</span>
+<span class="sd">        Plunge of maximum principal stress.</span>
+<span class="sd">    S2_trend : int</span>
+<span class="sd">        Trend of intermediate principal stress.</span>
+<span class="sd">    S2_plunge : int</span>
+<span class="sd">        Plunge of intermediate principal stress.</span>
+<span class="sd">    S3_trend : int</span>
+<span class="sd">        Trend of minimum principal stress.</span>
+<span class="sd">    S3_plunge : int</span>
+<span class="sd">        Plunge of minimum principal stress.</span>
+<span class="sd">    strike : int</span>
+<span class="sd">        Strike of the plane.</span>
+<span class="sd">    dip : int</span>
+<span class="sd">        Dip of the plane.</span>
+<span class="sd">    PP : int</span>
+<span class="sd">        Pore fluid pressure [MPa].</span>
+<span class="sd">    fric_coeff : float</span>
+<span class="sd">        Friction coefficient.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Stresses on the plane: effective normal stress, shear stress, rake,</span>
+<span class="sd">    slip tendency, dilation tendency, trend and plunge of S2.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">S1_mag</span><span class="p">,</span> <span class="n">S2_mag</span><span class="p">,</span> <span class="n">S3_mag</span><span class="p">,</span> <span class="n">PP</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">reduced_stress_tens</span><span class="p">(</span><span class="n">fric_coeff</span><span class="p">,</span> <span class="n">stress_R</span><span class="p">)</span>
+    
+    <span class="c1"># Vectorize S1 and S3</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">S1_plunge</span><span class="p">,</span> <span class="n">S1_trend</span><span class="p">)</span>
+    <span class="n">S1_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mplstereonet</span><span class="o">.</span><span class="n">stereonet2xyz</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">S3_plunge</span><span class="p">,</span> <span class="n">S3_trend</span><span class="p">)</span>
+    <span class="n">S3_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mplstereonet</span><span class="o">.</span><span class="n">stereonet2xyz</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Calculate S2 (vectorized and trend/plunge)</span>
+    <span class="n">S2_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">S1_vec</span><span class="p">,</span> <span class="n">S3_vec</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">S2_plunge</span><span class="p">,</span> <span class="n">S2_trend</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">vector2plunge_bearing</span><span class="p">(</span><span class="n">S2_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                             <span class="n">S2_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                             <span class="n">S2_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">S2_trend</span> <span class="o">=</span> <span class="n">S2_trend</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">S2_plunge</span> <span class="o">=</span> <span class="n">S2_plunge</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># Define the principal stress coordinate system</span>
+    <span class="n">PS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">S1_mag</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                   <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">S2_mag</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                   <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">S3_mag</span><span class="p">]</span>
+                   <span class="p">])</span>
+
+    <span class="c1"># Convert principal stresses from geographic to xyz orientations</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">S1_plunge</span><span class="p">,</span> <span class="n">S1_trend</span><span class="p">)</span>
+    <span class="n">S1_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mplstereonet</span><span class="o">.</span><span class="n">stereonet2xyz</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">S2_plunge</span><span class="p">,</span> <span class="n">S2_trend</span><span class="p">)</span>
+    <span class="n">S2_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mplstereonet</span><span class="o">.</span><span class="n">stereonet2xyz</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">mplstereonet</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">S3_plunge</span><span class="p">,</span> <span class="n">S3_trend</span><span class="p">)</span>
+    <span class="n">S3_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mplstereonet</span><span class="o">.</span><span class="n">stereonet2xyz</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Invert z-axis (to make both coordinate systems right-handed)</span>
+    <span class="n">S1_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">S2_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">S3_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+    
+    <span class="c1"># Construct the transformation matrix A to convert from principal</span>
+    <span class="c1"># stress coordinates to geographical coordinate system</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">S1_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">S1_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">S1_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="n">S2_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">S2_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">S2_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
+                  <span class="p">[</span><span class="n">S3_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">S3_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">S3_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+                  <span class="p">])</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the stress tensor within the geographic coordinate system and</span>
+    <span class="c1"># round to 10 decimal numbers</span>
+    <span class="n">SG</span> <span class="o">=</span> <span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">PS</span> <span class="o">@</span> <span class="n">A</span><span class="p">)</span>
+
+    <span class="c1"># Define the fault plane coordinate system from fault strike and dip</span>
+    <span class="n">strike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span>
+    <span class="n">dip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">dip</span><span class="p">)</span>
+    <span class="c1"># Plane normal vector</span>
+    <span class="n">nn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dip</span><span class="p">),</span>
+                   <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dip</span><span class="p">),</span>
+                   <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dip</span><span class="p">)</span>
+                   <span class="p">])</span>
+    <span class="c1"># Plane strike vector</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">strike</span><span class="p">),</span>
+                   <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">strike</span><span class="p">),</span>
+                   <span class="mi">0</span>
+                   <span class="p">])</span>
+    <span class="c1"># Plane dip vector</span>
+    <span class="n">nd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dip</span><span class="p">),</span>
+                   <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">strike</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dip</span><span class="p">),</span>
+                   <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dip</span><span class="p">)</span>
+                   <span class="p">])</span>
+
+    <span class="c1"># Project the stress tensor (geographical coordinate system) onto the</span>
+    <span class="c1"># normal vector of the fault</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">SG</span> <span class="o">@</span> <span class="n">nn</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the normal and shear stresses on the fault plane</span>
+    <span class="c1"># Total normal stress</span>
+    <span class="n">Sn_tot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">nn</span><span class="p">)</span>
+    <span class="c1"># Effective normal stress</span>
+    <span class="n">Sn_eff</span> <span class="o">=</span> <span class="p">(</span><span class="n">Sn_tot</span> <span class="o">-</span> <span class="n">PP</span><span class="p">)</span>
+    <span class="c1"># Absolute shear stress</span>
+    <span class="n">Tau_d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">nd</span><span class="p">)</span>
+    <span class="n">Tau_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">ns</span><span class="p">)</span>
+    <span class="n">Tau</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Tau_d</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">Tau_s</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the rake (direction of expected fault movement within the fault</span>
+    <span class="c1"># plane)</span>
+    <span class="c1"># Negative rake means normal movement, positive rake means reverse movement</span>
+    <span class="n">rake</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">Tau_d</span><span class="p">,</span> <span class="o">-</span><span class="n">Tau_s</span><span class="p">)</span>
+    <span class="n">rake</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">rake</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    
+    <span class="c1">##############################################################################</span>
+    
+    <span class="c1"># Calculate the slip tendency (Morris et al. (1996))</span>
+    <span class="n">sliptend</span> <span class="o">=</span> <span class="p">(</span><span class="n">Tau</span> <span class="o">/</span> <span class="n">Sn_eff</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the dilation tendency (Ferrill et al. (1999))</span>
+    <span class="n">dilatend</span> <span class="o">=</span> <span class="p">((</span><span class="n">S1_mag</span> <span class="o">-</span> <span class="n">Sn_eff</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">S1_mag</span> <span class="o">-</span> <span class="n">S3_mag</span><span class="p">))</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    
+    <span class="c1">##############################################################################</span>
+    
+    
+    <span class="k">return</span><span class="p">(</span><span class="n">Sn_eff</span><span class="p">,</span> <span class="n">Tau</span><span class="p">,</span> <span class="n">rake</span><span class="p">,</span> <span class="n">sliptend</span><span class="p">,</span> <span class="n">dilatend</span><span class="p">,</span> <span class="n">S2_trend</span><span class="p">,</span> <span class="n">S2_plunge</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="fault_stress">
+<a class="viewcode-back" href="../../../api/hyfi.core.html#hyfi.fault_stress">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fault_stress</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">,</span> <span class="n">input_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the stress parameters for each individual earthquake.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df_hyfi : DataFrame</span>
+<span class="sd">        Single dataframe containing fault plane data and results.</span>
+<span class="sd">    input_params : dict</span>
+<span class="sd">        Input parameters for stress analysis.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    df_hyfi : DataFrame</span>
+<span class="sd">        Input dataframe with added stress analysis columns.</span>
+<span class="sd">    S2_trend : float</span>
+<span class="sd">        Trend of intermediate principal stress.</span>
+<span class="sd">    S2_plunge : float</span>
+<span class="sd">        Plunge of intermediate principal stress.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Unpack input parameters from dictionary</span>
+    <span class="n">stress_bool</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stress_bool&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">PP</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;PP&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">fric_coeff</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fric_coeff&#39;</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">)</span>
+    
+    <span class="c1"># Check if stress field shapefile should be used</span>
+    <span class="n">use_shapefile_stress</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_shapefile_stress&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">stress_field_shapefile</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stress_field_shapefile&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">stress_bool</span><span class="p">:</span>
+       
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;FAULT STRESS ANALYSIS&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+        
+        <span class="c1"># Initialize with fixed parameters (used as defaults/fallback)</span>
+        <span class="n">S1_trend</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S1_trend&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">S1_plunge</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S1_plunge&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">S3_trend</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S3_trend&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">S3_plunge</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S3_plunge&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">stress_R</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stress_R&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        
+        <span class="c1"># Load stress field from shapefile if enabled and provided</span>
+        <span class="n">use_shapefile</span> <span class="o">=</span> <span class="kc">False</span>
+        
+        <span class="k">if</span> <span class="n">use_shapefile_stress</span> <span class="ow">and</span> <span class="n">stress_field_shapefile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">stress_gdf</span> <span class="o">=</span> <span class="n">load_stress_field_from_shapefile</span><span class="p">(</span><span class="n">stress_field_shapefile</span><span class="p">)</span>
+                <span class="n">use_shapefile</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using spatially-varying stress field from: </span><span class="si">{</span><span class="n">stress_field_shapefile</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                
+                <span class="c1"># Calculate center coordinates of all hypocenters</span>
+                <span class="n">center_x</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="n">center_y</span> <span class="o">=</span> <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hypocenter center coordinates: X=</span><span class="si">{</span><span class="n">center_x</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">m, Y=</span><span class="si">{</span><span class="n">center_y</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">m&quot;</span><span class="p">)</span>
+                
+                <span class="c1"># Query stress field for the center point</span>
+                <span class="c1"># Pass source CRS so the point can be reprojected to the shapefile CRS if needed</span>
+                <span class="n">source_crs</span> <span class="o">=</span> <span class="n">input_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;coordinate_system&#39;</span><span class="p">,</span> <span class="s1">&#39;EPSG:21781&#39;</span><span class="p">)</span>
+                <span class="n">stress_params</span> <span class="o">=</span> <span class="n">get_stress_field_for_point</span><span class="p">(</span><span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">stress_gdf</span><span class="p">,</span>
+                                                           <span class="n">source_crs</span><span class="o">=</span><span class="n">source_crs</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">stress_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ⚠️  WARNING: Center point (X=</span><span class="si">{</span><span class="n">center_x</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, Y=</span><span class="si">{</span><span class="n">center_y</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">) not within any stress field polygon.&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ⚠️  Source CRS: </span><span class="si">{</span><span class="n">source_crs</span><span class="si">}</span><span class="s2"> | Shapefile CRS: </span><span class="si">{</span><span class="n">stress_gdf</span><span class="o">.</span><span class="n">crs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ⚠️  Falling back to fixed stress field parameters from config.&quot;</span><span class="p">)</span>
+                    <span class="n">use_shapefile</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">S1_trend</span> <span class="o">=</span> <span class="n">stress_params</span><span class="p">[</span><span class="s1">&#39;S1_trend&#39;</span><span class="p">]</span>
+                    <span class="n">S1_plunge</span> <span class="o">=</span> <span class="n">stress_params</span><span class="p">[</span><span class="s1">&#39;S1_plunge&#39;</span><span class="p">]</span>
+                    <span class="n">S3_trend</span> <span class="o">=</span> <span class="n">stress_params</span><span class="p">[</span><span class="s1">&#39;S3_trend&#39;</span><span class="p">]</span>
+                    <span class="n">S3_plunge</span> <span class="o">=</span> <span class="n">stress_params</span><span class="p">[</span><span class="s1">&#39;S3_plunge&#39;</span><span class="p">]</span>
+                    <span class="n">stress_R</span> <span class="o">=</span> <span class="n">stress_params</span><span class="p">[</span><span class="s1">&#39;stress_R&#39;</span><span class="p">]</span>
+                    <span class="n">domain_name</span> <span class="o">=</span> <span class="n">stress_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;domain&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stress field parameters from shapefile (Domain: </span><span class="si">{</span><span class="n">domain_name</span><span class="si">}</span><span class="s2">):&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  σ1: trend=</span><span class="si">{</span><span class="n">S1_trend</span><span class="si">}</span><span class="s2">°, plunge=</span><span class="si">{</span><span class="n">S1_plunge</span><span class="si">}</span><span class="s2">°&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  σ3: trend=</span><span class="si">{</span><span class="n">S3_trend</span><span class="si">}</span><span class="s2">°, plunge=</span><span class="si">{</span><span class="n">S3_plunge</span><span class="si">}</span><span class="s2">°&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  R=</span><span class="si">{</span><span class="n">stress_R</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  ⚠️  WARNING: Failed to load stress field from shapefile: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ⚠️  Shapefile path used: </span><span class="si">{</span><span class="n">stress_field_shapefile</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ⚠️  Falling back to fixed stress field parameters from config.&quot;</span><span class="p">)</span>
+                <span class="n">use_shapefile</span> <span class="o">=</span> <span class="kc">False</span>
+        
+        <span class="c1"># Display stress parameters being used</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_shapefile</span><span class="p">:</span>
+            <span class="c1"># Check if fixed parameters are available (check for None or NaN)</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">param</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">param</span><span class="p">))</span> 
+                   <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">[</span><span class="n">S1_trend</span><span class="p">,</span> <span class="n">S1_plunge</span><span class="p">,</span> <span class="n">S3_trend</span><span class="p">,</span> <span class="n">S3_plunge</span><span class="p">,</span> <span class="n">stress_R</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Stress field parameters are not defined. Either:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot;  1. Enable shapefile: set use_shapefile=true and provide valid shapefile_path, OR</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot;  2. Provide fixed parameters: sigma1_trend_degrees, sigma1_plunge_degrees, &quot;</span>
+                    <span class="s2">&quot;sigma3_trend_degrees, sigma3_plunge_degrees, stress_shape_ratio&quot;</span>
+                <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using fixed stress field parameters from configuration:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  σ1: trend=</span><span class="si">{</span><span class="n">S1_trend</span><span class="si">}</span><span class="s2">°, plunge=</span><span class="si">{</span><span class="n">S1_plunge</span><span class="si">}</span><span class="s2">°&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  σ3: trend=</span><span class="si">{</span><span class="n">S3_trend</span><span class="si">}</span><span class="s2">°, plunge=</span><span class="si">{</span><span class="n">S3_plunge</span><span class="si">}</span><span class="s2">°&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  R=</span><span class="si">{</span><span class="n">stress_R</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Define relative stress magnitudes after Vavrycuk et al. (2014)</span>
+        <span class="n">S1_mag</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">S2_mag</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">stress_R</span><span class="p">)</span>
+        <span class="n">S3_mag</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            
+        <span class="c1"># Calculate the stresses on each fault plane</span>
+        <span class="n">strike_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;rupt_plane_azi&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">90</span><span class="p">)</span> <span class="o">%</span> <span class="mi">360</span><span class="p">)</span>
+        <span class="n">dip_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;rupt_plane_dip&#39;</span><span class="p">])</span>
+        <span class="n">Sn_eff_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Tau_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">rake_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">I_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sliptend_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dilatend_list</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_hyfi</span><span class="p">)):</span>
+            <span class="c1"># Skip events without fault plane data</span>
+            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;rupt_plane_azi&#39;</span><span class="p">])</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">df_hyfi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;rupt_plane_dip&#39;</span><span class="p">]):</span>
+                <span class="n">Sn_eff_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">Tau_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">rake_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">I_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">sliptend_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">dilatend_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="k">continue</span>
+                
+            <span class="n">strike</span> <span class="o">=</span> <span class="n">strike_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">dip</span> <span class="o">=</span> <span class="n">dip_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">Sn_eff</span><span class="p">,</span> <span class="n">Tau</span><span class="p">,</span> <span class="n">rake</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">S2_trend</span><span class="p">,</span> <span class="n">S2_plunge</span> <span class="o">=</span> <span class="n">stress_on_plane_I</span><span class="p">(</span>
+                                                                        <span class="n">S1_mag</span><span class="p">,</span>
+                                                                        <span class="n">S2_mag</span><span class="p">,</span>
+                                                                        <span class="n">S3_mag</span><span class="p">,</span>
+                                                                        <span class="n">S1_trend</span><span class="p">,</span>
+                                                                        <span class="n">S1_plunge</span><span class="p">,</span>
+                                                                        <span class="n">S3_trend</span><span class="p">,</span>
+                                                                        <span class="n">S3_plunge</span><span class="p">,</span>
+                                                                        <span class="n">strike</span><span class="p">,</span> <span class="n">dip</span><span class="p">,</span>
+                                                                        <span class="n">PP</span><span class="p">,</span> <span class="n">fric_coeff</span><span class="p">)</span>
+                <span class="n">Sn_eff_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Sn_eff</span><span class="p">)</span>
+                <span class="n">Tau_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Tau</span><span class="p">)</span>
+                <span class="n">rake_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rake</span><span class="p">)</span>
+                <span class="n">I_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">I</span><span class="p">)</span>
+                
+                <span class="n">Sn_eff</span><span class="p">,</span> <span class="n">Tau</span><span class="p">,</span> <span class="n">rake</span><span class="p">,</span> <span class="n">sliptend</span><span class="p">,</span> <span class="n">dilatend</span><span class="p">,</span> <span class="n">S2_trend</span><span class="p">,</span> <span class="n">S2_plunge</span> <span class="o">=</span> <span class="n">stress_on_plane_slipdilatend</span><span class="p">(</span>
+                                                            <span class="n">S1_trend</span><span class="p">,</span>
+                                                            <span class="n">S1_plunge</span><span class="p">,</span>
+                                                            <span class="n">S3_trend</span><span class="p">,</span>
+                                                            <span class="n">S3_plunge</span><span class="p">,</span>
+                                                            <span class="n">strike</span><span class="p">,</span> <span class="n">dip</span><span class="p">,</span>
+                                                            <span class="n">PP</span><span class="p">,</span> <span class="n">fric_coeff</span><span class="p">,</span> <span class="n">stress_R</span><span class="p">)</span>
+                <span class="n">sliptend_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sliptend</span><span class="p">)</span>
+                <span class="n">dilatend_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dilatend</span><span class="p">)</span>
+                
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error calculating stress for event </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">Sn_eff_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">Tau_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">rake_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">I_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">sliptend_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">dilatend_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                
+        <span class="c1"># Add stress analysis columns to the dataframe</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Sn_eff&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Sn_eff_list</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;Tau&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tau_list</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;rake&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rake_list</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;instab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">I_list</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;sliptend&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sliptend_list</span>
+        <span class="n">df_hyfi</span><span class="p">[</span><span class="s1">&#39;dilatend&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dilatend_list</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stress analysis completed for </span><span class="si">{</span><span class="nb">len</span><span class="p">([</span><span class="n">x</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">Sn_eff_list</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">x</span><span class="p">)])</span><span class="si">}</span><span class="s2"> fault planes&quot;</span><span class="p">)</span>
+        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">S2_trend</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">S2_plunge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="c1"># Initialize columns with NaN if stress analysis is disabled</span>
+        <span class="n">stress_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Sn_eff&#39;</span><span class="p">,</span> <span class="s1">&#39;Tau&#39;</span><span class="p">,</span> <span class="s1">&#39;rake&#39;</span><span class="p">,</span> <span class="s1">&#39;instab&#39;</span><span class="p">,</span> <span class="s1">&#39;sliptend&#39;</span><span class="p">,</span> <span class="s1">&#39;dilatend&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">stress_columns</span><span class="p">:</span>
+            <span class="n">df_hyfi</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">df_hyfi</span><span class="p">,</span> <span class="n">S2_trend</span><span class="p">,</span> <span class="n">S2_plunge</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_mesh_stress</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">stress_params</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate stress parameters for each face of an interpolated mesh.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mesh : pyvista.PolyData</span>
+<span class="sd">        Mesh with faces (triangles) representing fault surface</span>
+<span class="sd">    stress_params : dict</span>
+<span class="sd">        Stress field parameters with keys:</span>
+<span class="sd">        - &#39;S1_trend&#39;, &#39;S1_plunge&#39;: σ₁ orientation</span>
+<span class="sd">        - &#39;S3_trend&#39;, &#39;S3_plunge&#39;: σ₃ orientation  </span>
+<span class="sd">        - &#39;stress_R&#39;: stress shape ratio</span>
+<span class="sd">        - &#39;PP&#39;: pore pressure</span>
+<span class="sd">        - &#39;fric_coeff&#39;: friction coefficient</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mesh : pyvista.PolyData</span>
+<span class="sd">        Input mesh with added cell data arrays for stress parameters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pv</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: pyvista not available, cannot calculate mesh stress&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mesh</span>
+    
+    <span class="c1"># Extract stress parameters</span>
+    <span class="n">S1_trend</span> <span class="o">=</span> <span class="n">stress_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S1_trend&#39;</span><span class="p">)</span>
+    <span class="n">S1_plunge</span> <span class="o">=</span> <span class="n">stress_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S1_plunge&#39;</span><span class="p">)</span>
+    <span class="n">S3_trend</span> <span class="o">=</span> <span class="n">stress_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S3_trend&#39;</span><span class="p">)</span>
+    <span class="n">S3_plunge</span> <span class="o">=</span> <span class="n">stress_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;S3_plunge&#39;</span><span class="p">)</span>
+    <span class="n">stress_R</span> <span class="o">=</span> <span class="n">stress_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stress_R&#39;</span><span class="p">)</span>
+    <span class="n">PP</span> <span class="o">=</span> <span class="n">stress_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;PP&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">fric_coeff</span> <span class="o">=</span> <span class="n">stress_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fric_coeff&#39;</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">)</span>
+    
+    <span class="c1"># Check if stress parameters are available</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">param</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">param</span><span class="p">))</span> 
+           <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">[</span><span class="n">S1_trend</span><span class="p">,</span> <span class="n">S1_plunge</span><span class="p">,</span> <span class="n">S3_trend</span><span class="p">,</span> <span class="n">S3_plunge</span><span class="p">,</span> <span class="n">stress_R</span><span class="p">]):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Stress parameters not available for mesh stress calculation&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mesh</span>
+    
+    <span class="c1"># Calculate face normals if not present</span>
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">compute_normals</span><span class="p">(</span><span class="n">cell_normals</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">point_normals</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    
+    <span class="c1"># Get face normals</span>
+    <span class="n">face_normals</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;Normals&#39;</span><span class="p">]</span>
+    <span class="n">n_faces</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">face_normals</span><span class="p">)</span>
+    
+    <span class="c1"># Define relative stress magnitudes</span>
+    <span class="n">S1_mag</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">S2_mag</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">stress_R</span><span class="p">)</span>
+    <span class="n">S3_mag</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    
+    <span class="c1"># Initialize arrays for stress parameters</span>
+    <span class="n">Sn_eff_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_faces</span><span class="p">)</span>
+    <span class="n">Tau_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_faces</span><span class="p">)</span>
+    <span class="n">rake_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_faces</span><span class="p">)</span>
+    <span class="n">I_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_faces</span><span class="p">)</span>
+    <span class="n">sliptend_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_faces</span><span class="p">)</span>
+    <span class="n">dilatend_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_faces</span><span class="p">)</span>
+    
+    <span class="c1"># Calculate stress for each face</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_faces</span><span class="p">):</span>
+        <span class="c1"># Get normal vector</span>
+        <span class="n">normal</span> <span class="o">=</span> <span class="n">face_normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        
+        <span class="c1"># Calculate strike and dip from normal vector</span>
+        <span class="c1"># Normal vector points perpendicular to the plane</span>
+        <span class="c1"># We need to convert this to strike and dip</span>
+        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="n">normal</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">normal</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">normal</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        
+        <span class="c1"># Ensure normal points upward (positive Z component)</span>
+        <span class="k">if</span> <span class="n">nz</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span> <span class="o">=</span> <span class="o">-</span><span class="n">nx</span><span class="p">,</span> <span class="o">-</span><span class="n">ny</span><span class="p">,</span> <span class="o">-</span><span class="n">nz</span>
+        
+        <span class="c1"># Calculate dip (angle from horizontal)</span>
+        <span class="n">dip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">nz</span><span class="p">))</span>
+        
+        <span class="c1"># Calculate strike (azimuth of dip direction minus 90°)</span>
+        <span class="c1"># Dip direction azimuth</span>
+        <span class="n">dip_dir</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">))</span> <span class="o">%</span> <span class="mi">360</span>
+        <span class="c1"># Strike is 90° to the left of dip direction</span>
+        <span class="n">strike</span> <span class="o">=</span> <span class="p">(</span><span class="n">dip_dir</span> <span class="o">-</span> <span class="mi">90</span><span class="p">)</span> <span class="o">%</span> <span class="mi">360</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Calculate stress parameters using existing functions</span>
+            <span class="n">Sn_eff</span><span class="p">,</span> <span class="n">Tau</span><span class="p">,</span> <span class="n">rake</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">S2_trend</span><span class="p">,</span> <span class="n">S2_plunge</span> <span class="o">=</span> <span class="n">stress_on_plane_I</span><span class="p">(</span>
+                <span class="n">S1_mag</span><span class="p">,</span> <span class="n">S2_mag</span><span class="p">,</span> <span class="n">S3_mag</span><span class="p">,</span>
+                <span class="n">S1_trend</span><span class="p">,</span> <span class="n">S1_plunge</span><span class="p">,</span>
+                <span class="n">S3_trend</span><span class="p">,</span> <span class="n">S3_plunge</span><span class="p">,</span>
+                <span class="n">strike</span><span class="p">,</span> <span class="n">dip</span><span class="p">,</span>
+                <span class="n">PP</span><span class="p">,</span> <span class="n">fric_coeff</span>
+            <span class="p">)</span>
+            
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">sliptend</span><span class="p">,</span> <span class="n">dilatend</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">stress_on_plane_slipdilatend</span><span class="p">(</span>
+                <span class="n">S1_trend</span><span class="p">,</span> <span class="n">S1_plunge</span><span class="p">,</span>
+                <span class="n">S3_trend</span><span class="p">,</span> <span class="n">S3_plunge</span><span class="p">,</span>
+                <span class="n">strike</span><span class="p">,</span> <span class="n">dip</span><span class="p">,</span>
+                <span class="n">PP</span><span class="p">,</span> <span class="n">fric_coeff</span><span class="p">,</span> <span class="n">stress_R</span>
+            <span class="p">)</span>
+            
+            <span class="n">Sn_eff_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Sn_eff</span>
+            <span class="n">Tau_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tau</span>
+            <span class="n">rake_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">rake</span>
+            <span class="n">I_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">I</span>
+            <span class="n">sliptend_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sliptend</span>
+            <span class="n">dilatend_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dilatend</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># If calculation fails, set to NaN</span>
+            <span class="n">Sn_eff_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">Tau_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">rake_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">I_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">sliptend_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">dilatend_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    
+    <span class="c1"># Add stress parameters as cell data</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;Sn_eff&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Sn_eff_array</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;Tau&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tau_array</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;rake&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rake_array</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;instab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">I_array</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;sliptend&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sliptend_array</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;dilatend&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dilatend_array</span>
+    
+    <span class="n">valid_count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">Sn_eff_array</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Calculated stress for </span><span class="si">{</span><span class="n">valid_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n_faces</span><span class="si">}</span><span class="s2"> mesh faces&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">mesh</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

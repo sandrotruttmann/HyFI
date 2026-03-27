@@ -1,0 +1,7 @@
+hyfi.visualization package
+==========================
+
+.. automodule:: hyfi.visualization
+   :members:
+   :undoc-members:
+   :show-inheritance:

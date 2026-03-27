@@ -1,0 +1,7 @@
+hyfi.config package
+===================
+
+.. automodule:: hyfi.config
+   :members:
+   :undoc-members:
+   :show-inheritance:

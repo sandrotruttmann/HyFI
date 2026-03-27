@@ -1,0 +1,346 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stress Analysis &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Visualization" href="visualization.html" />
+    <link rel="prev" title="Automatic Classification" href="auto_classification.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HyFI
+              <img src="../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HyFI Core Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-module-execution-order">Core Module Execution Order</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#core-analysis-modules">Core Analysis Modules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="fault_network.html">Fault Network Reconstruction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="model_validation.html">Model Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auto_classification.html">Automatic Classification</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Stress Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#core-concepts">Core Concepts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#computational-workflow">Computational Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main-outputs">Main Outputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="visualization.html">Visualization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">HyFI Core Modules</a></li>
+      <li class="breadcrumb-item active">Stress Analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/stress_analysis.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="stress-analysis">
+<h1>Stress Analysis<a class="headerlink" href="#stress-analysis" title="Link to this heading"></a></h1>
+<p>The <strong>HyFI</strong> stress analysis module analyzes rupture plane orientations in relation to the regional stress field to determine fault slip tendencies, dilation tendencies, slip vectors, and thus allows to identify optimally oriented structures for reactivation and fluid flow. For details, see the original <strong>HyFI</strong> publication (Truttmann et al., 2023).</p>
+<hr class="docutils" />
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading"></a></h2>
+<section id="fault-instability">
+<h3>Fault Instability<a class="headerlink" href="#fault-instability" title="Link to this heading"></a></h3>
+<p><strong>Fault instability</strong> (I) quantifies the susceptibility of a fault plane to rupture (slip) under the ambient stress field. Originally introduced and formalized by Vavryčuk et al. (2013), the instability parameter measures how favorably oriented a fault is with respect to the regional tectonic stress. It ranges from 0 (perfectly stable fault, least likely to fail) to 1 (maximally unstable, most likely to fail).</p>
+</section>
+<section id="slip-tendency">
+<h3>Slip Tendency<a class="headerlink" href="#slip-tendency" title="Link to this heading"></a></h3>
+<p><strong>Slip tendency</strong> measures the potential of a fault plane to slip under an applied stress field, quantified as the ratio of shear stress to normal stress acting on the plane. Formalized by Morris et al. (1999), slip tendency (T_s) is calculated as:</p>
+<div class="math notranslate nohighlight">
+\[T_s = \frac{\tau_s}{\sigma_n}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\tau_s\)</span> is the shear stress component resolved onto the fault plane and <span class="math notranslate nohighlight">\(\sigma_n\)</span> is the normal stress component perpendicular to the plane. Using the reduced stress tensor, the metric ranges from 0 (no shear, friction-independent stability) to 1 (high potential for slip under Coulomb frictional reactivation theory).</p>
+</section>
+<section id="dilation-tendency">
+<h3>Dilation Tendency<a class="headerlink" href="#dilation-tendency" title="Link to this heading"></a></h3>
+<p><strong>Dilation tendency</strong> (T_d) quantifies the potential for volume expansion and fracture opening on a fault plane under a given stress field. Formalized by Ferrill et al. (2020), dilation tendency is calculated as:</p>
+<div class="math notranslate nohighlight">
+\[T_d = \frac{\sigma_1 - \sigma_n}{\sigma_1 - \sigma_3}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\sigma_1\)</span> is the maximum principal stress, <span class="math notranslate nohighlight">\(\sigma_n\)</span> is the normal stress on the plane, and <span class="math notranslate nohighlight">\(\sigma_3\)</span> is the minimum principal stress. Using the reduced stress tensor, D ranges from 0 (no dilation potential, volume loss) to 1 (maximum dilation, volume gain). High D values indicate fault planes prone to opening, fracture dilation, and enhanced fluid-flow pathways; low D values indicate planes subject to compaction and fluid sealing. Importantly, dilation tendency captures fault deformation behavior independent of slip tendency: a fault segment may simultaneously experience high slip tendency but low dilation tendency (or vice versa), producing contrasting mechanical responses (pure shear vs. volume-changing deformation modes).</p>
+</section>
+<section id="slip-vectors-rake">
+<h3>Slip Vectors (Rake)<a class="headerlink" href="#slip-vectors-rake" title="Link to this heading"></a></h3>
+<p><strong>Rake</strong> (also referred to as slip vector) describes the direction of expected slip motion within a fault plane, measured as the angle from the fault strike direction toward the dip direction. Calculated from the stress tensor projection onto the fault plane as:</p>
+<div class="math notranslate nohighlight">
+\[\text{rake} = \arctan2(\tau_d, -\tau_s)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\tau_d\)</span> is the dip-parallel shear stress component and <span class="math notranslate nohighlight">\(\tau_s\)</span> is the strike-parallel shear stress component. Rake ranges from -180° to +180°, with distinct kinematic interpretations.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="computational-workflow">
+<h2>Computational Workflow<a class="headerlink" href="#computational-workflow" title="Link to this heading"></a></h2>
+<p>The stress analysis module follows a structured pipeline:</p>
+<section id="step-1-stress-field-definition">
+<h3>Step 1: Stress Field Definition<a class="headerlink" href="#step-1-stress-field-definition" title="Link to this heading"></a></h3>
+<p>Define the regional stress field using one of two methods:</p>
+<p><strong>Option A: Fixed Stress Field (Global Parameters)</strong></p>
+<ul class="simple">
+<li><p>Single uniform stress field applied to entire study area</p></li>
+<li><p>Parameters:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">S1_trend</span></code>: Maximum principal stress (σ₁) azimuth direction (0-360°)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">S1_plunge</span></code>: Maximum principal stress plunge angle (0-90°)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">S3_trend</span></code>: Minimum principal stress (σ₃) azimuth direction (0-360°)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">S3_plunge</span></code>: Minimum principal stress plunge angle (0-90°)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stress_R</span></code>: Stress shape ratio R = (σ₂-σ₃)/(σ₁-σ₃) (range: 0-1)</p></li>
+</ul>
+</li>
+</ul>
+<p>Use for small (local) study areas where stress field is approximately uniform</p>
+<p><strong>Option B: Spatially-Varying Stress Field (Shapefile)</strong></p>
+<ul class="simple">
+<li><p>Load stress field polygons from GIS shapefile</p></li>
+<li><p>Each polygon contains:</p>
+<ul>
+<li><p>Geometry: Polygon boundary defining stress domain extent</p></li>
+<li><p>Attributes: s1_trend, s1_plunge, s3_trend, s3_plunge, R</p></li>
+</ul>
+</li>
+<li><p>Query process:</p>
+<ol class="arabic simple">
+<li><p>Calculate center coordinates of the respective earthquake sequence</p></li>
+<li><p>Locate which polygon contains center point</p></li>
+<li><p>Extract stress parameters from that polygon</p></li>
+<li><p>Apply to all events in study area</p></li>
+</ol>
+</li>
+</ul>
+<p>Use for large (regional) study areas with spatially varying stress (e.g., different tectonic domains)</p>
+</section>
+<section id="step-2-stress-tensor-construction">
+<h3>Step 2: Stress Tensor Construction<a class="headerlink" href="#step-2-stress-tensor-construction" title="Link to this heading"></a></h3>
+<p>In step 2, the given stress field orientations are converted into vector format. Additionally, σ₂ is derived from the cross product of σ₁ and σ₃, defining the stress tensor. Since slip and dilation tendencies are independent of absolute magnitudes, the reduced stress tensor can be normalized to:</p>
+<ul class="simple">
+<li><p>S1_mag = 1 (normalized)</p></li>
+<li><p>S2_mag = 1 - 2R (intermediate, depends on stress shape ratio R)</p></li>
+<li><p>S3_mag = -1 (minimum/compression, negative)</p></li>
+</ul>
+<p>The reduced stress tensor is then transformed to geographic xyz coordinate system using a rotation matrix.</p>
+</section>
+<section id="step-3-stress-on-plane-calculation">
+<h3>Step 3: Stress-on-Plane Calculation<a class="headerlink" href="#step-3-stress-on-plane-calculation" title="Link to this heading"></a></h3>
+<p>Project the stress tensor onto each rupture plane to get the resolved stresses:</p>
+<ol class="arabic simple">
+<li><p><strong>Project stress tensor onto plane normal</strong>:</p>
+<ul class="simple">
+<li><p>Stress vector t = Stress_tensor · normal_vector</p></li>
+</ul>
+</li>
+<li><p><strong>Calculate resolved stresses</strong>:</p>
+<ul class="simple">
+<li><p><strong>Normal stress (total)</strong>: σ_n_total = t · n_normal</p></li>
+<li><p><strong>Effective normal stress</strong>: σ_n_eff = σ_n_total - P_pore</p>
+<ul>
+<li><p>Higher values → more compression on plane</p></li>
+<li><p>Lower/negative values → tension/extension</p></li>
+</ul>
+</li>
+<li><p><strong>Dip-parallel shear</strong>: τ_d = t · n_dip</p></li>
+<li><p><strong>Strike-parallel shear</strong>: τ_s = t · n_strike</p></li>
+<li><p><strong>Total shear stress</strong>: τ = √(τ_d² + τ_s²)</p>
+<ul>
+<li><p>Magnitude of shear traction on plane</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Calculate rake angle</strong>:</p>
+<ul class="simple">
+<li><p>rake = arctan(τ_d / -τ_s)</p></li>
+<li><p>Range: -180° to +180°</p></li>
+<li><p>-90°: Normal faulting (down-dip motion)</p></li>
+<li><p>+90°: Reverse faulting (up-dip motion)</p></li>
+<li><p>0°: Pure sinistral strike-slip motion</p></li>
+<li><p>-180°/+180°: Pure dextral strike-slip motion</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="step-4-fault-instability-calculation">
+<h3>Step 4: Fault Instability Calculation<a class="headerlink" href="#step-4-fault-instability-calculation" title="Link to this heading"></a></h3>
+<p>Calculate the fault instability I according to Vavryčuk et al. (2013):</p>
+<ul class="simple">
+<li><p>I = (τ - μ(σ_n_eff - 1)) / (μ + √(1 + μ²))</p></li>
+<li><p>Where μ = friction coefficient</p></li>
+<li><p>Measures likelihood of fault instability/rupture</p></li>
+</ul>
+</section>
+<section id="step-5-slip-dilation-tendency-calculation">
+<h3>Step 5: Slip &amp; Dilation Tendency Calculation<a class="headerlink" href="#step-5-slip-dilation-tendency-calculation" title="Link to this heading"></a></h3>
+<p>Calculate normalized slip and dilation tendency metrics using the reduced stress tensor:</p>
+<ol class="arabic simple">
+<li><p><strong>Slip Tendency (T_s)</strong> (Morris et al., 1996; Lisle and Srivastava, 2004):</p>
+<ul class="simple">
+<li><p>T_s = τ / σ_n_eff</p></li>
+<li><p>Ratio of shear stress to effective normal stress</p></li>
+<li><p>Range: 0 to 1</p></li>
+<li><p>Higher values → higher likelihood of slip</p></li>
+<li><p>Physical meaning: Planes with high T_s are more prone to slip</p></li>
+</ul>
+</li>
+<li><p><strong>Dilation Tendency (T_d)</strong> (Ferrill et al., 2020):</p>
+<ul class="simple">
+<li><p>T_d = (σ₁ - σ_n) / (σ₁ - σ₃)</p></li>
+<li><p>Measures potential for opening/dilation</p></li>
+<li><p>Range: 0 to 1</p></li>
+<li><p>Higher values → more tensile stress on plane</p></li>
+<li><p>Physical meaning: Planes with high T_d can open for fluid flow</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="step-6-output-generation">
+<h3>Step 6: Output Generation<a class="headerlink" href="#step-6-output-generation" title="Link to this heading"></a></h3>
+<p>The stress analysis results are finally added to the full DataFrame <code class="docutils literal notranslate"><span class="pre">df_hyfi</span></code>.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="main-outputs">
+<h2>Main Outputs<a class="headerlink" href="#main-outputs" title="Link to this heading"></a></h2>
+<section id="dataframe-columns-added">
+<h3>DataFrame Columns Added<a class="headerlink" href="#dataframe-columns-added" title="Link to this heading"></a></h3>
+<p><strong>Stress Magnitude Parameters</strong>:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Sn_eff</span></code></strong>: Effective normal stress on fault plane (normalized units)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Tau</span></code></strong>: Resolved shear stress magnitude on fault plane (normalized units)</p></li>
+</ul>
+<p><strong>Motion Parameters</strong>:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">rake</span></code></strong>: Predicted rake angle of fault motion (-180° (dextral) to -90° (normal) to 0° (sinistral) to +90° (reverse) to +180° (dextral))</p></li>
+</ul>
+<p><strong>Tendency Parameters</strong> (0-1 scale):</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">instab</span></code></strong>: Instability index</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">sliptend</span></code></strong>: Slip tendency (T_s)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">dilatend</span></code></strong>: Dilation tendency (T_d)</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Ferrill, D. A., Smart, K. J., Morris, A. P. (2020). Fault failure modes, deformation mechanisms, dilation tendency, slip tendency, and conduits v. seals, Integrated Fault Seal Analysis, S. R. Ogilvie, S. J. Dee, R. W. Wilson, W. R. Bailey.  https://doi.org/10.1144/SP496-2019-7</p></li>
+<li><p>Lisle, R. J., &amp; Srivastava, D. C. (2004). Test of the frictional reactivation theory for faults and validity of fault-slip analysis. Geology, 32(7), 569-572. https://doi.org/10.1130/G20408.1</p></li>
+<li><p>Morris, A., Ferrill, D. A., &amp; Henderson, D. B. (1996). Slip-tendency analysis and fault reactivation. Geology, 24(3), 275-278. https://doi.org/10.1130/0091-7613(1996)024&lt;0275:STAAFR&gt;2.3.CO;2</p></li>
+<li><p>Vavryčuk, V., Bouchaala, F., &amp; Fischer, T. (2013). High-resolution fault image from accurate locations and focal mechanisms of the 2008 swarm earthquakes in West Bohemia, Czech Republic. Tectonophysics, 590, 189-195. https://doi.org/10.1016/j.tecto.2013.01.025</p></li>
+</ul>
+<hr class="docutils" />
+<p>Happy fault imaging! 🎉</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="auto_classification.html" class="btn btn-neutral float-left" title="Automatic Classification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="visualization.html" class="btn btn-neutral float-right" title="Visualization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

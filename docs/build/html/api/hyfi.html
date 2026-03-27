@@ -1,0 +1,939 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hyfi package &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="hyfi.config package" href="hyfi.config.html" />
+    <link rel="prev" title="API Reference" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HyFI
+              <img src="../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">hyfi package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.AutoClassConfig"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.AutoClassConfig.algorithm"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig.algorithm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.AutoClassConfig.autoclass_bool"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig.autoclass_bool</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.AutoClassConfig.n_clusters"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig.n_clusters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.AutoClassConfig.rotation"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig.rotation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.AutoClassConfig.validate"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.ConfigValidationError"><code class="docutils literal notranslate"><span class="pre">ConfigValidationError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.FaultImagingWorkflow"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultImagingWorkflow.__init__"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultImagingWorkflow.get_results_summary"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow.get_results_summary()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultImagingWorkflow.run_fault_network_only"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow.run_fault_network_only()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultImagingWorkflow.run_full_analysis"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow.run_full_analysis()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.FaultNetworkConfig"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.auto_optimize_parameters"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.auto_optimize_parameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.dt_nn"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.dt_nn</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.mag_type"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.mag_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.n_mc"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.n_mc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.optimization_early_stopping_rounds"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_early_stopping_rounds</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.optimization_early_stopping_threshold"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_early_stopping_threshold</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.optimization_grid_points"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_grid_points</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.optimization_method"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_method</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.optimization_n_startup_trials"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_n_startup_trials</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.optimization_n_trials"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_n_trials</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.optimization_pareto_population"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_pareto_population</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.optimization_pareto_sampler"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_pareto_sampler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.optimization_sampler"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_sampler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.r_nn"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.r_nn</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.FaultNetworkConfig.validate"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.ModelValidationConfig"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ModelValidationConfig.foc_file"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.foc_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ModelValidationConfig.foc_loc_check"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.foc_loc_check</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ModelValidationConfig.foc_mag_check"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.foc_mag_check</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ModelValidationConfig.foc_sep"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.foc_sep</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ModelValidationConfig.validate"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.validate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ModelValidationConfig.validation_bool"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.validation_bool</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.ProjectConfig"><code class="docutils literal notranslate"><span class="pre">ProjectConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.__post_init__"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.__post_init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.auto_class"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.auto_class</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.fault_network"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.fault_network</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.from_dict"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.hypo_file"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.hypo_file</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.hypo_sep"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.hypo_sep</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.model_validation"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.model_validation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.out_dir"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.out_dir</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.project_title"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.project_title</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.stress_analysis"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.stress_analysis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.to_dict"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.ProjectConfig.validate"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.StressAnalysisConfig"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.PP"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.PP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.S1_plunge"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.S1_plunge</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.S1_trend"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.S1_trend</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.S3_plunge"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.S3_plunge</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.S3_trend"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.S3_trend</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.fric_coeff"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.fric_coeff</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.stress_R"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.stress_R</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.stress_bool"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.stress_bool</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.stress_field_shapefile"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.stress_field_shapefile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.use_shapefile_stress"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.use_shapefile_stress</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyfi.StressAnalysisConfig.validate"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.auto_classification"><code class="docutils literal notranslate"><span class="pre">auto_classification()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.auto_load_config"><code class="docutils literal notranslate"><span class="pre">auto_load_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.create_template_config"><code class="docutils literal notranslate"><span class="pre">create_template_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.fault_stress"><code class="docutils literal notranslate"><span class="pre">fault_stress()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.faultnetwork3D"><code class="docutils literal notranslate"><span class="pre">faultnetwork3D()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.faults_stereoplot"><code class="docutils literal notranslate"><span class="pre">faults_stereoplot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.focal_validation"><code class="docutils literal notranslate"><span class="pre">focal_validation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.model_3d"><code class="docutils literal notranslate"><span class="pre">model_3d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.save_config_to_json"><code class="docutils literal notranslate"><span class="pre">save_config_to_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hyfi.save_data"><code class="docutils literal notranslate"><span class="pre">save_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hyfi.config.html">hyfi.config package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hyfi.core.html">hyfi.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hyfi.utils.html">hyfi.utils package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hyfi.visualization.html">hyfi.visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-hyfi.cli">hyfi.cli module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">API Reference</a></li>
+      <li class="breadcrumb-item active">hyfi package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/hyfi.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-hyfi">
+<span id="hyfi-package"></span><h1>hyfi package<a class="headerlink" href="#module-hyfi" title="Link to this heading"></a></h1>
+<p>HyFI: Hypocenter-based 3D Imaging of Active Faults</p>
+<p>A Python package for 3D imaging of active faults based on relatively relocated
+hypocenter datasets. Based on the methodology described in:</p>
+<p>Truttmann, S., Diehl, T., Herwegh, M. (2023). Hypocenter-based 3D Imaging of
+Active Faults: Method and Applications in the Southwestern Swiss Alps.
+Journal of Geophysical Research: Solid Earth.
+<a class="reference external" href="https://doi.org/10.1029/2023JB026352">https://doi.org/10.1029/2023JB026352</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="hyfi.AutoClassConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">AutoClassConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">autoclass_bool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'vmf_soft'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#AutoClassConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.AutoClassConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Configuration for automatic classification module.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.AutoClassConfig.algorithm">
+<span class="sig-name descname"><span class="pre">algorithm</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'vmf_soft'</span></span><a class="headerlink" href="#hyfi.AutoClassConfig.algorithm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.AutoClassConfig.autoclass_bool">
+<span class="sig-name descname"><span class="pre">autoclass_bool</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#hyfi.AutoClassConfig.autoclass_bool" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.AutoClassConfig.n_clusters">
+<span class="sig-name descname"><span class="pre">n_clusters</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#hyfi.AutoClassConfig.n_clusters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.AutoClassConfig.rotation">
+<span class="sig-name descname"><span class="pre">rotation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#hyfi.AutoClassConfig.rotation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.AutoClassConfig.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#AutoClassConfig.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.AutoClassConfig.validate" title="Link to this definition"></a></dt>
+<dd><p>Validate configuration parameters.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="hyfi.ConfigValidationError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">ConfigValidationError</span></span><a class="reference internal" href="../_modules/hyfi/config/validation.html#ConfigValidationError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.ConfigValidationError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>Custom exception for configuration validation errors.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hyfi.FaultImagingWorkflow">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">FaultImagingWorkflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig" title="hyfi.config.parameters.ProjectConfig"><span class="pre">ProjectConfig</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/workflow.html#FaultImagingWorkflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.FaultImagingWorkflow" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Main workflow class for hypocenter-based 3D fault imaging.</p>
+<p>This class manages the complete workflow including:
+- Fault network reconstruction
+- Model validation with focal mechanisms
+- Automatic classification
+- Stress analysis
+- Visualization and data saving</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.FaultImagingWorkflow.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig" title="hyfi.config.parameters.ProjectConfig"><span class="pre">ProjectConfig</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/workflow.html#FaultImagingWorkflow.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.FaultImagingWorkflow.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the workflow with configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#hyfi.ProjectConfig" title="hyfi.ProjectConfig"><em>ProjectConfig</em></a>) – Configuration object containing all parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.FaultImagingWorkflow.get_results_summary">
+<span class="sig-name descname"><span class="pre">get_results_summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/hyfi/core/workflow.html#FaultImagingWorkflow.get_results_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.FaultImagingWorkflow.get_results_summary" title="Link to this definition"></a></dt>
+<dd><p>Get a summary of the analysis results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Summary statistics and key results</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.FaultImagingWorkflow.run_fault_network_only">
+<span class="sig-name descname"><span class="pre">run_fault_network_only</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/hyfi/core/workflow.html#FaultImagingWorkflow.run_fault_network_only"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.FaultImagingWorkflow.run_fault_network_only" title="Link to this definition"></a></dt>
+<dd><p>Run only the fault network reconstruction module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(data_input, data_input_outliers, data_output, df_per_X, df_per_Y, df_per_Z)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.FaultImagingWorkflow.run_full_analysis">
+<span class="sig-name descname"><span class="pre">run_full_analysis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/hyfi/core/workflow.html#FaultImagingWorkflow.run_full_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.FaultImagingWorkflow.run_full_analysis" title="Link to this definition"></a></dt>
+<dd><p>Run the complete fault imaging workflow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing all results from the analysis</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">FaultNetworkConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_mc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_nn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt_nn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">26298.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mag_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ML'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_optimize_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'optuna'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_grid_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_n_trials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_sampler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'tpe'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_n_startup_trials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_early_stopping_rounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_early_stopping_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_pareto_sampler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'nsga2'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimization_pareto_population</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#FaultNetworkConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.FaultNetworkConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Configuration for fault network reconstruction module.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.auto_optimize_parameters">
+<span class="sig-name descname"><span class="pre">auto_optimize_parameters</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.auto_optimize_parameters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.dt_nn">
+<span class="sig-name descname"><span class="pre">dt_nn</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">26298.0</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.dt_nn" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.mag_type">
+<span class="sig-name descname"><span class="pre">mag_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ML'</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.mag_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.n_mc">
+<span class="sig-name descname"><span class="pre">n_mc</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.n_mc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.optimization_early_stopping_rounds">
+<span class="sig-name descname"><span class="pre">optimization_early_stopping_rounds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.optimization_early_stopping_rounds" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.optimization_early_stopping_threshold">
+<span class="sig-name descname"><span class="pre">optimization_early_stopping_threshold</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0001</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.optimization_early_stopping_threshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.optimization_grid_points">
+<span class="sig-name descname"><span class="pre">optimization_grid_points</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">25</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.optimization_grid_points" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.optimization_method">
+<span class="sig-name descname"><span class="pre">optimization_method</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'optuna'</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.optimization_method" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.optimization_n_startup_trials">
+<span class="sig-name descname"><span class="pre">optimization_n_startup_trials</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.optimization_n_startup_trials" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.optimization_n_trials">
+<span class="sig-name descname"><span class="pre">optimization_n_trials</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.optimization_n_trials" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.optimization_pareto_population">
+<span class="sig-name descname"><span class="pre">optimization_pareto_population</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.optimization_pareto_population" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.optimization_pareto_sampler">
+<span class="sig-name descname"><span class="pre">optimization_pareto_sampler</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'nsga2'</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.optimization_pareto_sampler" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.optimization_sampler">
+<span class="sig-name descname"><span class="pre">optimization_sampler</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'tpe'</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.optimization_sampler" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.r_nn">
+<span class="sig-name descname"><span class="pre">r_nn</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100.0</span></span><a class="headerlink" href="#hyfi.FaultNetworkConfig.r_nn" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.FaultNetworkConfig.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#FaultNetworkConfig.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.FaultNetworkConfig.validate" title="Link to this definition"></a></dt>
+<dd><p>Validate configuration parameters.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hyfi.ModelValidationConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">ModelValidationConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">validation_bool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foc_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foc_sep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">';'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foc_mag_check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foc_loc_check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#ModelValidationConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.ModelValidationConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Configuration for model validation module.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ModelValidationConfig.foc_file">
+<span class="sig-name descname"><span class="pre">foc_file</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#hyfi.ModelValidationConfig.foc_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ModelValidationConfig.foc_loc_check">
+<span class="sig-name descname"><span class="pre">foc_loc_check</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#hyfi.ModelValidationConfig.foc_loc_check" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ModelValidationConfig.foc_mag_check">
+<span class="sig-name descname"><span class="pre">foc_mag_check</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#hyfi.ModelValidationConfig.foc_mag_check" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ModelValidationConfig.foc_sep">
+<span class="sig-name descname"><span class="pre">foc_sep</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">';'</span></span><a class="headerlink" href="#hyfi.ModelValidationConfig.foc_sep" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.ModelValidationConfig.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#ModelValidationConfig.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.ModelValidationConfig.validate" title="Link to this definition"></a></dt>
+<dd><p>Validate configuration parameters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ModelValidationConfig.validation_bool">
+<span class="sig-name descname"><span class="pre">validation_bool</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#hyfi.ModelValidationConfig.validation_bool" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">ProjectConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Fault</span> <span class="pre">Imaging</span> <span class="pre">Analysis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hypo_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hypo_sep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'\t'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fault_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig" title="hyfi.config.parameters.FaultNetworkConfig"><span class="pre">FaultNetworkConfig</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_validation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hyfi.config.html#hyfi.config.ModelValidationConfig" title="hyfi.config.parameters.ModelValidationConfig"><span class="pre">ModelValidationConfig</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hyfi.config.html#hyfi.config.AutoClassConfig" title="hyfi.config.parameters.AutoClassConfig"><span class="pre">AutoClassConfig</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stress_analysis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig" title="hyfi.config.parameters.StressAnalysisConfig"><span class="pre">StressAnalysisConfig</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#ProjectConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.ProjectConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Main configuration class containing all module configurations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.__post_init__">
+<span class="sig-name descname"><span class="pre">__post_init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#ProjectConfig.__post_init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.ProjectConfig.__post_init__" title="Link to this definition"></a></dt>
+<dd><p>Convert string paths to Path objects and validate basic properties.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.auto_class">
+<span class="sig-name descname"><span class="pre">auto_class</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="hyfi.config.html#hyfi.config.AutoClassConfig" title="hyfi.config.parameters.AutoClassConfig"><span class="pre">AutoClassConfig</span></a></span><a class="headerlink" href="#hyfi.ProjectConfig.auto_class" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.fault_network">
+<span class="sig-name descname"><span class="pre">fault_network</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig" title="hyfi.config.parameters.FaultNetworkConfig"><span class="pre">FaultNetworkConfig</span></a></span><a class="headerlink" href="#hyfi.ProjectConfig.fault_network" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.from_dict">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig" title="hyfi.config.parameters.ProjectConfig"><span class="pre">ProjectConfig</span></a></span></span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#ProjectConfig.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.ProjectConfig.from_dict" title="Link to this definition"></a></dt>
+<dd><p>Create ProjectConfig from dictionary (for backward compatibility).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.hypo_file">
+<span class="sig-name descname"><span class="pre">hypo_file</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></span><a class="headerlink" href="#hyfi.ProjectConfig.hypo_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.hypo_sep">
+<span class="sig-name descname"><span class="pre">hypo_sep</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\t'</span></span><a class="headerlink" href="#hyfi.ProjectConfig.hypo_sep" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.model_validation">
+<span class="sig-name descname"><span class="pre">model_validation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="hyfi.config.html#hyfi.config.ModelValidationConfig" title="hyfi.config.parameters.ModelValidationConfig"><span class="pre">ModelValidationConfig</span></a></span><a class="headerlink" href="#hyfi.ProjectConfig.model_validation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.out_dir">
+<span class="sig-name descname"><span class="pre">out_dir</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span><a class="headerlink" href="#hyfi.ProjectConfig.out_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.project_title">
+<span class="sig-name descname"><span class="pre">project_title</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Fault</span> <span class="pre">Imaging</span> <span class="pre">Analysis'</span></span><a class="headerlink" href="#hyfi.ProjectConfig.project_title" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.stress_analysis">
+<span class="sig-name descname"><span class="pre">stress_analysis</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig" title="hyfi.config.parameters.StressAnalysisConfig"><span class="pre">StressAnalysisConfig</span></a></span><a class="headerlink" href="#hyfi.ProjectConfig.stress_analysis" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#ProjectConfig.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.ProjectConfig.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert ProjectConfig to dictionary (for backward compatibility).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.ProjectConfig.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#ProjectConfig.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.ProjectConfig.validate" title="Link to this definition"></a></dt>
+<dd><p>Validate all configuration parameters.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">StressAnalysisConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stress_bool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">S1_trend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">301</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">S1_plunge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">23</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">S3_trend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">43</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">S3_plunge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">26</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stress_R</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.35</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PP</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fric_coeff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_shapefile_stress</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stress_field_shapefile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#StressAnalysisConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.StressAnalysisConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Configuration for fault stress analysis module.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.PP">
+<span class="sig-name descname"><span class="pre">PP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#hyfi.StressAnalysisConfig.PP" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.S1_plunge">
+<span class="sig-name descname"><span class="pre">S1_plunge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">23</span></span><a class="headerlink" href="#hyfi.StressAnalysisConfig.S1_plunge" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.S1_trend">
+<span class="sig-name descname"><span class="pre">S1_trend</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">301</span></span><a class="headerlink" href="#hyfi.StressAnalysisConfig.S1_trend" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.S3_plunge">
+<span class="sig-name descname"><span class="pre">S3_plunge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">26</span></span><a class="headerlink" href="#hyfi.StressAnalysisConfig.S3_plunge" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.S3_trend">
+<span class="sig-name descname"><span class="pre">S3_trend</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">43</span></span><a class="headerlink" href="#hyfi.StressAnalysisConfig.S3_trend" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.fric_coeff">
+<span class="sig-name descname"><span class="pre">fric_coeff</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.75</span></span><a class="headerlink" href="#hyfi.StressAnalysisConfig.fric_coeff" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.stress_R">
+<span class="sig-name descname"><span class="pre">stress_R</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.35</span></span><a class="headerlink" href="#hyfi.StressAnalysisConfig.stress_R" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.stress_bool">
+<span class="sig-name descname"><span class="pre">stress_bool</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#hyfi.StressAnalysisConfig.stress_bool" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.stress_field_shapefile">
+<span class="sig-name descname"><span class="pre">stress_field_shapefile</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#hyfi.StressAnalysisConfig.stress_field_shapefile" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.use_shapefile_stress">
+<span class="sig-name descname"><span class="pre">use_shapefile_stress</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#hyfi.StressAnalysisConfig.use_shapefile_stress" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.StressAnalysisConfig.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/config/parameters.html#StressAnalysisConfig.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.StressAnalysisConfig.validate" title="Link to this definition"></a></dt>
+<dd><p>Validate configuration parameters.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.auto_classification">
+<span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">auto_classification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_hyfi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starting_fault_counter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmentation_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/auto_class.html#auto_classification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.auto_classification" title="Link to this definition"></a></dt>
+<dd><p>Automatic classification of point cloud based on fault orientations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Input parameters containing clustering configuration.</p></li>
+<li><p><strong>df_hyfi</strong> (<em>DataFrame</em>) – Input dataframe containing all hypocenter data and computed fault parameters.
+Clustering results will be added as new columns to this dataframe.</p></li>
+<li><p><strong>starting_fault_counter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Starting value for global fault counter (default: 1)</p></li>
+<li><p><strong>sequence_label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Label of the sequence being processed (e.g., ‘A1’, ‘B2’)</p></li>
+<li><p><strong>segmentation_level</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Segmentation level letter (e.g., ‘A’, ‘B’, ‘C’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>df_hyfi</strong> (<em>DataFrame</em>) – Input dataframe with added clustering columns and global fault IDs.</p></li>
+<li><p><strong>fault_metadata</strong> (<em>list</em>) – List of dictionaries containing metadata for each fault</p></li>
+<li><p><strong>next_fault_counter</strong> (<em>int</em>) – Next available fault counter value</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.auto_load_config">
+<span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">auto_load_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">HyFIWorkflowDAG</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">MultiSequenceConfig</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig" title="hyfi.config.parameters.ProjectConfig"><span class="pre">ProjectConfig</span></a></span></span><a class="reference internal" href="../_modules/hyfi/config/io.html#auto_load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.auto_load_config" title="Link to this definition"></a></dt>
+<dd><p>Automatically detect JSON file format and load configuration.</p>
+<p>For JSON files, detects between DAG format, multi-sequence format, and legacy format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>Path</em><em>]</em>) – Path to the JSON configuration file</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Loaded configuration object based on detected format</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[HyFIWorkflowDAG, MultiSequenceConfig, <a class="reference internal" href="#hyfi.ProjectConfig" title="hyfi.ProjectConfig">ProjectConfig</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#hyfi.ConfigValidationError" title="hyfi.ConfigValidationError"><strong>ConfigValidationError</strong></a> – If file format is not supported or file cannot be loaded</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.create_template_config">
+<span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">create_template_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'json'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/hyfi/config/io.html#create_template_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.create_template_config" title="Link to this definition"></a></dt>
+<dd><p>Create a template configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_path</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>Path</em><em>]</em>) – Path where to save the template</p></li>
+<li><p><strong>format</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – File format - only ‘json’ is supported</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#hyfi.ConfigValidationError" title="hyfi.ConfigValidationError"><strong>ConfigValidationError</strong></a> – If format is not supported or file cannot be written</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.fault_stress">
+<span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">fault_stress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_hyfi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/stress_analysis.html#fault_stress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.fault_stress" title="Link to this definition"></a></dt>
+<dd><p>Calculate the stress parameters for each individual earthquake.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df_hyfi</strong> (<em>DataFrame</em>) – Single dataframe containing fault plane data and results.</p></li>
+<li><p><strong>input_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Input parameters for stress analysis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>df_hyfi</strong> (<em>DataFrame</em>) – Input dataframe with added stress analysis columns.</p></li>
+<li><p><strong>S2_trend</strong> (<em>float</em>) – Trend of intermediate principal stress.</p></li>
+<li><p><strong>S2_plunge</strong> (<em>float</em>) – Plunge of intermediate principal stress.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.faultnetwork3D">
+<span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">faultnetwork3D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/fault_network.html#faultnetwork3D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.faultnetwork3D" title="Link to this definition"></a></dt>
+<dd><p>Calculate 3D fault network from hypocenters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hypo_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path of hypoDD input file.</p></li>
+<li><p><strong>hypo_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Separator for hypoDD input file.</p></li>
+<li><p><strong>out_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path for output folder.</p></li>
+<li><p><strong>n_mc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of MC simulations.</p></li>
+<li><p><strong>r_nn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Search radius for nearest neighbor search [m].</p></li>
+<li><p><strong>dt_nn</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Search time for nearest neighbor search [h].</p></li>
+<li><p><strong>validation_bool</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True: perform model validation calculations.</p></li>
+<li><p><strong>foc_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Path for focal mechanism catalog.</p></li>
+<li><p><strong>foc_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Separator for focal mechanism catalog.</p></li>
+<li><p><strong>stress_bool</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True: perform fault stress analysis.</p></li>
+<li><p><strong>S1_mag</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum principal stress magnitude [MPa].</p></li>
+<li><p><strong>S2_mag</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Intermediate principal stress magnitude [MPa].</p></li>
+<li><p><strong>S3_mag</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Minimum principal stress magnitude [MPa].</p></li>
+<li><p><strong>PP</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Pore fluid pressure [MPa].</p></li>
+<li><p><strong>S1_trend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Trend of maximum principal stress direction.</p></li>
+<li><p><strong>S1_plunge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Plunge of maximum principal stress direction.</p></li>
+<li><p><strong>S3_trend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Trend of minimum principal stress direction.</p></li>
+<li><p><strong>S3_plunge</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Plunge of minimum principal stress direction.</p></li>
+<li><p><strong>stress_R</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Stress shape ratio R.</p></li>
+<li><p><strong>fric_coeff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Friction coefficient.</p></li>
+<li><p><strong>autoclass_bool</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True: perform autoclassification.</p></li>
+<li><p><strong>mag_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Type of magnitude (ML, Mw)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>DataFrames with the parameters of the input parameters (with/without detected outliers), the full 3D fault</em></p></li>
+<li><p><em>network model and the MC hypocenter locations.</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.faults_stereoplot">
+<span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">faults_stereoplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/visualization/visualisation.html#faults_stereoplot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.faults_stereoplot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.focal_validation">
+<span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">focal_validation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_hyfi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/core/model_validation.html#focal_validation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.focal_validation" title="Link to this definition"></a></dt>
+<dd><p>Validate the fault network model with focal mechanism data using single dataframe approach.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df_hyfi</strong> (<em>DataFrame</em>) – Single dataframe containing hypocenter data and computed fault plane parameters</p></li>
+<li><p><strong>input_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Input parameters including validation settings and focal mechanism file info</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>df_hyfi</strong> – Input dataframe with added focal mechanism validation columns</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.model_3d">
+<span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">model_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_output</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/visualization/visualisation.html#model_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.model_3d" title="Link to this definition"></a></dt>
+<dd><p>Generate an interactive 3D model with plotly using single dataframe approach.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Input parameters.</p></li>
+<li><p><strong>data_input</strong> (<em>DataFrame</em>) – Input data (legacy parameter, not used with single dataframe approach).</p></li>
+<li><p><strong>data_output</strong> (<em>DataFrame</em>) – Output data (legacy parameter, not used with single dataframe approach).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Interactive 3D model, saved in the output directory.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.save_config_to_json">
+<span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">save_config_to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig" title="hyfi.config.parameters.ProjectConfig"><span class="pre">ProjectConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/hyfi/config/io.html#save_config_to_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.save_config_to_json" title="Link to this definition"></a></dt>
+<dd><p>Save configuration to a JSON file (legacy format).</p>
+<p>Note: For DAG configurations, use save_dag_to_json() instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<a class="reference internal" href="#hyfi.ProjectConfig" title="hyfi.ProjectConfig"><em>ProjectConfig</em></a>) – Configuration object to save</p></li>
+<li><p><strong>file_path</strong> (<em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>Path</em><em>]</em>) – Path where to save the JSON file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#hyfi.ConfigValidationError" title="hyfi.ConfigValidationError"><strong>ConfigValidationError</strong></a> – If file cannot be written</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.save_data">
+<span class="sig-prename descclassname"><span class="pre">hyfi.</span></span><span class="sig-name descname"><span class="pre">save_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_Z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_source_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/utilities.html#save_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.save_data" title="Link to this definition"></a></dt>
+<dd><p>Save data in txt-files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_params</strong> (<em>DataFrame</em>) – Input parameters.</p></li>
+<li><p><strong>data_input</strong> (<em>DataFrame</em>) – Input data (includes outliers marked with clust_labels = -1).</p></li>
+<li><p><strong>data_output</strong> (<em>DataFrame</em>) – Output data.</p></li>
+<li><p><strong>per_X</strong> (<em>DataFrame</em>) – X coordinates of MC datasets.</p></li>
+<li><p><strong>per_Y</strong> (<em>DataFrame</em>) – Y coordinates of MC datasets.</p></li>
+<li><p><strong>per_Z</strong> (<em>DataFrame</em>) – Z coordinates of MC datasets.</p></li>
+<li><p><strong>config_source_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to the original configuration file to copy to output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="hyfi.config.html">hyfi.config package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.AutoClassConfig"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.AutoClassConfig.algorithm"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig.algorithm</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.AutoClassConfig.autoclass_bool"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig.autoclass_bool</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.AutoClassConfig.n_clusters"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig.n_clusters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.AutoClassConfig.rotation"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig.rotation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.AutoClassConfig.validate"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.ConfigValidationError"><code class="docutils literal notranslate"><span class="pre">ConfigValidationError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.auto_optimize_parameters"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.auto_optimize_parameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.dt_nn"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.dt_nn</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.mag_type"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.mag_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.n_mc"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.n_mc</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.optimization_early_stopping_rounds"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_early_stopping_rounds</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.optimization_early_stopping_threshold"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_early_stopping_threshold</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.optimization_grid_points"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_grid_points</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.optimization_method"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_method</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.optimization_n_startup_trials"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_n_startup_trials</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.optimization_n_trials"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_n_trials</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.optimization_pareto_population"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_pareto_population</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.optimization_pareto_sampler"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_pareto_sampler</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.optimization_sampler"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.optimization_sampler</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.r_nn"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.r_nn</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.FaultNetworkConfig.validate"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.ModelValidationConfig"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ModelValidationConfig.foc_file"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.foc_file</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ModelValidationConfig.foc_loc_check"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.foc_loc_check</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ModelValidationConfig.foc_mag_check"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.foc_mag_check</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ModelValidationConfig.foc_sep"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.foc_sep</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ModelValidationConfig.validate"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.validate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ModelValidationConfig.validation_bool"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig.validation_bool</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig"><code class="docutils literal notranslate"><span class="pre">ProjectConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.__post_init__"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.__post_init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.auto_class"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.auto_class</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.fault_network"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.fault_network</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.from_dict"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.hypo_file"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.hypo_file</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.hypo_sep"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.hypo_sep</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.model_validation"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.model_validation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.out_dir"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.out_dir</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.project_title"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.project_title</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.stress_analysis"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.stress_analysis</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.to_dict"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.ProjectConfig.validate"><code class="docutils literal notranslate"><span class="pre">ProjectConfig.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.PP"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.PP</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.S1_plunge"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.S1_plunge</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.S1_trend"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.S1_trend</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.S3_plunge"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.S3_plunge</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.S3_trend"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.S3_trend</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.fric_coeff"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.fric_coeff</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.stress_R"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.stress_R</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.stress_bool"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.stress_bool</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.stress_field_shapefile"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.stress_field_shapefile</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.use_shapefile_stress"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.use_shapefile_stress</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.config.html#hyfi.config.StressAnalysisConfig.validate"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.auto_load_config"><code class="docutils literal notranslate"><span class="pre">auto_load_config()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.convert_legacy_to_dag"><code class="docutils literal notranslate"><span class="pre">convert_legacy_to_dag()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.create_template_config"><code class="docutils literal notranslate"><span class="pre">create_template_config()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.create_template_dag"><code class="docutils literal notranslate"><span class="pre">create_template_dag()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.load_config_from_json"><code class="docutils literal notranslate"><span class="pre">load_config_from_json()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.load_dag_from_json"><code class="docutils literal notranslate"><span class="pre">load_dag_from_json()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.save_config_to_json"><code class="docutils literal notranslate"><span class="pre">save_config_to_json()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.save_dag_to_json"><code class="docutils literal notranslate"><span class="pre">save_dag_to_json()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.config.html#hyfi.config.validate_dag_file"><code class="docutils literal notranslate"><span class="pre">validate_dag_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hyfi.core.html">hyfi.core package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.core.html#hyfi.core.FaultImagingWorkflow"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.core.html#hyfi.core.FaultImagingWorkflow.__init__"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.core.html#hyfi.core.FaultImagingWorkflow.get_results_summary"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow.get_results_summary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.core.html#hyfi.core.FaultImagingWorkflow.run_fault_network_only"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow.run_fault_network_only()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.core.html#hyfi.core.FaultImagingWorkflow.run_full_analysis"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow.run_full_analysis()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.core.html#hyfi.core.auto_classification"><code class="docutils literal notranslate"><span class="pre">auto_classification()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.core.html#hyfi.core.fault_stress"><code class="docutils literal notranslate"><span class="pre">fault_stress()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.core.html#hyfi.core.faultnetwork3D"><code class="docutils literal notranslate"><span class="pre">faultnetwork3D()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.core.html#hyfi.core.focal_validation"><code class="docutils literal notranslate"><span class="pre">focal_validation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hyfi.utils.html">hyfi.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer.__init__"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer.get_recommended_parameters"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer.get_recommended_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer.optimize"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer.optimize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer.optimize_grid_search"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer.optimize_grid_search()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer.optimize_heuristic"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer.optimize_heuristic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer.optimize_optuna"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer.optimize_optuna()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer.optimize_pareto"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer.optimize_pareto()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer.plot_grid_search_results"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer.plot_grid_search_results()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer.plot_optuna_results"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer.plot_optuna_results()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.ParameterOptimizer.plot_pareto_results"><code class="docutils literal notranslate"><span class="pre">ParameterOptimizer.plot_pareto_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.fault_network_with_optimization"><code class="docutils literal notranslate"><span class="pre">fault_network_with_optimization()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.optimize_fault_network_parameters"><code class="docutils literal notranslate"><span class="pre">optimize_fault_network_parameters()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.utils.html#hyfi.utils.save_data"><code class="docutils literal notranslate"><span class="pre">save_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hyfi.visualization.html">hyfi.visualization package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.visualization.html#hyfi.visualization.faults_stereoplot"><code class="docutils literal notranslate"><span class="pre">faults_stereoplot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyfi.visualization.html#hyfi.visualization.model_3d"><code class="docutils literal notranslate"><span class="pre">model_3d()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-hyfi.cli">
+<span id="hyfi-cli-module"></span><h2>hyfi.cli module<a class="headerlink" href="#module-hyfi.cli" title="Link to this heading"></a></h2>
+<p>Command Line Interface for HyFI: Hypocenter-based 3D Imaging of Active Faults</p>
+<p>This module provides a command-line interface for running fault imaging analyses.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hyfi.config.html" class="btn btn-neutral float-right" title="hyfi.config package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

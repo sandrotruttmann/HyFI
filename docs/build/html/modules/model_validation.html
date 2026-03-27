@@ -1,0 +1,323 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Model Validation &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Automatic Classification" href="auto_classification.html" />
+    <link rel="prev" title="Fault Network Reconstruction" href="fault_network.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HyFI
+              <img src="../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HyFI Core Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-module-execution-order">Core Module Execution Order</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#core-analysis-modules">Core Analysis Modules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="fault_network.html">Fault Network Reconstruction</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Model Validation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#core-concepts">Core Concepts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#computational-workflow">Computational Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main-outputs">Main Outputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="auto_classification.html">Automatic Classification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stress_analysis.html">Stress Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="visualization.html">Visualization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">HyFI Core Modules</a></li>
+      <li class="breadcrumb-item active">Model Validation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/model_validation.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="model-validation">
+<h1>Model Validation<a class="headerlink" href="#model-validation" title="Link to this heading"></a></h1>
+<p>The model validation module compares <strong>HyFI</strong> rupture plane estimates with independent focal mechanism solutions to assess reconstruction accuracy and determine active fault planes based on hypocenter distribution constraints. For details, see the original <strong>HyFI</strong> publication (Truttmann et al., 2023).</p>
+<hr class="docutils" />
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading"></a></h2>
+<section id="angular-differences-as-quality-measure">
+<h3>Angular Differences (ε) as Quality Measure<a class="headerlink" href="#angular-differences-as-quality-measure" title="Link to this heading"></a></h3>
+<p><strong>HyFI</strong> calculates the angle between the computed rupture plane and the active nodal plane of the focal mechanism.</p>
+<p><strong>Physical Interpretation</strong>:</p>
+<ul>
+<li><p>0°: Perfect alignment (computed plane ≡ focal mechanism plane)</p></li>
+<li><p>&lt; 15°: Excellent agreement (typical for well-constrained cases)</p></li>
+<li><p>15-30°: Good agreement (acceptable for seismic data quality)</p></li>
+<li><p>30-45°: Fair agreement (visible discrepancy)</p></li>
+<li><blockquote>
+<div><p>45°: Poor agreement (significant misalignment)</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="pre-specified-vs-auto-determined-planes">
+<h3>Pre-specified vs. Auto-determined Planes<a class="headerlink" href="#pre-specified-vs-auto-determined-planes" title="Link to this heading"></a></h3>
+<p><strong>HyFI</strong> can be used to verify pre-specified nodal planes (A=1 or A=2) and automatically determines unspecified nodal planes (A=0 or A=NaN) based on the fit with the calculated rupture plane from the fault network module.</p>
+<p>Note that the pre-specified nodal planes are always preserved!</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="computational-workflow">
+<h2>Computational Workflow<a class="headerlink" href="#computational-workflow" title="Link to this heading"></a></h2>
+<p>The validation module is executed according to the following structured pipeline:</p>
+<section id="step-1-data-merging-focal-mechanism-integration">
+<h3>Step 1: Data Merging - Focal Mechanism Integration<a class="headerlink" href="#step-1-data-merging-focal-mechanism-integration" title="Link to this heading"></a></h3>
+<p>Focal mechanism data is merged with hypocenter data using two strategies (tried in order):</p>
+<p><strong>Strategy A: ID-Based Matching</strong> (Primary)</p>
+<ul class="simple">
+<li><p>Match events by event ID across catalogs</p></li>
+<li><p>Requires identical ID formatting in both files</p></li>
+<li><p>Most reliable when ID numbers are unique and consistent</p></li>
+<li><p>Fastest approach - direct one-to-one correspondence</p></li>
+</ul>
+<p><strong>Strategy B: Temporal Matching</strong> (Fallback)</p>
+<ul class="simple">
+<li><p>If ID matching fails, use <code class="docutils literal notranslate"><span class="pre">merge_asof</span></code> on datetime</p></li>
+<li><p>Matches events within 60-second tolerance window</p></li>
+<li><p>Sorted by date before merging</p></li>
+<li><p>More robust for catalogs with ID formatting differences or with unconsistent/missing catalog IDs</p></li>
+</ul>
+<p>The algorithm also performs two <strong>Quality Control Checks</strong> (Optional, configurable):</p>
+<ol class="arabic simple">
+<li><p><strong>Magnitude Consistency Check</strong>:</p>
+<ul class="simple">
+<li><p>Compare hypocenter magnitude (MAG) with focal mechanism magnitude</p></li>
+<li><p>Remove focal data if |MAG_hypo - MAG_focal| &gt; threshold (default: 0.2)</p></li>
+<li><p>Reports events with significant magnitude mismatches</p></li>
+<li><p>Protects against erroneous cross-catalog associations</p></li>
+</ul>
+</li>
+<li><p><strong>Location Consistency Check</strong>:</p>
+<ul class="simple">
+<li><p>Compare hypocenter location (X, Y, Z) with focal mechanism location</p></li>
+<li><p>Depth threshold: km units (default: 1.0 km)</p></li>
+<li><p>Latitude/Longitude: converted from km to degrees (~0.009°/km)</p></li>
+<li><p>Reports mismatches but does NOT remove data (just warnings)</p></li>
+<li><p>Identifies potential duplicate events in different catalogs</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="step-2-normal-vector-conversion">
+<h3>Step 2: Normal Vector Conversion<a class="headerlink" href="#step-2-normal-vector-conversion" title="Link to this heading"></a></h3>
+<p>In step 2, both nodal planes are converted from azimuth/dip to normal vectors. This results in normal vectors for both focal mechanism nodal planes</p>
+</section>
+<section id="step-3-angular-difference-calculation">
+<h3>Step 3: Angular Difference Calculation<a class="headerlink" href="#step-3-angular-difference-calculation" title="Link to this heading"></a></h3>
+<p>For each event with both a computed rupture plane and a focal mechanism, the angular difference from the rupture plane to both nodal planes (1 and 2) is calculated:</p>
+<ol class="arabic simple">
+<li><p><strong>Plane 1 angular difference</strong>:</p>
+<ul class="simple">
+<li><p>angle1 = angle_between(nor_computed, nor_focal_plane1)</p></li>
+<li><p>Ensure acute angle: angle1 = min(angle1, 180 - angle1)</p></li>
+</ul>
+</li>
+<li><p><strong>Plane 2 angular difference</strong>:</p>
+<ul class="simple">
+<li><p>angle2 = angle_between(nor_computed, nor_focal_plane2)</p></li>
+<li><p>Ensure acute angle: angle2 = min(angle2, 180 - angle2)</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Geometric meaning</strong>: Angular difference measures the angle between the normal vectors and thus how well the computed rupture plane aligns with each focal mechanism nodal plane</p>
+</section>
+<section id="step-4-preferred-plane-selection">
+<h3>Step 4: Preferred Plane Selection<a class="headerlink" href="#step-4-preferred-plane-selection" title="Link to this heading"></a></h3>
+<p>In the next step, a two-tier selection process to define the active nodal plane is exexuted:</p>
+<p><strong>Tier 1: Active Plane Indicator (if available)</strong></p>
+<ul class="simple">
+<li><p>Check column A (specifies the known 1active plane) from the focal mechanism catalog: values 1, 2 indicate pre-specified active plane</p></li>
+<li><p>If A = 1: Use angle1 (Strike1, Dip1, Rake1) as final angular difference (epsilon)</p></li>
+<li><p>If A = 2: Use angle2 (Strike2, Dip2, Rake2) as final angular difference (epsilon)</p></li>
+<li><p>If A = 0: Fall through to Tier 2 (unknown nodal plane, use geometry)</p></li>
+<li><p>If A = NaN: Fall through to Tier 2 (no pre-specification, use geometry)</p></li>
+</ul>
+<p><strong>Tier 2: Geometric Selection</strong></p>
+<ul class="simple">
+<li><p>Compare: angle1 vs. angle2</p></li>
+<li><p>Choose plane with MINIMUM angular difference (epsilon = min(angle1, angle2))</p></li>
+</ul>
+<p><strong>Rationale</strong>:</p>
+<ul class="simple">
+<li><p>Pre-specified active planes (A=1 or A=2) take priority and are always maintained</p></li>
+<li><p>For unknown planes (A=0 or A=NaN), the algorithm selects the nodal plane based on the best geometric fit to the computed rupture plane</p></li>
+</ul>
+<p><strong>Output columns</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">epsilon</span></code>: Angular difference of the preferred focal plane in degrees (0-90°)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pref_foc</span></code>: <strong>HyFI</strong>-based preferred focal plane (1 or 2)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plane_determination_method</span></code>: Categorical description</p>
+<ul>
+<li><p>“Pre-specified (A=1 or A=2)”</p></li>
+<li><p>“Newly determined (A=0, geometric selection)”</p></li>
+<li><p>“Newly determined (no A, geometric selection)”</p></li>
+<li><p>“Not determined (A specified but no rupture plane)”</p></li>
+<li><p>“Not determined (no computed rupture plane)”</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="step-5-reporting">
+<h3>Step 5: Reporting<a class="headerlink" href="#step-5-reporting" title="Link to this heading"></a></h3>
+<p>Finally, the validation module generates comprehensive summary files on the preferred plane determination (see below).</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="main-outputs">
+<h2>Main Outputs<a class="headerlink" href="#main-outputs" title="Link to this heading"></a></h2>
+<p><strong>Active Plane Statistics: <code class="docutils literal notranslate"><span class="pre">active_plane_statistics.txt</span></code></strong></p>
+<p>This file includes the statistics summary in a human-readable format for quick understanding of validation results quality.</p>
+<ul class="simple">
+<li><p>Total events with focal mechanisms</p></li>
+<li><p>Breakdown by determination method with counts</p></li>
+<li><p>For newly determined planes: selection distribution (plane 1 vs. 2)</p></li>
+<li><p>Angular difference statistics: mean, median, min, max</p></li>
+<li><p>For pre-specified planes: similar angular difference statistics</p></li>
+<li><p>For not-determined events: reasons and counts</p></li>
+<li><p>Interpretation guidance</p></li>
+</ul>
+<p><strong>Active Plane Determination Summary: <code class="docutils literal notranslate"><span class="pre">active_plane_determination_summary.csv</span></code></strong></p>
+<p>Detailed row-by-row documentation including:</p>
+<ul class="simple">
+<li><p>Event ID, Date, Location (X, Y, Z), Magnitude</p></li>
+<li><p>Focal mechanism data: Strike1, Dip1, Rake1, Strike2, Dip2, Rake2</p></li>
+<li><p>Focal mechanism active plane indicator: A</p></li>
+<li><p>Computed fault plane: rupt_plane_azi, rupt_plane_dip</p></li>
+<li><p>Validation results: pref_foc, epsilon</p></li>
+<li><p>Preferred strike/dip/rake extracted from selected plane</p></li>
+<li><p>Determination method: How was pref_foc determined?</p></li>
+</ul>
+<p>Sorted by:</p>
+<ol class="arabic simple">
+<li><p>Determination method (pre-specified → newly determined → not determined)</p></li>
+<li><p>Angular difference (best matches first)</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Truttmann, S., Diehl, T., &amp; Herwegh, M. (2023). Hypocenter-based 3D imaging of active faults: Method and applications in the Southwestern Swiss Alps. Journal of Geophysical Research: Solid Earth, 128, e2023JB026352. https://doi.org/10.1029/2023JB026352</p></li>
+</ul>
+<hr class="docutils" />
+<p>Happy fault imaging! 🎉</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="fault_network.html" class="btn btn-neutral float-left" title="Fault Network Reconstruction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="auto_classification.html" class="btn btn-neutral float-right" title="Automatic Classification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

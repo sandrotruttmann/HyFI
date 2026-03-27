@@ -1,0 +1,510 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hyfi.utils package &mdash; HyFI 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="hyfi.visualization package" href="hyfi.visualization.html" />
+    <link rel="prev" title="hyfi.core package" href="hyfi.core.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2c3e50" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HyFI
+              <img src="../_static/hyfi_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../workflows.html">HyFI Processing Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">HyFI Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input_parameters.html">HyFI Input Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/index.html">HyFI Core Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../terminology.html">HyFI Terminology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">HyFI Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../querying.html">HyFI Database Querying</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../single_examples.html">Single-Sequence Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multi_examples.html">Multi-Sequence Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="hyfi.html">hyfi package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.AutoClassConfig"><code class="docutils literal notranslate"><span class="pre">AutoClassConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.ConfigValidationError"><code class="docutils literal notranslate"><span class="pre">ConfigValidationError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.FaultImagingWorkflow"><code class="docutils literal notranslate"><span class="pre">FaultImagingWorkflow</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.FaultNetworkConfig"><code class="docutils literal notranslate"><span class="pre">FaultNetworkConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.ModelValidationConfig"><code class="docutils literal notranslate"><span class="pre">ModelValidationConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.ProjectConfig"><code class="docutils literal notranslate"><span class="pre">ProjectConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.StressAnalysisConfig"><code class="docutils literal notranslate"><span class="pre">StressAnalysisConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.auto_classification"><code class="docutils literal notranslate"><span class="pre">auto_classification()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.auto_load_config"><code class="docutils literal notranslate"><span class="pre">auto_load_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.create_template_config"><code class="docutils literal notranslate"><span class="pre">create_template_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.fault_stress"><code class="docutils literal notranslate"><span class="pre">fault_stress()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.faultnetwork3D"><code class="docutils literal notranslate"><span class="pre">faultnetwork3D()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.faults_stereoplot"><code class="docutils literal notranslate"><span class="pre">faults_stereoplot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.focal_validation"><code class="docutils literal notranslate"><span class="pre">focal_validation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.model_3d"><code class="docutils literal notranslate"><span class="pre">model_3d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.save_config_to_json"><code class="docutils literal notranslate"><span class="pre">save_config_to_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#hyfi.save_data"><code class="docutils literal notranslate"><span class="pre">save_data()</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="hyfi.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="hyfi.config.html">hyfi.config package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hyfi.core.html">hyfi.core package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">hyfi.utils package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hyfi.visualization.html">hyfi.visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyfi.html#module-hyfi.cli">hyfi.cli module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2c3e50" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HyFI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="hyfi.html">hyfi package</a></li>
+      <li class="breadcrumb-item active">hyfi.utils package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/hyfi.utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-hyfi.utils">
+<span id="hyfi-utils-package"></span><h1>hyfi.utils package<a class="headerlink" href="#module-hyfi.utils" title="Link to this heading"></a></h1>
+<p>Utility modules for fault imaging.</p>
+<p>This module contains helper functions and utilities:
+- Data processing utilities
+- Mathematical helpers
+- Clustering utilities
+- Parameter optimization
+- I/O functions</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hyfi.utils.</span></span><span class="sig-name descname"><span class="pre">ParameterOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">focal_mechanisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grid_search'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_r_nn_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_dt_nn_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_adaptive_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_matched_focals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_input_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Automatic optimization of fault network parameters (r_nn and dt_nn).</p>
+<p>This class provides methods to automatically determine optimal search radius
+and search time window parameters based on catalog characteristics and
+focal mechanism validation when available.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">focal_mechanisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grid_search'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_r_nn_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_dt_nn_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_adaptive_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_matched_focals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_input_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the parameter optimizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_input</strong> (<em>pd.DataFrame</em>) – Hypocenter catalog with columns: ID, X, Y, Z, Date, etc.</p></li>
+<li><p><strong>focal_mechanisms</strong> (<em>pd.DataFrame</em><em>, </em><em>optional</em>) – Focal mechanism data with Strike1, Dip1, Strike2, Dip2, A (active plane)</p></li>
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Optimization method (‘grid_search’, ‘optuna’, ‘heuristic’)</p></li>
+<li><p><strong>custom_r_nn_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>, </em><em>optional</em>) – Custom search radius range (min_meters, max_meters). If None, uses automatic calculation.</p></li>
+<li><p><strong>custom_dt_nn_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>, </em><em>optional</em>) – Custom time window range (min_hours, max_hours). If None, uses automatic calculation.</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to show verbose output during optimization runs (default: True)</p></li>
+<li><p><strong>use_adaptive_weights</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to use adaptive weighting based on dataset characteristics (default: True).
+When True, objective function weights adjust based on number of focal mechanisms
+and dataset density. When False, uses fixed weights (original behavior).</p></li>
+<li><p><strong>n_matched_focals</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Number of focal mechanisms that match hypocenters in this dataset.
+If None, will be calculated internally.</p></li>
+<li><p><strong>original_input_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>, </em><em>optional</em>) – Original input_params dictionary to use for optimization (avoids creating temp files).
+If None, will create temporary files.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer.get_recommended_parameters">
+<span class="sig-name descname"><span class="pre">get_recommended_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer.get_recommended_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer.get_recommended_parameters" title="Link to this definition"></a></dt>
+<dd><p>Get recommended parameters from optimization results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Recommended parameters with confidence estimates</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer.optimize">
+<span class="sig-name descname"><span class="pre">optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer.optimize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer.optimize" title="Link to this definition"></a></dt>
+<dd><p>Main optimization interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Optimization method (‘grid_search’, ‘optuna’, ‘pareto’, ‘heuristic’)</p></li>
+<li><p><strong>**kwargs</strong> – Method-specific parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optimization results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer.optimize_grid_search">
+<span class="sig-name descname"><span class="pre">optimize_grid_search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_plot_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose_optimization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer.optimize_grid_search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer.optimize_grid_search" title="Link to this definition"></a></dt>
+<dd><p>Perform grid search optimization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_points</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of points per dimension (total evaluations = n_points^2)</p></li>
+<li><p><strong>plot_results</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to generate 2D visualization of results</p></li>
+<li><p><strong>save_plot_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to save the plot (if plot_results=True)</p></li>
+<li><p><strong>verbose_optimization</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to show verbose output during individual optimization runs (default: False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optimization results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer.optimize_heuristic">
+<span class="sig-name descname"><span class="pre">optimize_heuristic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer.optimize_heuristic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer.optimize_heuristic" title="Link to this definition"></a></dt>
+<dd><p>Fast heuristic parameter estimation based on catalog statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optimization results</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer.optimize_optuna">
+<span class="sig-name descname"><span class="pre">optimize_optuna</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_trials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tpe'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_startup_trials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_plot_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose_optimization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">study_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_stopping_rounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_stopping_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer.optimize_optuna"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer.optimize_optuna" title="Link to this definition"></a></dt>
+<dd><p>Perform optimization using Optuna framework with modern hyperparameter optimization.</p>
+<p>Optuna provides state-of-the-art hyperparameter optimization with excellent visualization,
+pruning capabilities, and multiple sampling algorithms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_trials</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Total number of optimization trials (default: 50)</p></li>
+<li><p><strong>sampler</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – <p>Sampling algorithm to use (default: ‘tpe’)
+Options: ‘tpe’ (Tree-structured Parzen Estimator - recommended),</p>
+<blockquote>
+<div><p>’cmaes’ (CMA-ES),
+‘random’ (Random sampling)</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>n_startup_trials</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of random trials before starting sampler-specific optimization (default: 10)</p></li>
+<li><p><strong>plot_results</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to generate optimization history and parameter importance plots</p></li>
+<li><p><strong>save_plot_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to save the plot (if plot_results=True)</p></li>
+<li><p><strong>verbose_optimization</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to show verbose output during individual trials (default: False)</p></li>
+<li><p><strong>random_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Random seed for reproducibility</p></li>
+<li><p><strong>study_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Name for the Optuna study (for tracking/logging)</p></li>
+<li><p><strong>early_stopping_rounds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Stop optimization if no improvement for this many consecutive trials (default: None, no early stopping)
+Recommended: 10-20 for n_trials=50, 20-30 for n_trials=100+</p></li>
+<li><p><strong>early_stopping_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>, </em><em>optional</em>) – Minimum improvement to be considered significant (default: 1e-4)
+If best score improves by less than this, it’s not counted as improvement</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optimization results containing best parameters and study object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ImportError" title="(in Python v3.14)"><strong>ImportError</strong></a> – If Optuna is not installed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer.optimize_pareto">
+<span class="sig-name descname"><span class="pre">optimize_pareto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_trials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nsga2'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_startup_trials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_plot_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose_optimization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">study_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer.optimize_pareto"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer.optimize_pareto" title="Link to this definition"></a></dt>
+<dd><p>Perform Pareto multi-objective optimization using Optuna.</p>
+<p>Instead of combining objectives with fixed weights, this method treats fault network
+optimization as a true multi-objective problem and finds the Pareto front - the set
+of solutions where improving one objective requires degrading another.</p>
+<p>This allows you to explore trade-offs between:
+- Focal mechanism fit quality (if available)
+- Plane recovery rate (completeness)
+- Planarity quality (lambda2/3 ratio)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_trials</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Total number of optimization trials (default: 100)
+Recommendation: Use 2x more trials than single-objective</p></li>
+<li><p><strong>sampler</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – <p>Multi-objective sampling algorithm (default: ‘nsga2’)
+Options: ‘nsga2’ (Non-dominated Sorting Genetic Algorithm II - recommended),</p>
+<blockquote>
+<div><p>’nsga3’ (NSGA-III, better for &gt;3 objectives),
+‘random’ (Random sampling for baseline)</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>n_startup_trials</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of random trials before starting evolutionary optimization (default: 20)</p></li>
+<li><p><strong>population_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Population size for evolutionary algorithms (default: 50)</p></li>
+<li><p><strong>plot_results</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to generate Pareto front visualization</p></li>
+<li><p><strong>save_plot_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to save the plot (if plot_results=True)</p></li>
+<li><p><strong>verbose_optimization</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to show verbose output during individual trials (default: False)</p></li>
+<li><p><strong>random_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Random seed for reproducibility</p></li>
+<li><p><strong>study_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Name for the Optuna study (for tracking/logging)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optimization results containing:
+- ‘pareto_front’: List of all Pareto-optimal solutions
+- ‘best_balanced’: Solution with best balance across objectives
+- ‘best_focal’: Solution with best focal mechanism fit (if available)
+- ‘best_recovery’: Solution with highest plane recovery
+- ‘best_planarity’: Solution with best lambda2/3 ratio (planarity)
+- ‘optuna_study’: Full Optuna study for advanced analysis</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The Pareto front provides multiple optimal solutions. You can choose based on priorities:
+- Publications: Select solution with best focal mechanism fit
+- Exploratory analysis: Select solution with highest recovery
+- High-planarity subset: Select solution with best lambda2/3 ratio (planarity)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ImportError" title="(in Python v3.14)"><strong>ImportError</strong></a> – If Optuna is not installed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer.plot_grid_search_results">
+<span class="sig-name descname"><span class="pre">plot_grid_search_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer.plot_grid_search_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer.plot_grid_search_results" title="Link to this definition"></a></dt>
+<dd><p>Plot 2D grid search results showing objective function values across parameter space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to save the plot. If None, plot is not saved.</p></li>
+<li><p><strong>show_plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to display the plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The created figure</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.10.8)">matplotlib.figure.Figure</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer.plot_optuna_results">
+<span class="sig-name descname"><span class="pre">plot_optuna_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer.plot_optuna_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer.plot_optuna_results" title="Link to this definition"></a></dt>
+<dd><p>Plot Optuna optimization results with comprehensive diagnostics.</p>
+<p>Uses Optuna’s built-in visualization plus custom analysis plots.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to save the plot. If None, plot is not saved.</p></li>
+<li><p><strong>show_plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to display the plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The created figure</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.10.8)">matplotlib.figure.Figure</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hyfi.utils.ParameterOptimizer.plot_pareto_results">
+<span class="sig-name descname"><span class="pre">plot_pareto_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#ParameterOptimizer.plot_pareto_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.ParameterOptimizer.plot_pareto_results" title="Link to this definition"></a></dt>
+<dd><p>Plot Pareto multi-objective optimization results.</p>
+<p>Visualizes the Pareto front showing trade-offs between objectives.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>save_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to save the plot. If None, plot is not saved.</p></li>
+<li><p><strong>show_plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to display the plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The created figure</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.10.8)">matplotlib.figure.Figure</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.utils.fault_network_with_optimization">
+<span class="sig-prename descclassname"><span class="pre">hyfi.utils.</span></span><span class="sig-name descname"><span class="pre">fault_network_with_optimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/utilities.html#fault_network_with_optimization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.fault_network_with_optimization" title="Link to this definition"></a></dt>
+<dd><p>Execute fault network reconstruction with automatic parameter optimization if enabled.</p>
+<p>This function serves as a wrapper around the original faultnetwork3D function,
+adding automatic parameter optimization capabilities when requested.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – Input parameters dictionary. May contain optimization settings:
+- auto_optimize_parameters: bool, enable automatic optimization
+- optimization_method: str, optimization method (‘grid_search’, ‘heuristic’)
+- optimization_grid_points: int, grid points for grid search</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Same as faultnetwork3D: (data_input, data_output, df_per_X, df_per_Y, df_per_Z)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.utils.optimize_fault_network_parameters">
+<span class="sig-prename descclassname"><span class="pre">hyfi.utils.</span></span><span class="sig-name descname"><span class="pre">optimize_fault_network_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">focal_mechanisms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grid_search'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_r_nn_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_dt_nn_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_adaptive_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_matched_focals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/parameter_optimization.html#optimize_fault_network_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.optimize_fault_network_parameters" title="Link to this definition"></a></dt>
+<dd><p>Convenience function for parameter optimization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_input</strong> (<em>pd.DataFrame</em>) – Hypocenter catalog</p></li>
+<li><p><strong>focal_mechanisms</strong> (<em>pd.DataFrame</em><em>, </em><em>optional</em>) – Focal mechanism data with Strike1, Dip1, Strike2, Dip2, A columns</p></li>
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Optimization method (‘grid_search’, ‘optuna’, ‘heuristic’)</p></li>
+<li><p><strong>custom_r_nn_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>, </em><em>optional</em>) – Custom search radius range (min_meters, max_meters)</p></li>
+<li><p><strong>custom_dt_nn_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>, </em><em>optional</em>) – Custom time window range (min_hours, max_hours)</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to show verbose output during optimization runs (default: False)</p></li>
+<li><p><strong>use_adaptive_weights</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to use adaptive weighting based on dataset characteristics (default: True)</p></li>
+<li><p><strong>n_matched_focals</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Number of focal mechanisms that match hypocenters in dataset</p></li>
+<li><p><strong>**kwargs</strong> – Method-specific parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Recommended parameters</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hyfi.utils.save_data">
+<span class="sig-prename descclassname"><span class="pre">hyfi.utils.</span></span><span class="sig-name descname"><span class="pre">save_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_Z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_source_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hyfi/utils/utilities.html#save_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hyfi.utils.save_data" title="Link to this definition"></a></dt>
+<dd><p>Save data in txt-files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_params</strong> (<em>DataFrame</em>) – Input parameters.</p></li>
+<li><p><strong>data_input</strong> (<em>DataFrame</em>) – Input data (includes outliers marked with clust_labels = -1).</p></li>
+<li><p><strong>data_output</strong> (<em>DataFrame</em>) – Output data.</p></li>
+<li><p><strong>per_X</strong> (<em>DataFrame</em>) – X coordinates of MC datasets.</p></li>
+<li><p><strong>per_Y</strong> (<em>DataFrame</em>) – Y coordinates of MC datasets.</p></li>
+<li><p><strong>per_Z</strong> (<em>DataFrame</em>) – Z coordinates of MC datasets.</p></li>
+<li><p><strong>config_source_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to the original configuration file to copy to output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hyfi.core.html" class="btn btn-neutral float-left" title="hyfi.core package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hyfi.visualization.html" class="btn btn-neutral float-right" title="hyfi.visualization package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Sandro Truttmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
