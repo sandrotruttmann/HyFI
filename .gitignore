@@ -11,3 +11,4 @@
 *.pyc
 *.nbi
 *.nbc
+/data/examples_nonpublic
