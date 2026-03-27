@@ -7,9 +7,9 @@
 /secos25_runs
 /bohemia_runs
 /src/hyfi.egg-info
-/build
 *.pyc
 *.nbi
 *.nbc
 /data/examples_nonpublic
 /config/config_nonpublic
+/build
