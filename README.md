@@ -32,10 +32,6 @@ Full documentation is available at [hyfi.readthedocs.io](https://hyfi.readthedoc
 
 - [Installation Guide](https://hyfi.readthedocs.io/en/latest/installation.html)
 - [Quickstart Tutorial](https://hyfi.readthedocs.io/en/latest/quickstart.html)
-- [**Workflows Guide** (Single vs Multi-Sequence)](https://hyfi.readthedocs.io/en/latest/workflows.html) ⭐
-- [Configuration Guide](https://hyfi.readthedocs.io/en/latest/configuration.html)
-- [Module Documentation](https://hyfi.readthedocs.io/en/latest/modules/index.html)
-- [API Reference](https://hyfi.readthedocs.io/en/latest/api/modules.html)
 
 ## 🤝 Contributing
 
