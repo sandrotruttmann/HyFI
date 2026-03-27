@@ -39,7 +39,7 @@ Full documentation is available at [hyfi.readthedocs.io](https://hyfi.readthedoc
 
 ## 🤝 Contributing
 
-HyFI is an open-source, community-driven project, and contributions of all kinds are warmly welcomed. Whether you want to report a bug, suggest an improvement, or open a Pull Request, we’re happy to collaborate with you!
+HyFI is an open-source, community-driven project, and contributions of all kinds are warmly welcomed. Whether you want to report a bug, suggest an improvement, or open a Pull Request, we’re happy to collaborate!
 
 ## 📝 License
 
