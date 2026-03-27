@@ -399,28 +399,38 @@ class DAGExecutor:
         # Convert DAG parameters to legacy format
         input_params = dag_params_to_legacy_params(self.dag, 'fault_network')
         
-        # Add optimization parameters from node
+        # Add optimization parameters from node (nested under automatic_parameter_optimization)
         if hasattr(node, 'parameters'):
             params = node.parameters
-            input_params.update({
-                'auto_optimize_parameters': params.get('auto_optimize_parameters', False),
-                'optimization_method': params.get('optimization_method', 'grid_search'),
-                'optimization_random_state': params.get('optimization_random_state', 42),
-                'optimization_plot_results': params.get('optimization_plot_results', False),
-                'optimization_r_nn_range': params.get('optimization_r_nn_range', None),
-                'optimization_dt_nn_range': params.get('optimization_dt_nn_range', None),
-                # Grid search parameters
-                'optimization_grid_points': params.get('optimization_grid_points', 25),
-                # Optuna optimization parameters
-                'optimization_n_trials': params.get('optimization_n_trials', 50),
-                'optimization_sampler': params.get('optimization_sampler', 'tpe'),
-                'optimization_n_startup_trials': params.get('optimization_n_startup_trials', 10),
-                'optimization_early_stopping_rounds': params.get('optimization_early_stopping_rounds', None),
-                'optimization_early_stopping_threshold': params.get('optimization_early_stopping_threshold', 1e-4),
-                # Pareto optimization parameters
-                'optimization_pareto_sampler': params.get('optimization_pareto_sampler', 'nsga2'),
-                'optimization_pareto_population': params.get('optimization_pareto_population', 50)
-            })
+            # Access nested automatic_parameter_optimization section
+            auto_opt = params.get('automatic_parameter_optimization', {})
+            
+            # Only update parameters that are explicitly provided, avoiding overwrite of properly parsed values
+            overrides = {}
+            if 'core_network' in params:
+                core = params['core_network']
+                if 'monte_carlo_simulations' in core:
+                    overrides['n_mc'] = core['monte_carlo_simulations']
+            
+            if auto_opt:
+                overrides.update({
+                    'auto_optimize_parameters': auto_opt.get('auto_optimize_parameters', input_params.get('auto_optimize_parameters', False)),
+                    'optimization_method': auto_opt.get('optimization_method', input_params.get('optimization_method', 'optuna')),
+                    'optimization_random_state': auto_opt.get('optimization_random_state', input_params.get('optimization_random_state', 42)),
+                    'optimization_plot_results': auto_opt.get('optimization_plot_results', input_params.get('optimization_plot_results', False)),
+                    'optimization_r_nn_range': auto_opt.get('optimization_r_nn_range', input_params.get('optimization_r_nn_range', None)),
+                    'optimization_dt_nn_range': auto_opt.get('optimization_dt_nn_range', input_params.get('optimization_dt_nn_range', None)),
+                    'optimization_grid_points': auto_opt.get('optimization_grid_points', input_params.get('optimization_grid_points', 25)),
+                    'optimization_n_trials': auto_opt.get('optimization_n_trials', input_params.get('optimization_n_trials', 50)),
+                    'optimization_sampler': auto_opt.get('optimization_sampler', input_params.get('optimization_sampler', 'tpe')),
+                    'optimization_n_startup_trials': auto_opt.get('optimization_n_startup_trials', input_params.get('optimization_n_startup_trials', 10)),
+                    'optimization_early_stopping_rounds': auto_opt.get('optimization_early_stopping_rounds', input_params.get('optimization_early_stopping_rounds', None)),
+                    'optimization_early_stopping_threshold': auto_opt.get('optimization_early_stopping_threshold', input_params.get('optimization_early_stopping_threshold', 1e-4)),
+                    'optimization_pareto_sampler': auto_opt.get('optimization_pareto_sampler', input_params.get('optimization_pareto_sampler', 'nsga2')),
+                    'optimization_pareto_population': auto_opt.get('optimization_pareto_population', input_params.get('optimization_pareto_population', 50))
+                })
+            
+            input_params.update(overrides)
         
         # Add output directory for saving optimization plots
         input_params['out_dir'] = str(self.output_dir)

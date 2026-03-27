@@ -109,10 +109,13 @@ def dag_params_to_legacy_params(dag, node_id):
             'optimization_plot_results': auto_opt.get('optimization_plot_results', params.get('optimization_plot_results', False)),
             'optimization_r_nn_range': auto_opt.get('optimization_r_nn_range', params.get('optimization_r_nn_range', None)),
             'optimization_dt_nn_range': auto_opt.get('optimization_dt_nn_range', params.get('optimization_dt_nn_range', None)),
-            'optimization_n_startup_trials': auto_opt.get('optimization_n_startup_trials', params.get('optimization_n_startup_trials', 10)),
+            'optimization_n_startup_trials': auto_opt.get('optimization_n_startup_trials', auto_opt.get('optimization_startup_trials', params.get('optimization_n_startup_trials', params.get('optimization_startup_trials', 10)))),
+            'optimization_early_stopping_rounds': auto_opt.get('optimization_early_stopping_rounds', params.get('optimization_early_stopping_rounds', None)),
+            'optimization_early_stopping_threshold': auto_opt.get('optimization_early_stopping_threshold', params.get('optimization_early_stopping_threshold', 1e-4)),
             'optimization_pareto_sampler': auto_opt.get('optimization_pareto_sampler', params.get('optimization_pareto_sampler', 'nsga2')),
             'optimization_pareto_population': auto_opt.get('optimization_pareto_population', params.get('optimization_pareto_population', 50)),
             'optimization_sampler': auto_opt.get('optimization_sampler', params.get('optimization_sampler', 'tpe')),
+            'optimization_use_adaptive_weights': auto_opt.get('optimization_use_adaptive_weights', params.get('optimization_use_adaptive_weights', True)),
         })
         
         # Node enable/disable flags
@@ -199,6 +202,8 @@ def dag_params_to_legacy_params(dag, node_id):
             interpolation = vis_params.get('fault_surface_interpolation', {})
             input_params.update({
                 'enable_plane_interpolation': interpolation.get('enable_plane_interpolation', vis_params.get('enable_plane_interpolation', True)),
+                'enable_mesh_stress': interpolation.get('enable_mesh_stress', vis_params.get('enable_mesh_stress', True)),
+                'mesh_subdivisions': interpolation.get('mesh_subdivisions', vis_params.get('mesh_subdivisions', 0)),
                 'poisson_depth': interpolation.get('poisson_depth', vis_params.get('poisson_depth', 3)),
                 'density_threshold': interpolation.get('density_threshold', vis_params.get('density_threshold', 0.4)),
                 'max_distance_factor': interpolation.get('max_distance_factor', vis_params.get('max_distance_factor', 1.5)),

@@ -27,8 +27,8 @@ from .validation import (
 class FaultNetworkConfig:
     """Configuration for fault network reconstruction module."""
     n_mc: int = 1000                    # number of Monte Carlo simulations
-    r_nn: Union[float, str] = 100.0     # search radius [m] of nearest neighbor search or 'auto'
-    dt_nn: Union[float, str] = 26298.0  # search time window [h] or 'auto'
+    r_nn: Union[float, str, None] = 100.0     # search radius [m] of nearest neighbor search, 'auto', or None
+    dt_nn: Union[float, str, None] = 26298.0  # search time window [h], 'auto', or None
     mag_type: str = 'ML'                # magnitude type: 'ML' or 'Mw'
     
     # Parameter optimization settings
@@ -51,17 +51,21 @@ class FaultNetworkConfig:
         """Validate configuration parameters."""
         validate_positive_number(self.n_mc, "n_mc")
         
-        # Validate r_nn (can be numeric or 'auto')
-        if isinstance(self.r_nn, str):
+        # Validate r_nn (can be numeric, 'auto', or None)
+        if self.r_nn is None:
+            self.r_nn = 'auto'
+        elif isinstance(self.r_nn, str):
             if self.r_nn != 'auto':
-                raise ValueError("r_nn must be a positive number or 'auto'")
+                raise ValueError("r_nn must be a positive number, 'auto', or None")
         else:
             validate_positive_number(self.r_nn, "r_nn")
         
-        # Validate dt_nn (can be numeric or 'auto')
-        if isinstance(self.dt_nn, str):
+        # Validate dt_nn (can be numeric, 'auto', or None)
+        if self.dt_nn is None:
+            self.dt_nn = 'auto'
+        elif isinstance(self.dt_nn, str):
             if self.dt_nn != 'auto':
-                raise ValueError("dt_nn must be a positive number or 'auto'")
+                raise ValueError("dt_nn must be a positive number, 'auto', or None")
         else:
             validate_positive_number(self.dt_nn, "dt_nn")
             
