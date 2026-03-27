@@ -12,3 +12,4 @@
 *.nbi
 *.nbc
 /data/examples_nonpublic
+/config/config_nonpublic
