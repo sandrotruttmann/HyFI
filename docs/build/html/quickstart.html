@@ -51,10 +51,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#running-your-first-analysis">Running Your First Analysis</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#step-1-activate-the-hyfi-environment">Step 1: Activate the HyFI Environment</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#step-2-navigate-to-the-hyfi-directory">Step 2: Navigate to the HyFI Directory</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#step-3-navigate-to-example-projects">Step 3: Navigate to Example Projects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#step-4-run-an-example-configuration">Step 4: Run an Example Configuration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#step-5-view-the-results">Step 5: View the Results</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#step-6-opening-vtp-files-in-paraview">Step 6: Opening VTP Files in ParaView</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-run-an-example-configuration">Step 3: Run an Example Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-4-view-the-results">Step 4: View the Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-5-visualize-3d-model-in-paraview">Step 5: Visualize 3D Model in ParaView</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#using-your-own-data">Using Your Own Data</a><ul>
@@ -143,24 +142,18 @@
 </div>
 <p>Replace <code class="docutils literal notranslate"><span class="pre">/path/to/HyFI</span></code> with the actual path where you installed HyFI (e.g., <code class="docutils literal notranslate"><span class="pre">~/HyFI</span></code> or <code class="docutils literal notranslate"><span class="pre">C:\Users\YourName\HyFI</span></code>).</p>
 </section>
-<section id="step-3-navigate-to-example-projects">
-<h3>Step 3: Navigate to Example Projects<a class="headerlink" href="#step-3-navigate-to-example-projects" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>config
-</pre></div>
-</div>
-</section>
-<section id="step-4-run-an-example-configuration">
-<h3>Step 4: Run an Example Configuration<a class="headerlink" href="#step-4-run-an-example-configuration" title="Link to this heading"></a></h3>
+<section id="step-3-run-an-example-configuration">
+<h3>Step 3: Run an Example Configuration<a class="headerlink" href="#step-3-run-an-example-configuration" title="Link to this heading"></a></h3>
 <p>HyFI uses JSON configuration files to define the entire analysis workflow. Run the example project:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>hyfi<span class="w"> </span>run<span class="w"> </span>-c<span class="w"> </span>config_A0.json
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>hyfi<span class="w"> </span>run<span class="w"> </span>-c<span class="w"> </span>config/config_example_StLeonard.json
 </pre></div>
 </div>
 <p>The analysis will run and you’ll see progress output in the terminal.</p>
 </section>
-<section id="step-5-view-the-results">
-<h3>Step 5: View the Results<a class="headerlink" href="#step-5-view-the-results" title="Link to this heading"></a></h3>
+<section id="step-4-view-the-results">
+<h3>Step 4: View the Results<a class="headerlink" href="#step-4-view-the-results" title="Link to this heading"></a></h3>
 <p>Once complete, navigate to the output directory:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>../output_A0
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>../output_StLeonard
 ls<span class="w"> </span>-l
 </pre></div>
 </div>
@@ -172,22 +165,21 @@ ls<span class="w"> </span>-l
 <li><p><code class="docutils literal notranslate"><span class="pre">execution_summary.json</span></code> - Analysis metadata and statistics</p></li>
 </ul>
 </section>
-<section id="step-6-opening-vtp-files-in-paraview">
-<h3>Step 6: Opening VTP Files in ParaView<a class="headerlink" href="#step-6-opening-vtp-files-in-paraview" title="Link to this heading"></a></h3>
+<section id="step-5-visualize-3d-model-in-paraview">
+<h3>Step 5: Visualize 3D Model in ParaView<a class="headerlink" href="#step-5-visualize-3d-model-in-paraview" title="Link to this heading"></a></h3>
 <ol class="arabic simple">
-<li><p><strong>Launch ParaView</strong></p></li>
-<li><p><strong>Open VTP files:</strong></p>
+<li><p>Launch ParaView</p></li>
+<li><p>Open VTP files:</p>
 <ul class="simple">
 <li><p>File → Open</p></li>
-<li><p>Navigate to your HyFI output directory (e.g., <code class="docutils literal notranslate"><span class="pre">output_A0/vtp_export/</span></code>)</p></li>
-<li><p>Select one or more <code class="docutils literal notranslate"><span class="pre">.vtp</span></code> files (e.g., <code class="docutils literal notranslate"><span class="pre">faults_compiled.vtp</span></code>, <code class="docutils literal notranslate"><span class="pre">rupture_planes.vtp</span></code>)</p></li>
+<li><p>Navigate to your HyFI output directory (e.g., <code class="docutils literal notranslate"><span class="pre">output_StLeonard/vtp_export/</span></code>)</p></li>
+<li><p>Select one or more <code class="docutils literal notranslate"><span class="pre">.vtp</span></code> files (e.g., <code class="docutils literal notranslate"><span class="pre">hypocenters.vtp</span></code>, <code class="docutils literal notranslate"><span class="pre">faults_compiled.vtp</span></code>, <code class="docutils literal notranslate"><span class="pre">rupture_planes.vtp</span></code>)</p></li>
 <li><p>Click “Apply” in the Properties panel</p></li>
 </ul>
 </li>
-<li><p><strong>Visualize your data:</strong></p>
+<li><p>Visualize your data:</p>
 <ul class="simple">
 <li><p>Use the toolbar to change representation (Surface, Wireframe, Points)</p></li>
-<li><p>Apply filters (Clip, Slice, Threshold) to analyze specific regions</p></li>
 <li><p>Color by different attributes (cluster_id, magnitude, depth, etc.)</p></li>
 <li><p>Export images or animations</p></li>
 </ul>
@@ -223,7 +215,7 @@ ls<span class="w"> </span>-l
 </section>
 <section id="input-format">
 <h4>Input Format<a class="headerlink" href="#input-format" title="Link to this heading"></a></h4>
-<p>The parser expects <strong>pipe-delimited (|) CSV files with an embedded comment header block</strong> that defines column names:</p>
+<p>The parser expects pipe-delimited (|) CSV files with an embedded comment header block that defines column names:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Column definitions</span>
 <span class="c1"># KP-ID|Lat|Lon|Depth|...</span>
 <span class="n">EV001</span><span class="o">|</span><span class="mf">45.5234</span><span class="o">|</span><span class="mf">9.7654</span><span class="o">|</span><span class="mf">8.5</span><span class="o">|...</span>

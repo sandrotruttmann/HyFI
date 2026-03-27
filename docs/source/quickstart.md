@@ -26,28 +26,22 @@ cd /path/to/HyFI
 
 Replace `/path/to/HyFI` with the actual path where you installed HyFI (e.g., `~/HyFI` or `C:\Users\YourName\HyFI`).
 
-### Step 3: Navigate to Example Projects
-
-```bash
-cd config
-```
-
-### Step 4: Run an Example Configuration
+### Step 3: Run an Example Configuration
 
 HyFI uses JSON configuration files to define the entire analysis workflow. Run the example project:
 
 ```bash
-hyfi run -c config_A0.json
+hyfi run -c config/config_example_StLeonard.json
 ```
 
 The analysis will run and you'll see progress output in the terminal.
 
-### Step 5: View the Results
+### Step 4: View the Results
 
 Once complete, navigate to the output directory:
 
 ```bash
-cd ../output_A0
+cd ../output_StLeonard
 ls -l
 ```
 
@@ -58,19 +52,18 @@ You should see (among other files):
 - `execution_summary.json` - Analysis metadata and statistics
 
 
-### Step 6: Opening VTP Files in ParaView
+### Step 5: Visualize 3D Model in ParaView
 
-1. **Launch ParaView**
+1. Launch ParaView
 
-2. **Open VTP files:**
+2. Open VTP files:
    - File → Open
-   - Navigate to your HyFI output directory (e.g., `output_A0/vtp_export/`)
-   - Select one or more `.vtp` files (e.g., `faults_compiled.vtp`, `rupture_planes.vtp`)
+   - Navigate to your HyFI output directory (e.g., `output_StLeonard/vtp_export/`)
+   - Select one or more `.vtp` files (e.g., `hypocenters.vtp`, `faults_compiled.vtp`, `rupture_planes.vtp`)
    - Click "Apply" in the Properties panel
 
-3. **Visualize your data:**
+3. Visualize your data:
    - Use the toolbar to change representation (Surface, Wireframe, Points)
-   - Apply filters (Clip, Slice, Threshold) to analyze specific regions
    - Color by different attributes (cluster_id, magnitude, depth, etc.)
    - Export images or animations
 
@@ -105,7 +98,7 @@ At least one of `--hypo` or `--focals` must be specified. Output files are autom
 
 #### Input Format
 
-The parser expects **pipe-delimited (|) CSV files with an embedded comment header block** that defines column names:
+The parser expects pipe-delimited (|) CSV files with an embedded comment header block that defines column names:
 
 ```
 # Column definitions

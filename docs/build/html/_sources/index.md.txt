@@ -29,7 +29,6 @@ input_parameters.md
 modules/index.md
 terminology.md
 output.md
-querying.md
 ```
 
 ```{toctree}
@@ -66,7 +65,6 @@ license.md
 - **[Input Parameters](input_parameters)**: Detailed documentation of all configuration parameters, including data source conversion
 - **[HyFI Modules](modules/index)**: Understand the different analysis modules (fault network, validation, classification, stress analysis)
 - **[Output Guide](output)**: Learn about the generated output files and visualizations
-- **[Queries](querying)**: Learn how to efficiently query the HyFI results using SQL and DuckDB.
 - **[Examples](examples)**: Explore example projects and use cases
 
 ---

@@ -105,20 +105,7 @@ This installs HyFI from the local source code into your mamba environment.
 
 ---
 
-## Step 6: Run a Test Example
-
-Navigate to the example projects directory and run a test configuration:
-
-```bash
-cd config
-hyfi run config_TEMPLATE.json
-```
-
-Check the output directory specified in the DAG (.json) for results (output data, visualizations, VTP, etc.).
-
----
-
-## Step 7: Install ParaView (Optional, for 3D Visualization)
+## Step 6: Install ParaView (Optional, for 3D Visualization)
 
 **ParaView** is a powerful open-source application for visualizing and analyzing 3D data. HyFI exports VTP files that can be opened in ParaView for interactive visualization of hypocenters, focal mechanisms, rupture planes, fault systems and others.
 

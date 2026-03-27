@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Multi-Sequence Examples" href="multi_examples.html" />
-    <link rel="prev" title="HyFI Database Querying" href="querying.html" /> 
+    <link rel="prev" title="HyFI Output" href="output.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -56,14 +56,14 @@
 <li class="toctree-l1"><a class="reference internal" href="modules/index.html">HyFI Core Modules</a></li>
 <li class="toctree-l1"><a class="reference internal" href="terminology.html">HyFI Terminology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output.html">HyFI Output</a></li>
-<li class="toctree-l1"><a class="reference internal" href="querying.html">HyFI Database Querying</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Single-Sequence Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#anziere-truttmann-et-al-2023">Anzière (Truttmann et al., 2023)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#diemtigen-simon-et-al-xxx">Diemtigen (Simon et al. xxx)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#st-leonard-truttmann-et-al-2023">St. Léonard (Truttmann et al., 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#st-leonard-truttmann-et-al-2023">St. Léonard (Truttmann et al., 2023)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#running-the-example">Running the example</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
@@ -104,24 +104,25 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="single-sequence-examples">
 <h1>Single-Sequence Examples<a class="headerlink" href="#single-sequence-examples" title="Link to this heading"></a></h1>
-<p>The HyFI repository includes several example datasets and configuration files to help you get started.</p>
-<hr class="docutils" />
-<section id="anziere-truttmann-et-al-2023">
-<h2>Anzière (Truttmann et al., 2023)<a class="headerlink" href="#anziere-truttmann-et-al-2023" title="Link to this heading"></a></h2>
-</section>
-<hr class="docutils" />
-<section id="diemtigen-simon-et-al-xxx">
-<h2>Diemtigen (Simon et al. xxx)<a class="headerlink" href="#diemtigen-simon-et-al-xxx" title="Link to this heading"></a></h2>
-</section>
+<p>The HyFI repository includes example datasets and configuration files to help you get started. The datasets below are examples of analysis of individual earthquake sequences (single-sequence workflow).</p>
 <hr class="docutils" />
 <section id="st-leonard-truttmann-et-al-2023">
 <h2>St. Léonard (Truttmann et al., 2023)<a class="headerlink" href="#st-leonard-truttmann-et-al-2023" title="Link to this heading"></a></h2>
+<p>Configuration file: <code class="docutils literal notranslate"><span class="pre">./config/config_example_StLeonard.json</span></code></p>
+<section id="running-the-example">
+<h3>Running the example<a class="headerlink" href="#running-the-example" title="Link to this heading"></a></h3>
+<p>In the terminal, navigate to the HyFI directory (needs to be adjusted to the path where your HyFI directory sits locally, e.g. <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">HyFI</span></code>)</p>
+<p>Execute HyFI with the corresponding configuration file</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>hyfi<span class="w"> </span>run<span class="w"> </span>-c<span class="w"> </span>config/config_example_StLeonard.json<span class="w"> </span>
+</pre></div>
+</div>
+<p>In the HyFI directory, you should now see a folder <code class="docutils literal notranslate"><span class="pre">./output_StLeonard</span></code> where all the results are stored.</p>
+</section>
 </section>
 <hr class="docutils" />
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Simon et al., xxxx</p></li>
 <li><p>Truttmann, S., Diehl, T., &amp; Herwegh, M. (2023). Hypocenter-based 3D imaging of active faults: Method and applications in the Southwestern Swiss Alps. Journal of Geophysical Research: Solid Earth, 128, e2023JB026352. https://doi.org/10.1029/2023JB026352</p></li>
 </ul>
 <hr class="docutils" />
@@ -133,7 +134,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="querying.html" class="btn btn-neutral float-left" title="HyFI Database Querying" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="output.html" class="btn btn-neutral float-left" title="HyFI Output" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="multi_examples.html" class="btn btn-neutral float-right" title="Multi-Sequence Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
