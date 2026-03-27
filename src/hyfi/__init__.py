@@ -12,7 +12,7 @@ Journal of Geophysical Research: Solid Earth.
 https://doi.org/10.1029/2023JB026352
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.2"
 __author__ = "Sandro Truttmann"
 __email__ = "sandro.truttmann@gmail.com"
 __all__ = [

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hyfi"
-version = "0.1.2"
+dynamic = ["version"]
 description = "HyFI: Hypocenter-based 3D Imaging of Active Faults"
 readme = "README.md"
 license = {text = "GPL-3.0"}
@@ -81,6 +81,9 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "hyfi.__version__"}
 
 [tool.setuptools.package-data]
 "hyfi" = ["py.typed"]
