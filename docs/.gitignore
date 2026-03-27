@@ -1,5 +1,4 @@
 # Sphinx documentation build artifacts
-build/
 _build/
 source/_autosummary/
 
