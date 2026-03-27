@@ -68,7 +68,7 @@
             "optimization_early_stopping_rounds": 10,
             "optimization_early_stopping_threshold": 0.0001,
             "optimization_plot_results": true,
-            "optimization_r_nn_range": [100, 1000],
+            "optimization_r_nn_range": [100, 500],
             "optimization_dt_nn_range": [8760, 525600]
           }
         }
