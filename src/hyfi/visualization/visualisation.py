@@ -1482,6 +1482,17 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 if len(sub_cluster_data) == 0:
                     sub_cluster_data = df_cluster
 
+                # Apply the same minimum-events threshold to each split component.
+                # A cluster can pass the top-level check (>=min_points events) but,
+                # after spatial splitting, individual components may end up with
+                # fewer events than the threshold — skip those components.
+                if len(submesh_list) > 1 and len(sub_cluster_data) < min_points:
+                    _sys_vis.stderr.write(
+                        f"  Skipping component {sub_idx + 1}/{len(submesh_list)} of cluster {cluster_id}: "
+                        f"too few events after spatial split ({len(sub_cluster_data)} < {min_points})\n"
+                    )
+                    continue
+
                 # Give split components a distinct cluster ID suffix
                 if len(submesh_list) > 1:
                     sub_cluster_id = f"{cluster_id}_part{sub_idx + 1}"
