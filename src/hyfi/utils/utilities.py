@@ -419,11 +419,12 @@ def circular_mean_orientation_from_azimuth_dip(azimuths, dips):
         azi_rad = np.radians(azi)
         dip_rad = np.radians(dip)
         
-        # Calculate normal vector (pointing upward)
-        # Dip direction is the azimuth, dip angle is measured from horizontal
-        nx = np.sin(dip_rad) * np.sin(azi_rad)
-        ny = np.sin(dip_rad) * np.cos(azi_rad)
-        nz = np.cos(dip_rad)
+        # Calculate normal vector matching the convention of plane_azidip_to_normal
+        # (downward-pointing: nz = -cos(dip)), so that plane_normal_to_azidip
+        # correctly inverts back to the original azimuth and dip.
+        nx = -np.sin(dip_rad) * np.sin(azi_rad)
+        ny = -np.sin(dip_rad) * np.cos(azi_rad)
+        nz = -np.cos(dip_rad)
         
         normals.append([nx, ny, nz])
     

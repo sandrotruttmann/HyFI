@@ -1791,8 +1791,8 @@ def create_interpolated_fault_planes(df_hyfi, interpolation_params, include_mult
                 'rupture_mean_azimuth': rupture_mean_azimuth,
                 'rupture_mean_dip': rupture_mean_dip,
                 # Geometric properties from interpolated mesh: mean values from face normals
-                'mesh_mean_dip': mesh_mean_dip,
                 'mesh_mean_azimuth': mesh_mean_azimuth,
+                'mesh_mean_dip': mesh_mean_dip,
                 # Mesh properties: from interpolated surface
                 'interpolated_mesh_area_m2': mesh_info.get('area_m2'),
                 'max_magnitude_leonard2014': mesh_info.get('max_Mw'),

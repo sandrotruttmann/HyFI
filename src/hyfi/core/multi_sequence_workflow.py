@@ -1312,8 +1312,8 @@ class MultiSequenceWorkflow:
         # Add orientation and stress analysis results if not available (for backward compatibility)
         orientation_stress_columns = [
             'vtp_file',
-            'rupture_mean_dip', 'rupture_mean_azimuth',
-            'mesh_mean_dip', 'mesh_mean_azimuth',
+            'rupture_mean_azimuth', 'rupture_mean_dip',
+            'mesh_mean_azimuth', 'mesh_mean_dip',
             'rupture_mean_instability', 'rupture_mean_sliptend', 'rupture_mean_dilatend',
             'mesh_mean_instability', 'mesh_mean_sliptend', 'mesh_mean_dilatend'
         ]
