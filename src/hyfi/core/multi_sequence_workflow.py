@@ -1506,6 +1506,40 @@ class MultiSequenceWorkflow:
                 # The fault_id from enriched catalog is already correct (no remapping needed)
                 print(f"    Fault system IDs already assigned from enriched catalog")
             
+            # Collect active plane determination summary columns from per-sequence CSV files
+            summary_cols = ['ID', 'pref_foc', 'epsilon', 'plane_determination_method',
+                            'rupt_plane_azi', 'rupt_plane_dip',
+                            'preferred_strike', 'preferred_dip', 'preferred_rake']
+            summary_frames = []
+            for seq_name in self.sequence_results.keys():
+                if seq_name == 'noise':
+                    continue
+                summary_file = output_dir / seq_name / 'active_plane_determination_summary.csv'
+                if summary_file.exists():
+                    try:
+                        df_sum = pd.read_csv(summary_file,
+                                             usecols=lambda c: c in summary_cols)
+                        present_cols = [c for c in summary_cols if c in df_sum.columns]
+                        summary_frames.append(df_sum[present_cols])
+                    except Exception as e:
+                        print(f"    Warning: could not read {summary_file.name}: {e}")
+
+            if summary_frames:
+                df_summary = pd.concat(summary_frames, ignore_index=True)
+                # Deduplicate: prefer rows where a plane was actually determined
+                df_summary = df_summary.sort_values(
+                    'plane_determination_method',
+                    key=lambda s: s.fillna('').str.startswith('Not').astype(int)
+                ).drop_duplicates(subset='ID', keep='first')
+                focal_summary_cols = [c for c in summary_cols if c != 'ID']
+                df_focals = df_focals.merge(
+                    df_summary[['ID'] + focal_summary_cols], on='ID', how='left'
+                )
+                n_matched = df_focals['plane_determination_method'].notna().sum()
+                print(f"    Merged active plane determination summary for {n_matched} events")
+            else:
+                print("    Warning: No active_plane_determination_summary.csv files found in sequence directories")
+
             # Save enhanced focal mechanism catalog
             focal_file_out = database_dir / 'HyFI_database_focals.csv'
             df_focals.to_csv(focal_file_out, index=False)
