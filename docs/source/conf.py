@@ -4,8 +4,10 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 import os
+import re
 import sys
 sys.path.insert(0, os.path.abspath('../../src'))
+from docutils import nodes
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -25,6 +27,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
+    'sphinx.ext.imgconverter',
     'myst_parser',
 ]
 
@@ -45,6 +48,7 @@ html_static_path = ['_static']
 
 # Logo and theme options
 html_logo = '_static/hyfi_logo.svg'
+latex_logo = '_static/hyfi_logo.png'
 html_theme_options = {
     'logo_only': False,
     'display_version': True,
@@ -85,3 +89,42 @@ myst_enable_extensions = [
     "dollarmath",
     "amsmath",
 ]
+
+# -- LaTeX / PDF output -------------------------------------------------------
+# xelatex handles Unicode (Greek letters, special chars) natively
+latex_engine = 'xelatex'
+# Use standard makeindex instead of xindy (xindy may not be installed)
+latex_use_xindy = False
+
+latex_elements = {
+    'papersize': 'a4paper',
+    'fontpkg': r'''
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+''',
+}
+
+# -- LaTeX-only emoji stripping -----------------------------------------------
+# Keeps emojis in HTML; silently removes them from the PDF build.
+_EMOJI_RE = re.compile(
+    "["
+    "\U0001F300-\U0001F9FF"
+    "\U00002702-\U000027B0"
+    "\U0000231A-\U0000231B"
+    "]+",
+    flags=re.UNICODE,
+)
+
+
+def _strip_emoji_for_latex(app, doctree, docname):
+    if app.builder.name not in ('latex',):
+        return
+    for node in doctree.traverse(nodes.Text):
+        cleaned = _EMOJI_RE.sub('', str(node))
+        if cleaned != str(node):
+            node.parent.replace(node, nodes.Text(cleaned))
+
+
+def setup(app):
+    app.connect('doctree-resolved', _strip_emoji_for_latex)
