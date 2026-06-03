@@ -14,3 +14,4 @@
 /config/config_nonpublic
 /build
 /hyfi_secos25
+*.pyc
