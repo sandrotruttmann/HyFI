@@ -276,7 +276,7 @@ def _spatial_clustering_with_enhanced_points(df_clustered, df_enhanced, input_pa
                 if fault_idx in df_clustered.index:
                     df_clustered.loc[fault_idx, 'spatial_cluster'] = spatial_label
                     temp_id = spatial_to_temp_map[spatial_label]
-                    df_clustered.loc[fault_idx, 'final_cluster_id'] = temp_id
+                    df_clustered.loc[fault_idx, 'final_cluster_id'] = str(temp_id)
             
             # Print results
             spatial_counts = {}
@@ -430,7 +430,7 @@ def _spatial_clustering_by_orientation(df_clustered, input_params, starting_faul
             # Assign temporary cluster IDs
             for idx, spatial_id in zip(cluster_indices, spatial_labels):
                 temp_id = spatial_to_temp_map[spatial_id]
-                df_clustered.loc[idx, 'final_cluster_id'] = temp_id
+                df_clustered.loc[idx, 'final_cluster_id'] = str(temp_id)
                 
         except Exception as e:
             print(f"    Warning: Spatial clustering failed for cluster {class_id}: {e}")
