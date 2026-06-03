@@ -22,12 +22,6 @@ If you use HyFI in your research, please cite:
 
 ## 📚 Documentation
 
-________________________________________________________________________________________
-
-!!! IMPORTANT: as of now, documentation is not hosted online but provided in the repository as html-files in /docs/build/html/index.html
-The links to the documentation below are NOT working!
-_______________________________________________________________________________________
-
 Full documentation is available at [hyfi.readthedocs.io](https://hyfi.readthedocs.io/)
 
 - [Installation Guide](https://hyfi.readthedocs.io/en/latest/installation.html)
