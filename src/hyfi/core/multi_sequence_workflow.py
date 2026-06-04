@@ -2085,8 +2085,7 @@ class MultiSequenceWorkflow:
             'events_clustered': self.clustering_results['total_events_clustered'],
             'final_outliers': self.clustering_results['final_outliers'],
             'outlier_ratio': self.clustering_results['outlier_ratio'],
-            'segmentation_steps': len(self.config.segmentation_steps),
-            'step_details': self.clustering_results['step_results']
+            'segmentation_steps': len(self.config.segmentation_steps)
         }
         
         # Add sequence size distribution
