@@ -10,6 +10,7 @@ import click
 import sys
 from pathlib import Path
 
+from . import __version__
 from .config.parameters import ProjectConfig
 from .config.io import auto_load_config, create_template_config
 from .config.validation import ConfigValidationError
@@ -18,7 +19,7 @@ from .utils.input_validation import validate_input_files
 
 
 @click.group()
-@click.version_option()
+@click.version_option(version=__version__)
 def main():
     """
     HyFI: Hypocenter-based 3D Imaging of Active Faults

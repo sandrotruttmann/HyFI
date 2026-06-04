@@ -12,7 +12,10 @@ Journal of Geophysical Research: Solid Earth.
 https://doi.org/10.1029/2023JB026352
 """
 
-__version__ = "0.1.2"
+try:
+    from ._version import __version__
+except ImportError:
+    __version__ = "1.0.0"  # fallback for development
 __author__ = "Sandro Truttmann"
 __email__ = "sandro.truttmann@gmail.com"
 __all__ = [
