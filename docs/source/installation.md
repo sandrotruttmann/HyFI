@@ -38,8 +38,10 @@ If you just want to use a static version of HyFI without Git:
 
 3. **Navigate to the extracted folder:**
    ```bash
-   cd path/to/HyFI
+   cd <path/to/HyFI>
    ```
+
+Instead of `<path/to/HyFI>` specify the directory where you stored your unzipped HyFI folder.
 
 ### Option B: Using Git (For Developers)
 
