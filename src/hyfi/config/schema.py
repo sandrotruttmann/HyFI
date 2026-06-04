@@ -44,16 +44,32 @@ class FaultNetworkNode:
             self.depends_on = ["input_data"]
         if self.parameters is None:
             self.parameters = {
-                "monte_carlo_simulations": 1000,
-                "search_radius_meters": 100.0,
-                "search_time_window_hours": 999999.0,
-                "magnitude_type": "ML",
-                "auto_optimize_parameters": False,
-                "optimization_method": "optuna",
-                "optimization_grid_points": 25,
-                "optimization_plot_results": False,
-                "optimization_r_nn_range": None,  # [min_meters, max_meters] or None for auto
-                "optimization_dt_nn_range": None  # [min_hours, max_hours] or None for auto
+                "core_network": {
+                    "monte_carlo_simulations": 1,
+                    "search_radius_meters": None,
+                    "search_time_window_hours": None,
+                    "magnitude_type": "ML"
+                },
+                "outlier_detection": {
+                    "remove_outliers": True,
+                    "outlier_method": "dbscan"
+                },
+                "focal_mechanism_constraints": {
+                    "use_focal_constraints": True
+                },
+                "automatic_parameter_optimization": {
+                    "auto_optimize_parameters": True,
+                    "optimization_method": "optuna",
+                    "optimization_use_adaptive_weights": True,
+                    "optimization_random_state": 42,
+                    "optimization_n_trials": 100,
+                    "optimization_startup_trials": 10,
+                    "optimization_early_stopping_rounds": 10,
+                    "optimization_early_stopping_threshold": 0.0001,
+                    "optimization_plot_results": True,
+                    "optimization_r_nn_range": [50, 2000],
+                    "optimization_dt_nn_range": [999999, 999999]
+                }
             }
     
     def to_dict(self) -> Dict[str, Any]:
@@ -76,8 +92,8 @@ class ModelValidationNode:
             self.parameters = {
                 "check_magnitude_consistency": True,
                 "check_location_consistency": True,
-                "maximum_distance_km": 5.0,
-                "maximum_magnitude_difference": 0.5
+                "maximum_distance_km": 1.0,
+                "maximum_magnitude_difference": 0.2
             }
     
     def to_dict(self) -> Dict[str, Any]:
@@ -98,19 +114,28 @@ class AutoClassificationNode:
             self.depends_on = ["model_validation"]
         if self.parameters is None:
             self.parameters = {
-                "number_of_clusters": 2,
-                "clustering_algorithm": "vmf_soft",
-                "rotate_poles_before_analysis": True,
-                "convergence_tolerance": 1e-6,
-                "maximum_iterations": 100,
-                "spatial_clustering_method": "dbscan",
-                "use_fault_plane_points_for_clustering": False,
-                "fault_plane_point_density_meters": 10.0,
-                "fault_plane_radius_interval_meters": 10.0,
-                "use_anisotropic_eps": False,
-                "in_plane_eps_meters": 500.0,
-                "out_of_plane_eps_meters": 50.0,
-                "anisotropic_min_samples": 5
+                "orientation_clustering": {
+                    "auto_determine_clusters": True,
+                    "max_clusters": 3,
+                    "clustering_algorithm": "vmf_soft",
+                    "rotate_poles_before_analysis": True,
+                    "convergence_tolerance": 1e-6,
+                    "maximum_iterations": 300
+                },
+                "spatial_sub_clustering": {
+                    "enable_spatial_clustering": True,
+                    "spatial_clustering_method": "dbscan",
+                    "min_events_per_cluster": 5,
+                    "fault_plane_clustering_eps_meters": 100,
+                    "fault_plane_clustering_min_samples": 5,
+                    "use_fault_plane_points_for_clustering": True,
+                    "fault_plane_point_density_meters": 20.0,
+                    "fault_plane_radius_interval_meters": 20.0,
+                    "use_anisotropic_eps": True,
+                    "in_plane_eps_meters": 500,
+                    "out_of_plane_eps_meters": 50,
+                    "anisotropic_min_samples": 20
+                }
             }
     
     def to_dict(self) -> Dict[str, Any]:
@@ -164,23 +189,25 @@ class VisualizationNode:
             self.depends_on = ["stress_analysis"]
         if self.parameters is None:
             self.parameters = {
-                "generate_3d_model": True,
-                "generate_stereonet": True,
-                "generate_summary_plots": True,
-                "output_formats": ["html", "png"],
-                "interactive_plots": True,
-                # Interpolation parameters
-                "enable_plane_interpolation": True,
-                "poisson_depth": 2,
-                "density_threshold": 0.01,
-                "max_distance_factor": 2.5,
-                "spatial_clustering_method": "adaptive",  # "kmeans", "dbscan", "adaptive"
-                "n_spatial_clusters": 2,
-                "min_events_per_cluster": 10,
-                "export_interpolated_vtp": True,
-                # Mesh stress calculation
-                "enable_mesh_stress": True,
-                "mesh_subdivisions": 2
+                "basic_visualization": {
+                    "generate_3d_model": True,
+                    "generate_stereonet": True
+                },
+                "fault_surface_interpolation": {
+                    "enable_plane_interpolation": True,
+                    "enable_mesh_stress": True,
+                    "mesh_subdivisions": 2,
+                    "poisson_depth": 2,
+                    "density_threshold": 0.2,
+                    "max_distance_factor": 2.5,
+                    "spatial_clustering_method": "adaptive",
+                    "min_events_per_cluster": 10,
+                    "min_fault_planes_for_interpolation": 10
+                },
+                "3d_export": {
+                    "export_vtp": True,
+                    "export_obj": False
+                }
             }
     
     def to_dict(self) -> Dict[str, Any]:

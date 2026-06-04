@@ -26,22 +26,24 @@ from .validation import (
 @dataclass
 class FaultNetworkConfig:
     """Configuration for fault network reconstruction module."""
-    n_mc: int = 1000                    # number of Monte Carlo simulations
-    r_nn: Union[float, str, None] = 100.0     # search radius [m] of nearest neighbor search, 'auto', or None
-    dt_nn: Union[float, str, None] = 26298.0  # search time window [h], 'auto', or None
+    n_mc: int = 1                       # number of Monte Carlo simulations
+    r_nn: Union[float, str, None] = None     # search radius [m] of nearest neighbor search, 'auto', or None
+    dt_nn: Union[float, str, None] = None    # search time window [h], 'auto', or None
     mag_type: str = 'ML'                # magnitude type: 'ML' or 'Mw'
     
     # Parameter optimization settings
-    auto_optimize_parameters: bool = False      # enable automatic parameter optimization
+    auto_optimize_parameters: bool = True       # enable automatic parameter optimization
     optimization_method: str = 'optuna'        # optimization method: 'grid_search', 'optuna', 'pareto', or 'heuristic'
     optimization_grid_points: int = 25         # number of grid points per dimension for grid search
     
     # Optuna optimization specific settings
-    optimization_n_trials: int = 50             # total trials for Optuna optimization
+    optimization_n_trials: int = 100            # total trials for Optuna optimization
     optimization_sampler: str = 'tpe'           # Optuna sampler: 'tpe', 'cmaes', 'random'
     optimization_n_startup_trials: int = 10     # random trials before sampler optimization
-    optimization_early_stopping_rounds: Optional[int] = None  # stop if no improvement for N trials (None = disabled)
+    optimization_early_stopping_rounds: Optional[int] = 10  # stop if no improvement for N trials (None = disabled)
     optimization_early_stopping_threshold: float = 1e-4  # minimum improvement threshold
+    optimization_use_adaptive_weights: bool = True  # use adaptive weights during optimization
+    optimization_plot_results: bool = True      # plot optimization results
     
     # Pareto multi-objective optimization parameters
     optimization_pareto_sampler: str = 'nsga2'  # Pareto sampler: 'nsga2', 'nsga3', 'random'
