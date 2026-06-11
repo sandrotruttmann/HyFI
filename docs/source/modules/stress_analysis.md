@@ -137,6 +137,8 @@ The stress analysis results are finally added to the full DataFrame `df_hyfi`.
 
 ### DataFrame Columns Added
 
+#### Rupture Plane (HyFI-fitted from hypocenter distribution)
+
 **Stress Magnitude Parameters**:
 - **`Sn_eff`**: Effective normal stress on fault plane (normalized units)
 - **`Tau`**: Resolved shear stress magnitude on fault plane (normalized units)
@@ -148,6 +150,22 @@ The stress analysis results are finally added to the full DataFrame `df_hyfi`.
 - **`instab`**: Instability index
 - **`sliptend`**: Slip tendency (T_s)
 - **`dilatend`**: Dilation tendency (T_d)
+
+#### Focal Mechanism Nodal Planes (NP1 and NP2)
+
+When focal mechanism data is available, the same tendency metrics are calculated for both nodal planes. These are computed during the final database export step and are written to `HyFI_database_focals.csv` (not the per-sequence `HyFI_results.csv`), allowing direct comparison of both nodal planes across the full focal mechanism catalog.
+
+**Nodal Plane 1 (NP1)** — from `Strike1`/`Dip1`:
+- **`NP1_instability_index`**: Fault instability on NP1
+- **`NP1_slip_tendency`**: Slip tendency on NP1 (T_s)
+- **`NP1_dilation_tendency`**: Dilation tendency on NP1 (T_d)
+
+**Nodal Plane 2 (NP2)** — from `Strike2`/`Dip2`:
+- **`NP2_instability_index`**: Fault instability on NP2
+- **`NP2_slip_tendency`**: Slip tendency on NP2 (T_s)
+- **`NP2_dilation_tendency`**: Dilation tendency on NP2 (T_d)
+
+All tendency parameters range from 0 to 1, with interpretation identical to the rupture plane metrics. This enables identification of which nodal plane is more favorably oriented for slip and dilation under the regional stress field.
 
 ---
 

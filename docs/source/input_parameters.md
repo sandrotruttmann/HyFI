@@ -319,12 +319,22 @@ Fault stress analysis and failure assessment using regional stress field.
 | `friction_coefficient` | float | `0.75` | Coulomb friction coefficient μ. Range: 0.6-0.85 typical (Byerlee's law: ~0.6-1.0). Controls fault reactivation potential |
 
 **Calculated Outputs**:
+
+*For rupture plane (HyFI-fitted):*
 - Effective normal stress (Sn_eff)
 - Shear stress (Tau)
 - Rake (slip direction)
 - Instability index (I)
 - Slip tendency
 - Dilation tendency
+
+*For focal mechanism nodal planes (if available):*
+- NP1 instability index
+- NP1 slip tendency
+- NP1 dilation tendency
+- NP2 instability index
+- NP2 slip tendency
+- NP2 dilation tendency
 
 ---
 

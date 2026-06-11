@@ -1540,6 +1540,10 @@ class MultiSequenceWorkflow:
             else:
                 print("    Warning: No active_plane_determination_summary.csv files found in sequence directories")
 
+            # Calculate stress parameters for both nodal planes (NP1 and NP2)
+            # Extract stress field parameters from config template
+            self._add_nodal_plane_stress(df_focals)
+
             # Save enhanced focal mechanism catalog
             focal_file_out = database_dir / 'HyFI_database_focals.csv'
             df_focals.to_csv(focal_file_out, index=False)
@@ -1560,6 +1564,177 @@ class MultiSequenceWorkflow:
         except Exception as e:
             print(f"  Warning: Could not export focal mechanism catalog: {e}")
     
+    def _add_nodal_plane_stress(self, df_focals: pd.DataFrame) -> None:
+        """Compute instability, slip tendency, and dilation tendency for both
+        focal mechanism nodal planes (NP1 = Strike1/Dip1, NP2 = Strike2/Dip2)
+        and add the results as new columns to *df_focals* in-place.
+
+        Stress field parameters are read from the sequence workflow template
+        stored in the multi-sequence config.  If stress analysis is disabled or
+        the required parameters are missing the method returns without adding
+        columns (so the rest of the catalog export is not affected).
+        """
+        from ..core.stress_analysis import stress_on_plane_I, stress_on_plane_slipdilatend
+
+        # ── Retrieve stress parameters from config ──────────────────────────
+        try:
+            stress_node = None
+
+            # DAG-style config: stress_analysis is inside step_3_per_sequence_analysis
+            for attr in ('sequence_workflow_template', 'cluster_workflow_template'):
+                tmpl = getattr(self.config, attr, None)
+                if isinstance(tmpl, dict) and 'workflow_dag' in tmpl:
+                    dag = tmpl['workflow_dag']
+                    # Try direct key first (flattened templates)
+                    if 'stress_analysis' in dag:
+                        stress_node = dag['stress_analysis']
+                    # Then look inside step_3_per_sequence_analysis (standard DAG format)
+                    elif 'step_3_per_sequence_analysis' in dag:
+                        stress_node = dag['step_3_per_sequence_analysis'].get('stress_analysis', {})
+                    if stress_node:
+                        break
+
+            # Also check the main workflow_dag directly on cluster_workflow_template
+            # (standard case: step_3_per_sequence_analysis wraps stress_analysis)
+            if not stress_node:
+                print("  Nodal plane stress: stress_analysis node not found in config, skipping.")
+                return
+
+            # Fallback: reconstruct from template_config (legacy format)
+            if not stress_node and hasattr(self.config, 'template_config'):
+                tc = self.config.template_config
+                sa = tc.stress_analysis
+                if not getattr(sa, 'stress_bool', False):
+                    return
+                stress_node = {
+                    'enabled': True,
+                    'parameters': {
+                        'stress_field': {
+                            'sigma1_trend_degrees': getattr(sa, 'S1_trend', None),
+                            'sigma1_plunge_degrees': getattr(sa, 'S1_plunge', None),
+                            'sigma3_trend_degrees': getattr(sa, 'S3_trend', None),
+                            'sigma3_plunge_degrees': getattr(sa, 'S3_plunge', None),
+                            'stress_shape_ratio': getattr(sa, 'stress_R', None),
+                        },
+                        'mechanical_properties': {
+                            'pore_pressure_mpa': getattr(sa, 'PP', 0.0),
+                            'friction_coefficient': getattr(sa, 'fric_coeff', 0.75),
+                        }
+                    }
+                }
+
+            if not stress_node or not stress_node.get('enabled', False):
+                print("  Nodal plane stress: stress analysis disabled in config, skipping.")
+                return
+
+            sf = stress_node.get('parameters', {}).get('stress_field', {})
+            mp = stress_node.get('parameters', {}).get('mechanical_properties', {})
+            PP         = mp.get('pore_pressure_mpa', 0.0)
+            fric_coeff = mp.get('friction_coefficient', 0.75)
+
+            # Resolve stress orientation: shapefile or fixed values
+            use_shapefile = sf.get('use_shapefile', False)
+            S1_trend = S1_plunge = S3_trend = S3_plunge = stress_R = None
+
+            if use_shapefile:
+                shapefile_path = sf.get('shapefile_path', None)
+                if shapefile_path:
+                    # Resolve relative path against config source file
+                    shp = Path(shapefile_path)
+                    if not shp.is_absolute() and self.config_source_file:
+                        shp = (Path(self.config_source_file).parent / shp).resolve()
+                    try:
+                        from ..core.stress_analysis import (load_stress_field_from_shapefile,
+                                                            get_stress_field_for_point)
+                        stress_gdf = load_stress_field_from_shapefile(str(shp))
+                        # Use centroid of all focal mechanism hypocenters
+                        cx = float(df_focals['X'].mean()) if 'X' in df_focals.columns else None
+                        cy = float(df_focals['Y'].mean()) if 'Y' in df_focals.columns else None
+                        if cx is None or cy is None:
+                            print("  Nodal plane stress: no X/Y in focal catalog, cannot query shapefile.")
+                            return
+                        source_crs = getattr(self.config, 'coordinate_system', 'EPSG:21781')
+                        resolved = get_stress_field_for_point(cx, cy, stress_gdf, source_crs=source_crs)
+                        if resolved is None:
+                            print(f"  Nodal plane stress: focal centroid ({cx:.0f}, {cy:.0f}) not within any stress polygon.")
+                            return
+                        S1_trend  = resolved['S1_trend']
+                        S1_plunge = resolved['S1_plunge']
+                        S3_trend  = resolved['S3_trend']
+                        S3_plunge = resolved['S3_plunge']
+                        stress_R  = resolved['stress_R']
+                    except Exception as e:
+                        print(f"  Warning: Could not load shapefile stress for nodal planes: {e}")
+                        return
+            else:
+                S1_trend  = sf.get('sigma1_trend_degrees')
+                S1_plunge = sf.get('sigma1_plunge_degrees')
+                S3_trend  = sf.get('sigma3_trend_degrees')
+                S3_plunge = sf.get('sigma3_plunge_degrees')
+                stress_R  = sf.get('stress_shape_ratio')
+
+            # Validate all required parameters are present
+            required = [S1_trend, S1_plunge, S3_trend, S3_plunge, stress_R]
+            if any(p is None or (isinstance(p, float) and np.isnan(p)) for p in required):
+                print("  Nodal plane stress: stress field parameters incomplete, skipping.")
+                return
+
+        except Exception as e:
+            print(f"  Warning: Could not read stress parameters for nodal plane stress: {e}")
+            return
+
+        # ── Stress magnitudes (Vavrycuk convention) ──────────────────────────
+        S1_mag = 1.0
+        S2_mag = 1.0 - 2.0 * stress_R
+        S3_mag = -1.0
+
+        print("  Calculating stress for focal mechanism nodal planes (NP1, NP2)...")
+
+        for np_tag, strike_col, dip_col in [('NP1', 'Strike1', 'Dip1'),
+                                             ('NP2', 'Strike2', 'Dip2')]:
+            if strike_col not in df_focals.columns or dip_col not in df_focals.columns:
+                continue
+
+            I_list        = []
+            sliptend_list = []
+            dilatend_list = []
+
+            for _, row in df_focals.iterrows():
+                strike = row[strike_col]
+                dip    = row[dip_col]
+
+                if pd.isna(strike) or pd.isna(dip):
+                    I_list.append(np.nan)
+                    sliptend_list.append(np.nan)
+                    dilatend_list.append(np.nan)
+                    continue
+
+                try:
+                    _, _, _, I_val, _, _ = stress_on_plane_I(
+                        S1_mag, S2_mag, S3_mag,
+                        S1_trend, S1_plunge,
+                        S3_trend, S3_plunge,
+                        strike, dip,
+                        PP, fric_coeff)
+                    _, _, _, sliptend_val, dilatend_val, _, _ = stress_on_plane_slipdilatend(
+                        S1_trend, S1_plunge,
+                        S3_trend, S3_plunge,
+                        strike, dip,
+                        PP, fric_coeff, stress_R)
+                    I_list.append(round(float(I_val), 3))
+                    sliptend_list.append(round(float(sliptend_val), 3))
+                    dilatend_list.append(round(float(dilatend_val), 3))
+                except Exception:
+                    I_list.append(np.nan)
+                    sliptend_list.append(np.nan)
+                    dilatend_list.append(np.nan)
+
+            df_focals[f'{np_tag}_instability_index'] = I_list
+            df_focals[f'{np_tag}_slip_tendency']     = sliptend_list
+            df_focals[f'{np_tag}_dilation_tendency'] = dilatend_list
+            n_ok = sum(1 for v in I_list if not pd.isna(v))
+            print(f"    {np_tag}: computed for {n_ok}/{len(df_focals)} events")
+
     def _merge_and_export_vtp_files(self):
         """Merge VTP files from all clusters and export combined versions."""
         print('')

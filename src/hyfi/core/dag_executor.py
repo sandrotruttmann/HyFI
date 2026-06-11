@@ -1025,7 +1025,7 @@ class DAGExecutor:
                 'rake': 'rake_angle',
                 'instab': 'instability_index',
                 'sliptend': 'slip_tendency',
-                'dilatend': 'dilation_tendency'
+                'dilatend': 'dilation_tendency',
             }
             df_hyfi = df_hyfi.rename(columns=column_rename_map)
             
